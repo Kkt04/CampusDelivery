@@ -1,12 +1,13 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { tokenStore } from "../api/client";
 import { authApi } from "../api/endpoints";
-import type { Role, User } from "../api/types";
+import type { Role, SignupInput, User } from "../api/types";
 
 interface AuthState {
   user: User | null;
   ready: boolean;
   login: (identifier: string, password: string) => Promise<User>;
+  signup: (input: SignupInput) => Promise<User>;
   logout: () => void;
 }
 
@@ -40,12 +41,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return result.user;
   }, []);
 
+  const signup = useCallback(async (input: SignupInput) => {
+    const result = await authApi.signup(input);
+    tokenStore.set(result.access_token);
+    setUser(result.user);
+    return result.user;
+  }, []);
+
   const logout = useCallback(() => {
     tokenStore.clear();
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, ready, login, logout }), [user, ready, login, logout]);
+  const value = useMemo(() => ({ user, ready, login, signup, logout }), [user, ready, login, signup, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

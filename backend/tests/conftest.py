@@ -1,15 +1,14 @@
 """Test configuration.
 
-Tests run against an isolated throwaway database: a temporary SQLite file by
-default, or PostgreSQL if TEST_DATABASE_URL is set (e.g. a dedicated
-`campus_delivery_test` database). Tables are recreated for every test, so
-tests never touch development or real data.
+Tests run against an isolated throwaway MongoDB database (`campus_delivery_test`
+by default, or `TEST_MONGO_DB`/`TEST_MONGO_URL` if set). Every collection is
+dropped and its indexes recreated before each test, so tests never touch
+development or real data.
 """
 import os
-import tempfile
 
-_TMP_DIR = tempfile.mkdtemp(prefix="campus-tests-")
-os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", f"sqlite:///{_TMP_DIR}/test.db")
+os.environ.setdefault("MONGO_URL", os.environ.get("TEST_MONGO_URL", "mongodb://localhost:27017"))
+os.environ["MONGO_DB"] = os.environ.get("TEST_MONGO_DB", "campus_delivery_test")
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SECRET_KEY"] = "test-only-secret-key-that-is-long-enough-123456"
 os.environ["BCRYPT_ROUNDS"] = "4"
@@ -24,7 +23,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from app.container import container  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
 from app.domain.enums import PackageSize, Role  # noqa: E402
-from app.infrastructure.database import Base, engine  # noqa: E402
+from app.infrastructure.database import get_db, next_id, reset_db  # noqa: E402
 from app.infrastructure.models import StorageLocation, User  # noqa: E402
 from app.infrastructure.notifications import InAppChannel  # noqa: E402
 from app.main import app  # noqa: E402
@@ -34,8 +33,7 @@ PASSWORD = "Passw0rd!"
 
 @pytest.fixture(autouse=True)
 def fresh_database() -> Iterator[None]:
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    reset_db()
     container.login_limiter.reset()
     original_channels = container.dispatcher.channels
     container.dispatcher.channels = [InAppChannel()]
@@ -58,13 +56,13 @@ def users() -> dict[str, User]:
         "learner2": ("LRN-1002", "Learner Two", Role.LEARNER),
     }
     created: dict[str, User] = {}
-    with container.session_factory() as session:
-        for key, (inst, name, role) in specs.items():
-            user = User(institutional_id=inst, full_name=name, email=f"{inst.lower()}@campus.example.edu", role=role,
-                        password_hash=hash_password(PASSWORD), is_active=True)
-            session.add(user)
-            created[key] = user
-        session.commit()
+    db = get_db()
+    for key, (inst, name, role) in specs.items():
+        user = User(id=next_id(User.COLLECTION), institutional_id=inst, full_name=name,
+                    email=f"{inst.lower()}@campus.example.edu", role=role,
+                    password_hash=hash_password(PASSWORD), is_active=True)
+        db[User.COLLECTION].insert_one(user.to_doc())
+        created[key] = user
     return created
 
 
@@ -73,12 +71,12 @@ def locations() -> dict[str, StorageLocation]:
     specs = {"small": ("T-S1", 2, PackageSize.SMALL), "medium": ("T-M1", 2, PackageSize.MEDIUM),
              "large": ("T-L1", 1, PackageSize.LARGE)}
     created: dict[str, StorageLocation] = {}
-    with container.session_factory() as session:
-        for key, (code, cap, size) in specs.items():
-            loc = StorageLocation(code=code, capacity=cap, occupied_count=0, max_package_size=size, is_active=True)
-            session.add(loc)
-            created[key] = loc
-        session.commit()
+    db = get_db()
+    for key, (code, cap, size) in specs.items():
+        loc = StorageLocation(id=next_id(StorageLocation.COLLECTION), code=code, capacity=cap,
+                              occupied_count=0, max_package_size=size, is_active=True)
+        db[StorageLocation.COLLECTION].insert_one(loc.to_doc())
+        created[key] = loc
     return created
 
 

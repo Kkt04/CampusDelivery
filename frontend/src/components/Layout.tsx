@@ -109,7 +109,7 @@ export function Brand() {
   return (
     <div className="flex items-center gap-2.5">
       <svg viewBox="0 0 32 32" className="h-8 w-8" aria-hidden>
-        <rect width="32" height="32" rx="7" fill="#2D6A4F" />
+        <rect width="32" height="32" rx="7" fill="#C2410C" />
         <path d="M8 12.5 16 8l8 4.5v8L16 25l-8-4.5zM8 12.5 16 17l8-4.5M16 17v8" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
       </svg>
       <div className="leading-tight">

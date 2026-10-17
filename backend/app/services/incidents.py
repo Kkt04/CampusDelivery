@@ -57,6 +57,7 @@ class IncidentService:
             return incident  # already resolved: repeat calls are harmless
         incident.status = IncidentStatus.RESOLVED
         incident.resolved_by_id = actor.id
+        incident.resolved_by = actor
         incident.resolved_at = utcnow()
         incident.resolution_note = resolution_note.strip()
         self._audit.record(actor, "incident.resolved", "incident", incident.id, {"note": incident.resolution_note})

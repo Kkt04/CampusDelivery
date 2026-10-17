@@ -28,7 +28,7 @@
   background:
     radial-gradient(circle at 0 50%, transparent 14px, #fff 14.5px) left / 51% 100% no-repeat,
     radial-gradient(circle at 100% 50%, transparent 14px, #fff 14.5px) right / 51% 100% no-repeat;
-  filter: drop-shadow(0 1px 0 #DCE3DE) drop-shadow(0 -1px 0 #DCE3DE) drop-shadow(1px 0 0 #DCE3DE) drop-shadow(-1px 0 0 #DCE3DE);
+  filter: drop-shadow(0 1px 0 #EFD8CA) drop-shadow(0 -1px 0 #EFD8CA) drop-shadow(1px 0 0 #EFD8CA) drop-shadow(-1px 0 0 #EFD8CA);
 }
 
 @media (prefers-reduced-motion: reduce) {

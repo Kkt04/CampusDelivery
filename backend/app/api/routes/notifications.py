@@ -41,7 +41,7 @@ def mark_all_read(user: User = Depends(get_current_user), uow: UnitOfWork = Depe
 @router.post("/retry-failed", summary="Admin: retry FAILED or stuck PENDING notifications")
 def retry_failed(user: User = Depends(require(Permission.NOTIFICATION_ADMIN)),
                  uow: UnitOfWork = Depends(get_uow)) -> dict[str, int]:
-    result = container.dispatcher.retry(uow.session, container.settings.notification_max_attempts)
+    result = container.dispatcher.retry(container.settings.notification_max_attempts)
     AuditService(uow.audit).record(user, "notification.retry", "notification", None, result)
     uow.commit()
     return result

@@ -1,65 +1,74 @@
-"""Database engine, session factory and shared column types.
+"""MongoDB connection, index setup and auto-increment id counters.
 
-PostgreSQL is the production database. SQLite is supported for local
-development and tests; for SQLite we start every transaction with
-`BEGIN IMMEDIATE`, which serialises writers the way PostgreSQL's row locks
-(`SELECT ... FOR UPDATE`) do for the rows we lock.
+The application is synchronous, so we use the standard PyMongo driver. Each
+repository receives the shared `Database` handle and writes directly.
+
+Concurrency notes
+-----------------
+MongoDB standalone servers do not support multi-document transactions. The
+domain's "one transaction per use case" therefore becomes a sequence of
+condition-guarded single-document writes plus unique indexes:
+
+* slot reservation, code consumption and status changes use
+  `find_one_and_update` with the precondition in the filter, so two racing
+  requests can never both win;
+* `pickup_records.package_id` and `idempotency_keys` have unique indexes, so a
+  double collection or a duplicate retry is rejected by the database.
 """
-from datetime import datetime
-
-from sqlalchemy import DateTime, MetaData, create_engine, event
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy.types import TypeDecorator
+from pymongo import ASCENDING, MongoClient, ReturnDocument
+from pymongo.database import Database
 
 from app.core.config import get_settings
-from app.core.time import ensure_utc
 
-NAMING_CONVENTION = {
-    "ix": "ix_%(column_0_label)s",
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s",
-}
+_client: MongoClient | None = None
+_db: Database | None = None
 
 
-class Base(DeclarativeBase):
-    metadata = MetaData(naming_convention=NAMING_CONVENTION)
+def get_client() -> MongoClient:
+    global _client
+    if _client is None:
+        settings = get_settings()
+        _client = MongoClient(settings.mongo_url, tz_aware=True, serverSelectionTimeoutMS=5000)
+    return _client
 
 
-class UTCDateTime(TypeDecorator):
-    """Always store and return timezone-aware UTC datetimes (SQLite drops tzinfo)."""
-
-    impl = DateTime(timezone=True)
-    cache_ok = True
-
-    def process_bind_param(self, value: datetime | None, dialect):  # noqa: ANN001
-        return ensure_utc(value) if value is not None else None
-
-    def process_result_value(self, value: datetime | None, dialect):  # noqa: ANN001
-        return ensure_utc(value) if value is not None else None
+def get_db() -> Database:
+    global _db
+    if _db is None:
+        _db = get_client()[get_settings().mongo_db]
+    return _db
 
 
-def build_engine(url: str, echo: bool = False) -> Engine:
-    if url.startswith("sqlite"):
-        engine = create_engine(url, echo=echo, connect_args={"check_same_thread": False, "timeout": 30})
-
-        @event.listens_for(engine, "connect")
-        def _sqlite_connect(dbapi_connection, _record):  # noqa: ANN001
-            dbapi_connection.isolation_level = None  # let SQLAlchemy emit BEGIN itself
-            cursor = dbapi_connection.cursor()
-            cursor.execute("PRAGMA foreign_keys=ON")
-            cursor.close()
-
-        @event.listens_for(engine, "begin")
-        def _sqlite_begin(connection):  # noqa: ANN001
-            connection.exec_driver_sql("BEGIN IMMEDIATE")
-
-        return engine
-    return create_engine(url, echo=echo, pool_pre_ping=True)
+def next_id(collection: str) -> int:
+    """Atomically allocate the next integer id for a collection."""
+    doc = get_db()["counters"].find_one_and_update(
+        {"_id": collection}, {"$inc": {"seq": 1}}, upsert=True, return_document=ReturnDocument.AFTER
+    )
+    return int(doc["seq"])
 
 
-_settings = get_settings()
-engine = build_engine(_settings.database_url, _settings.sql_echo)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+def init_db() -> None:
+    """Create the indexes the application relies on. Safe to call repeatedly."""
+    db = get_db()
+
+    def unique(collection: str, keys: list[tuple[str, int]], **kwargs: object) -> None:
+        db[collection].create_index(keys, unique=True, **kwargs)  # type: ignore[arg-type]
+
+    unique("users", [("institutional_id", ASCENDING)])
+    unique("users", [("email", ASCENDING)])
+    unique("packages", [("internal_code", ASCENDING)])
+    unique("packages", [("tracking_id", ASCENDING)], partialFilterExpression={"tracking_id": {"$type": "string"}})
+    unique("pickup_records", [("package_id", ASCENDING)])
+    unique("pickup_records", [("token_id", ASCENDING)])
+    unique("idempotency_keys", [("user_id", ASCENDING), ("scope", ASCENDING), ("key", ASCENDING)])
+
+    db["packages"].create_index([("status", ASCENDING), ("arrived_at", ASCENDING)])
+    db["notifications"].create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
+
+
+def reset_db() -> None:
+    """Drop every collection. Used by the test suite only."""
+    db = get_db()
+    for name in db.list_collection_names():
+        db[name].drop()
+    init_db()

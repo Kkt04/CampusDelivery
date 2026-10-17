@@ -1,11 +1,10 @@
 """Pickup code issuance, verification, handover, and double-collection protection."""
 import threading
 
-from sqlalchemy import update
-
 from app.container import container
 from app.core.exceptions import AppError
 from app.core.time import utcnow
+from app.infrastructure.database import get_db
 from app.infrastructure.models import Package, PickupRecord, PickupToken, StorageLocation
 from app.services.pickup import PickupService
 from tests.conftest import make_ready, register, request_code
@@ -28,8 +27,8 @@ def test_full_pickup_flow_releases_storage_and_notifies(client, h, locations):
     assert done.json()["handed_over_by"]["institutional_id"] == "SEC-001"
     final = client.get(f"/api/v1/packages/{package['id']}", headers=h["sec1"]).json()
     assert final["status"] == "COLLECTED" and final["storage_location"] is None and final["closed_at"]
-    with container.session_factory() as s:
-        assert s.get(StorageLocation, locations["small"].id).occupied_count == 0
+    db = get_db()
+    assert db[StorageLocation.COLLECTION].find_one({"_id": locations["small"].id})["occupied_count"] == 0
     titles = [n["title"] for n in client.get("/api/v1/notifications", headers=h["learner1"]).json()["items"]]
     assert titles[:3] == ["Package collected", "Ready for pickup", "Package arrived"]
     history = client.get("/api/v1/pickups", headers=h["learner1"]).json()
@@ -56,9 +55,8 @@ def test_wrong_code_and_wrong_learner_are_rejected_and_counted(client, h, locati
     r2 = client.post("/api/v1/pickups/complete", json=handover_body(package, code, learner="LRN-1002"),
                      headers=h["sec1"])
     assert r2.json()["error"]["code"] == "PICKUP_WRONG_RECIPIENT"
-    with container.session_factory() as s:
-        token = s.query(PickupToken).filter_by(package_id=package["id"]).one()
-        assert token.failed_attempts == 2 and token.used_at is None
+    token = get_db()[PickupToken.COLLECTION].find_one({"package_id": package["id"]})
+    assert token["failed_attempts"] == 2 and token["used_at"] is None
 
 
 def test_code_locks_after_too_many_wrong_attempts(client, h, locations):
@@ -74,9 +72,7 @@ def test_code_locks_after_too_many_wrong_attempts(client, h, locations):
 def test_expired_code_is_rejected_and_a_new_code_works(client, h, locations):
     package = make_ready(client, h["sec1"])
     old_code = request_code(client, h["learner1"], package["id"])
-    with container.session_factory() as s:
-        s.execute(update(PickupToken).values(expires_at=utcnow()))
-        s.commit()
+    get_db()[PickupToken.COLLECTION].update_many({}, {"$set": {"expires_at": utcnow()}})
     response = client.post("/api/v1/pickups/complete", json=handover_body(package, old_code), headers=h["sec1"])
     assert response.json()["error"]["code"] == "PICKUP_CODE_EXPIRED"
     new_code = request_code(client, h["learner1"], package["id"])  # learner simply asks again
@@ -117,8 +113,7 @@ def test_network_retry_of_handover_is_replayed(client, h, locations):
     retry = client.post("/api/v1/pickups/complete", json=handover_body(package, code), headers=headers)
     assert first.status_code == 201 and retry.status_code == 200
     assert retry.json()["id"] == first.json()["id"]
-    with container.session_factory() as s:
-        assert s.query(PickupRecord).count() == 1
+    assert get_db()[PickupRecord.COLLECTION].count_documents({}) == 1
 
 
 def test_shift_change_does_not_block_the_workflow(client, h, locations):
@@ -151,7 +146,7 @@ def test_concurrent_handover_results_in_exactly_one_collection(client, h, users,
     [t.start() for t in threads]
     [t.join() for t in threads]
     assert sorted(outcomes) == ["ALREADY_COLLECTED", "ok"]
-    with container.session_factory() as s:
-        assert s.query(PickupRecord).filter_by(package_id=package["id"]).count() == 1
-        assert s.get(Package, package["id"]).status == "COLLECTED"
-        assert s.get(StorageLocation, locations["small"].id).occupied_count == 0
+    db = get_db()
+    assert db[PickupRecord.COLLECTION].count_documents({"package_id": package["id"]}) == 1
+    assert db[Package.COLLECTION].find_one({"_id": package["id"]})["status"] == "COLLECTED"
+    assert db[StorageLocation.COLLECTION].find_one({"_id": locations["small"].id})["occupied_count"] == 0

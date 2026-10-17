@@ -5,8 +5,7 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from app.core.config import Settings
 from app.core.exceptions import ValidationFailedError
-from app.domain.enums import NotificationStatus, PackageCondition, PackageStatus
-from app.infrastructure.models import Package
+from app.domain.enums import NotificationStatus, PackageStatus
 from app.repositories.unit_of_work import UnitOfWork
 
 MAX_REPORT_DAYS = 92
@@ -27,8 +26,8 @@ class ReportService:
             "in_custody": sum(c for s, c in by_status.items()
                               if s not in {PackageStatus.COLLECTED, PackageStatus.RETURNED, PackageStatus.LOST}),
             "overdue": self._uow.packages.count_overdue(now, self._settings.collection_deadline_days),
-            "damaged_condition": self._uow.packages.count_where(Package.condition == PackageCondition.DAMAGED),
-            "received_today": self._uow.packages.count_where(Package.arrived_at >= start_of_day),
+            "damaged_condition": self._uow.packages.count_damaged_condition(),
+            "received_today": self._uow.packages.count_arrived_since(start_of_day),
             "collected_today": len(self._uow.pickups.collection_times_between(start_of_day, now + timedelta(seconds=1))),
             "open_incidents": self._uow.incidents.count_open(),
             "failed_notifications": self._uow.notifications.count_by_status(NotificationStatus.FAILED),

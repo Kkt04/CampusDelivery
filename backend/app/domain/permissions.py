@@ -12,6 +12,7 @@ from app.domain.enums import Role
 class Permission(StrEnum):
     PACKAGE_VIEW_OWN = "package:view_own"
     PACKAGE_VIEW_ALL = "package:view_all"
+    PACKAGE_REQUEST_RETURN = "package:request_return"
     PACKAGE_REGISTER = "package:register"
     PACKAGE_MANAGE = "package:manage"  # storage, recipient, lifecycle transitions
     PICKUP_REQUEST = "pickup:request"
@@ -31,7 +32,8 @@ class Permission(StrEnum):
 
 ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
     Role.LEARNER: frozenset(
-        {Permission.PACKAGE_VIEW_OWN, Permission.PICKUP_REQUEST, Permission.INCIDENT_REPORT}
+        {Permission.PACKAGE_VIEW_OWN, Permission.PICKUP_REQUEST, Permission.PACKAGE_REQUEST_RETURN,
+         Permission.INCIDENT_REPORT}
     ),
     Role.SECURITY: frozenset(
         {

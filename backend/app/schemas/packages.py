@@ -66,6 +66,10 @@ class TransitionRequest(BaseModel):
     reason: str | None = Field(default=None, max_length=500)
 
 
+class ReturnRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=500, description="Why the package should go back to the courier")
+
+
 class StorageBrief(ORMModel):
     id: int
     code: str

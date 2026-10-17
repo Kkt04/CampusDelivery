@@ -9,11 +9,11 @@ A full-stack application that digitises the lifecycle of a campus package, from 
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.12, FastAPI, SQLAlchemy 2, Pydantic 2, Alembic, PyJWT, bcrypt |
-| Database | PostgreSQL 16 (primary); SQLite supported for local development and tests |
+| Backend | Python 3.12, FastAPI, PyMongo (MongoDB), Pydantic 2, PyJWT, bcrypt |
+| Database | MongoDB 6+ (documents, indexes and conditional updates replace migrations) |
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, React Router |
-| Testing | Pytest (74 tests: unit, API, concurrency, migration) |
-| Dev tooling | Docker Compose, Swagger/OpenAPI at `/docs` |
+| Testing | Pytest (unit, API, concurrency) against an isolated test database |
+| Dev tooling | Swagger/OpenAPI at `/docs` |
 
 Architecture: a **layered modular monolith** (see `docs/02-architecture.md`).
 
@@ -31,13 +31,12 @@ campus-delivery/
 │   │   ├── core/                # config, security (hashing/JWT/codes), exceptions, rate limit, time
 │   │   ├── domain/              # pure business rules: enums, state machine, permissions,
 │   │   │                        #   pickup rules, overdue, allocation strategies, events, interfaces
-│   │   ├── repositories/        # repository protocols, SQLAlchemy implementations, Unit of Work
+│   │   ├── repositories/        # repository protocols, MongoDB implementations, Unit of Work
 │   │   ├── services/            # use cases: intake, storage, pickup, lifecycle, incidents, ...
 │   │   ├── api/                 # dependencies (auth/RBAC), presenters, routes/
 │   │   ├── schemas/             # Pydantic request/response models
-│   │   └── infrastructure/      # database engine, ORM models, notification channels
-│   ├── alembic/                 # migrations (0001_initial_schema.py)
-│   ├── tests/                   # unit/, api/, test_migrations.py
+│   │   └── infrastructure/      # MongoDB connection/indexes, document models, notification channels
+│   ├── tests/                   # unit/, api/
 │   ├── requirements.txt         # pinned versions
 │   └── .env.example
 ├── frontend/
@@ -47,47 +46,36 @@ campus-delivery/
 │       ├── components/          # Layout, StatusBadge, PackageTable, LifecycleTrack, ui.tsx, ...
 │       ├── lib/                 # formatting, status metadata, useApi/useAction hooks
 │       └── pages/               # learner/, security/, ops/, shared/
-├── docs/                        # requirements, architecture, UML, ER, API, SOLID, viva prep, ...
-└── docker-compose.yml
+└── docs/                        # requirements, architecture, UML, ER, API, SOLID, viva prep, ...
 ```
 
 ## 2. Prerequisites
 
-Choose one path.
-
-| Path | You need |
+| Requirement | You need |
 |---|---|
-| A. Docker (easiest) | Docker Desktop or Docker Engine with Compose v2 |
-| B. Local with PostgreSQL (recommended for development) | Python 3.11 or 3.12, Node.js 20+ and npm, PostgreSQL 14+ |
-| C. Local with SQLite (no database server) | Python 3.11 or 3.12, Node.js 20+ and npm |
+| Python | 3.11 or 3.12 |
+| Node.js | 20+ and npm |
+| MongoDB | A running MongoDB 6+ server (local `mongod` or MongoDB Atlas) |
 
-## 3. Quick start with Docker (path A)
+## 3. Start MongoDB
 
-```bash
-docker compose up --build
-```
-
-Then open <http://localhost:8080>. The API runs on <http://localhost:8000> and its interactive
-documentation on <http://localhost:8000/docs>. The `api` container applies migrations and
-loads demo data on start-up (`SEED_DEMO_DATA=true` in `docker-compose.yml`).
-
-To start again from an empty database: `docker compose down -v`.
-
-> The Compose files were written for this project but were not executed in the environment
-> where the project was built (Docker was unavailable there). Paths B and C were run and verified.
-
-## 4. Local setup with PostgreSQL (path B)
-
-### 4.1 Create the database
+Install MongoDB Community Edition and run it locally, or use MongoDB Atlas:
 
 ```bash
-# as a PostgreSQL superuser (e.g. `sudo -u postgres psql`)
-CREATE USER campus WITH PASSWORD 'campus';
-CREATE DATABASE campus_delivery OWNER campus;
-CREATE DATABASE campus_delivery_test OWNER campus;   -- optional: for running tests on PostgreSQL
+# macOS (Homebrew)
+brew tap mongodb/brew && brew install mongodb-community
+brew services start mongodb-community
+
+# or run in the foreground
+mongod --dbpath /path/to/data
 ```
 
-### 4.2 Backend
+The default connection string is `mongodb://localhost:27017`. Indexes are created
+automatically on API start-up and before seeding.
+
+## 4. Local setup (path B)
+
+### 4.1 Backend
 
 ```bash
 cd backend
@@ -96,14 +84,16 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env               # then set SECRET_KEY (command is in the file)
 
-alembic upgrade head               # create tables
 python -m app.seed                 # load demo data (development only)
 uvicorn app.main:app --reload --port 8000
 ```
 
 API docs: <http://localhost:8000/docs> (Swagger UI) and <http://localhost:8000/redoc>.
 
-### 4.3 Frontend
+There are no migrations: the API creates the required MongoDB indexes at start-up
+(`app.infrastructure.database.init_db`).
+
+### 4.2 Frontend
 
 ```bash
 cd frontend
@@ -113,19 +103,23 @@ npm run dev
 
 Open <http://localhost:5173>. Vite proxies `/api` to `http://localhost:8000`, so no CORS setup is needed.
 
-## 5. Local setup without PostgreSQL (path C: SQLite)
+## 5. Data model and concurrency
 
-Everything is the same as path B except the database URL. In `backend/.env`:
+Each former table is now a MongoDB collection: `users`, `storage_locations`, `packages`,
+`package_status_history`, `pickup_tokens`, `pickup_records`, `notifications`, `incidents`,
+`audit_logs` and `idempotency_keys`. Documents keep an integer `id` (allocated from a
+`counters` collection) so the API and frontend are unchanged.
 
-```
-DATABASE_URL=sqlite:///./campus_delivery.db
-```
+Standalone MongoDB has no multi-document transactions, so the "one transaction per use case"
+guarantee is provided by:
 
-Then run `alembic upgrade head`, `python -m app.seed` and `uvicorn app.main:app --reload`.
-
-SQLite is a development convenience only. The production design targets PostgreSQL: SQLite has
-no row-level locks, so this project starts every SQLite transaction with `BEGIN IMMEDIATE`
-(serialising writers) to keep the same safety guarantees in development and tests.
+- **Conditional single-document updates** — a shelf slot is reserved with
+  `find_one_and_update({occupied_count < capacity}, {$inc: {occupied_count: 1}})`, a code is
+  consumed only while `used_at` is null, and a status change only matches the expected status;
+- **Unique indexes** — `pickup_records.package_id`, `packages.internal_code`,
+  `packages.tracking_id`, `users.institutional_id`, `users.email` and
+  `idempotency_keys (user_id, scope, key)`, which make double collection and duplicate retries
+  impossible.
 
 ## 6. Demo accounts (LOCAL TESTING CREDENTIALS ONLY)
 
@@ -156,17 +150,17 @@ and must never be used outside a local machine. The seed script refuses to run w
 ```bash
 cd backend
 source .venv/bin/activate
-pytest                     # isolated temporary SQLite database, recreated for every test
+pytest                     # uses an isolated test database (campus_delivery_test), dropped before every test
 ```
 
-To run the same suite against PostgreSQL (uses real `SELECT ... FOR UPDATE` row locks):
+To point the suite at another MongoDB instance:
 
 ```bash
-TEST_DATABASE_URL=postgresql+psycopg://campus:campus@localhost:5432/campus_delivery_test pytest
+TEST_MONGO_URL=mongodb://localhost:27017 TEST_MONGO_DB=campus_delivery_test pytest
 ```
 
-Tests drop and recreate tables in the test database, so **never point `TEST_DATABASE_URL` at
-a database containing data you need.** Frontend checks: `cd frontend && npm run build`
+Tests drop every collection in the test database, so **never point the test database at data
+you need.** Frontend checks: `cd frontend && npm run build`
 (strict TypeScript type-check plus production build).
 
 Latest recorded results are in `docs/09-testing.md`.
@@ -175,7 +169,8 @@ Latest recorded results are in `docs/09-testing.md`.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL on localhost | SQLAlchemy URL (`postgresql+psycopg://…` or `sqlite:///…`) |
+| `MONGO_URL` | `mongodb://localhost:27017` | MongoDB connection string |
+| `MONGO_DB` | `campus_delivery` | Database name |
 | `SECRET_KEY` | development placeholder | Signs JWTs and keys pickup-code hashes. Must be ≥ 32 chars in production (enforced) |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | 60 | Access token lifetime |
 | `PICKUP_CODE_TTL_MINUTES` | 30 | How long a pickup code is valid |
@@ -191,11 +186,9 @@ Latest recorded results are in `docs/09-testing.md`.
 
 | Symptom | Fix |
 |---|---|
-| `connection refused` on port 5432 | PostgreSQL is not running, or `DATABASE_URL` host/port is wrong. Use path C (SQLite) to get going. |
-| `password authentication failed for user "campus"` | Re-run the `CREATE USER` step or update the password in `DATABASE_URL`. |
+| `ServerSelectionTimeoutError` / `connection refused` on port 27017 | MongoDB is not running, or `MONGO_URL` host/port is wrong. Start `mongod` or fix the connection string. |
 | `ModuleNotFoundError: No module named 'app'` | Run commands from the `backend/` folder with the virtual environment active. |
-| `relation "users" does not exist` | Run `alembic upgrade head` before seeding or starting the API. |
-| Seed prints "Users already exist; skipping seed." | Expected on a second run. For a fresh start, drop and recreate the database (or delete the SQLite file) and migrate again. |
+| Seed prints "Users already exist; skipping seed." | Expected on a second run. For a fresh start, drop the `campus_delivery` database (e.g. `mongosh` → `db.dropDatabase()`) and re-run the seed. |
 | Login returns 429 | Five failed attempts in five minutes. Wait, or restart the API (the limiter is in memory). |
 | Frontend shows "Cannot reach the server" | The API is not running on port 8000, or the Vite proxy target differs; set `VITE_PROXY_TARGET`. |
 | `SECRET_KEY must be set to a strong value in production` | You set `ENVIRONMENT=production`; provide a long random `SECRET_KEY`. |

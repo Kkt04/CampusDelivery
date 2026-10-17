@@ -3,7 +3,7 @@ import { request } from "./client";
 import type {
   AuditEntry, DailyRow, Dashboard, HistoryEntry, Incident, IncidentType, Notification, Package, PackageCondition,
   PackageSize, PackageStatus, Page, PickupCode, PickupInput, PickupRecord, RegisterPackageInput, Role,
-  StorageLocation, TokenResponse, User, UserBrief,
+  SignupInput, StorageLocation, TokenResponse, User, UserBrief,
 } from "./types";
 
 export interface PackageQuery {
@@ -20,6 +20,8 @@ export interface PackageQuery {
 export const authApi = {
   login: (identifier: string, password: string) =>
     request<TokenResponse>("/auth/login", { method: "POST", body: { identifier, password } }),
+  signup: (input: SignupInput) =>
+    request<TokenResponse>("/auth/signup", { method: "POST", body: input }),
   me: () => request<User>("/auth/me"),
 };
 
@@ -35,6 +37,8 @@ export const packagesApi = {
     request<Package>(`/packages/${id}/recipient`, { method: "POST", body: { learner_institutional_id: learnerId } }),
   transition: (id: number, target: PackageStatus, reason?: string) =>
     request<Package>(`/packages/${id}/transitions`, { method: "POST", body: { target_status: target, reason } }),
+  requestReturn: (id: number, reason: string) =>
+    request<Package>(`/packages/${id}/return-request`, { method: "POST", body: { reason } }),
 };
 
 export const pickupApi = {

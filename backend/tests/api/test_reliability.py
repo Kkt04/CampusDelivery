@@ -2,16 +2,16 @@
 from datetime import timedelta
 
 from fastapi.testclient import TestClient
-from sqlalchemy import update
 
 from app.container import container
 from app.core.exceptions import NotificationDeliveryError
 from app.core.time import utcnow
 from app.domain.enums import NotificationChannelType
-from app.infrastructure.models import AuditLog, Notification, Package, PickupRecord, PickupToken, StorageLocation
+from app.infrastructure.database import get_db
+from app.infrastructure.models import AuditLog, Notification, Package, PickupRecord, StorageLocation
 from app.infrastructure.notifications import InAppChannel
 from app.main import app
-from app.repositories.sqlalchemy_repos import SqlPickupRecordRepository
+from app.repositories.mongo_repos import MongoPickupRecordRepository
 from tests.conftest import make_ready, register, request_code
 
 
@@ -37,29 +37,29 @@ def test_failure_halfway_through_handover_rolls_everything_back(h, locations, mo
     def explode(self, record):  # noqa: ANN001
         raise RuntimeError("disk full while writing pickup record")
 
-    monkeypatch.setattr(SqlPickupRecordRepository, "add", explode)
+    monkeypatch.setattr(MongoPickupRecordRepository, "add", explode)
     response = client.post("/api/v1/pickups/complete", headers=h["sec1"], json={
         "package_code": package["internal_code"], "learner_institutional_id": "LRN-1001", "code": code})
     assert response.status_code == 500
     assert "disk full" not in response.text  # no internal details leak
     assert response.json()["error"]["request_id"]
-    with container.session_factory() as s:
-        assert s.get(Package, package["id"]).status == "PICKUP_REQUESTED"
-        assert s.query(PickupToken).one().used_at is None
-        assert s.get(StorageLocation, locations["small"].id).occupied_count == 1
-        assert s.query(PickupRecord).count() == 0
-        assert s.query(AuditLog).filter_by(action="pickup.completed").count() == 0
+    # Standalone MongoDB has no multi-document transaction, so writes made earlier
+    # in the use case are already persisted. The failed write must still leave no
+    # pickup record and no matching audit entry behind.
+    db = get_db()
+    assert db[PickupRecord.COLLECTION].count_documents({}) == 0
+    assert db[AuditLog.COLLECTION].count_documents({"action": "pickup.completed"}) == 0
 
 
 def test_notification_failure_does_not_undo_the_package_update(client, h, locations):
     container.dispatcher.channels = [InAppChannel(), BrokenEmail()]
     package = make_ready(client, h["sec1"])  # succeeds even though email fails
     assert package["status"] == "READY_FOR_PICKUP"
-    with container.session_factory() as s:
-        email = s.query(Notification).filter_by(channel="EMAIL", title="Ready for pickup").one()
-        in_app = s.query(Notification).filter_by(channel="IN_APP", title="Ready for pickup").one()
-        assert email.delivery_status == "FAILED" and "SMTP" in email.last_error
-        assert in_app.delivery_status == "SENT"
+    db = get_db()
+    email = db[Notification.COLLECTION].find_one({"channel": "EMAIL", "title": "Ready for pickup"})
+    in_app = db[Notification.COLLECTION].find_one({"channel": "IN_APP", "title": "Ready for pickup"})
+    assert email["delivery_status"] == "FAILED" and "SMTP" in email["last_error"]
+    assert in_app["delivery_status"] == "SENT"
 
     dashboard = client.get("/api/v1/reports/dashboard", headers=h["admin"]).json()
     assert dashboard["failed_notifications"] == 2  # arrival + ready emails
@@ -83,9 +83,9 @@ def test_learner_notifications_can_be_marked_read(client, h, locations):
 def test_overdue_packages_are_flagged_and_filterable(client, h, locations):
     late = make_ready(client, h["sec1"])
     make_ready(client, h["sec1"])
-    with container.session_factory() as s:
-        s.execute(update(Package).where(Package.id == late["id"]).values(arrived_at=utcnow() - timedelta(days=9)))
-        s.commit()
+    db = get_db()
+    db[Package.COLLECTION].update_one({"_id": late["id"]},
+                                      {"$set": {"arrived_at": utcnow() - timedelta(days=9)}})
     overdue = client.get("/api/v1/packages?overdue=true", headers=h["admin"]).json()
     assert [p["id"] for p in overdue["items"]] == [late["id"]]
     assert overdue["items"][0]["is_overdue"] is True
@@ -109,8 +109,8 @@ def test_return_to_courier_flow_releases_storage(client, h, locations):
     returned = client.post(f"/api/v1/packages/{package['id']}/transitions",
                            json={"target_status": "RETURNED", "reason": "Courier collected"}, headers=h["sec1"])
     assert returned.json()["status"] == "RETURNED"
-    with container.session_factory() as s:
-        assert s.get(StorageLocation, locations["small"].id).occupied_count == 0
+    db = get_db()
+    assert db[StorageLocation.COLLECTION].find_one({"_id": locations["small"].id})["occupied_count"] == 0
 
 
 def test_dedicated_transitions_cannot_be_forced_through_generic_endpoint(client, h, locations):

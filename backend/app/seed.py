@@ -9,16 +9,15 @@ logs and notifications are genuine.
 """
 from datetime import timedelta
 
-from sqlalchemy import select, update
-
 from app.container import container
 from app.core.config import get_settings
 from app.core.security import hash_password
 from app.core.time import utcnow
 from app.domain.enums import PackageCondition, PackageSize, Role
+from app.infrastructure.database import get_db, init_db, next_id
 from app.infrastructure.models import Package, PickupRecord, StorageLocation, User
-from app.services.pickup import PickupService
 from app.services.package_intake import PackageIntakeService
+from app.services.pickup import PickupService
 from app.services.storage_allocation import StorageAllocationService
 
 DEMO_PASSWORD_NOTE = "LOCAL TESTING CREDENTIALS ONLY"
@@ -47,22 +46,25 @@ def seed() -> None:
     settings = get_settings()
     if settings.environment == "production":
         raise SystemExit("Refusing to seed demo data in production.")
+    init_db()
+    db = get_db()
 
-    with container.session_factory() as session:
-        if session.scalar(select(User.id).limit(1)) is not None:
-            print("Users already exist; skipping seed.")
-            return
-        for inst_id, name, email, role, password in USERS:
-            session.add(User(institutional_id=inst_id, full_name=name, email=email, role=role,
-                             password_hash=hash_password(password), is_active=True))
-        for code, desc, cap, size in LOCATIONS:
-            session.add(StorageLocation(code=code, description=desc, capacity=cap, max_package_size=size,
-                                        occupied_count=0, is_active=code != "G2-X1"))
-        session.commit()
+    if db[User.COLLECTION].find_one({}, {"_id": 1}) is not None:
+        print("Users already exist; skipping seed.")
+        return
+
+    for inst_id, name, email, role, password in USERS:
+        db[User.COLLECTION].insert_one(User(
+            id=next_id(User.COLLECTION), institutional_id=inst_id, full_name=name, email=email,
+            role=role, password_hash=hash_password(password), is_active=True).to_doc())
+    for code, desc, cap, size in LOCATIONS:
+        db[StorageLocation.COLLECTION].insert_one(StorageLocation(
+            id=next_id(StorageLocation.COLLECTION), code=code, description=desc, capacity=cap,
+            max_package_size=size, occupied_count=0, is_active=code != "G2-X1").to_doc())
 
     def user(inst_id: str) -> User:
-        with container.session_factory() as s:
-            return s.scalar(select(User).where(User.institutional_id == inst_id))
+        doc = db[User.COLLECTION].find_one({"institutional_id": inst_id})
+        return User.from_doc(doc)
 
     sec1, sec2 = user("SEC-001"), user("SEC-002")
     now = utcnow()
@@ -119,11 +121,10 @@ def seed() -> None:
         with container.uow() as uow:
             record, _ = PickupService(uow, settings).complete(
                 package_code=p.internal_code, learner_institutional_id="LRN-1003", code=issued.code, actor=sec1)
-        with container.session_factory() as s:  # backdate the handover to the day after arrival
-            when = now - timedelta(days=12 - i)
-            s.execute(update(PickupRecord).where(PickupRecord.id == record.id).values(collected_at=when))
-            s.execute(update(Package).where(Package.id == p.id).values(closed_at=when))
-            s.commit()
+        # Backdate the handover to the day after arrival.
+        when = now - timedelta(days=12 - i)
+        db[PickupRecord.COLLECTION].update_one({"_id": record.id}, {"$set": {"collected_at": when}})
+        db[Package.COLLECTION].update_one({"_id": p.id}, {"$set": {"closed_at": when}})
 
     print("Seed complete.", DEMO_PASSWORD_NOTE)
     for inst_id, name, _, role, password in USERS:

@@ -1,6 +1,8 @@
 """Use cases: authentication and user administration."""
 from functools import lru_cache
 
+from pymongo.errors import DuplicateKeyError as IntegrityError
+
 from app.core.config import Settings
 from app.core.exceptions import AuthenticationError, ConflictError, NotFoundError, ValidationFailedError
 from app.core.rate_limit import SlidingWindowRateLimiter
@@ -40,6 +42,27 @@ class AuthService:
         token, expires_in = create_access_token(user.id, user.role.value)
         self._audit.record(user, "auth.login_succeeded", "user", user.id, {"ip": client_ip})
         self._uow.commit()
+        return token, expires_in, user
+
+    def signup(self, *, institutional_id: str, full_name: str, email: str, phone: str | None,
+               password: str) -> tuple[str, int, User]:
+        """Public self-registration. Always creates a LEARNER account and signs in."""
+        if self._uow.users.get_by_institutional_id(institutional_id):
+            raise ConflictError("An account with this institutional ID already exists.", code="USER_EXISTS")
+        require_password_strength(password)
+        if self._uow.users.get_by_email(email):
+            raise ConflictError("An account with this email already exists.", code="USER_EXISTS")
+        try:
+            user = self._uow.users.add(User(
+                institutional_id=institutional_id.strip().upper(), full_name=full_name.strip(),
+                email=email.strip().lower(), phone=phone or None, role=Role.LEARNER,
+                password_hash=hash_password(password), is_active=True))
+        except IntegrityError:  # concurrent signup with the same ID or email
+            raise ConflictError("An account with this institutional ID or email already exists.",
+                                code="USER_EXISTS") from None
+        self._audit.record(user, "auth.signup", "user", user.id, {"role": Role.LEARNER.value})
+        self._uow.commit()
+        token, expires_in = create_access_token(user.id, user.role.value)
         return token, expires_in, user
 
 

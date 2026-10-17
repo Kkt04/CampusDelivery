@@ -19,6 +19,6 @@
 | 15 | Thank you / questions | | – |
 
 **Demo tips.** Use two browser windows (normal + private) so the learner and the guard are signed in at
-the same time. Before the demo, run `docker compose down -v && docker compose up --build`, or recreate the
-database and reseed, so the data matches the script. Keep Swagger (`/docs`) open in a tab to show the
+the same time. Before the demo, drop and reseed the MongoDB database (`python -m app.seed`), so the
+data matches the script. Keep Swagger (`/docs`) open in a tab to show the
 409 response from a second handover if faculty ask.

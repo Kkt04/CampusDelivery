@@ -1,30 +1,21 @@
-"""SQLAlchemy ORM models (persistence layer).
+"""Document models (persistence layer).
 
-Design notes
-* No hard deletes for packages: history, pickup records and audit logs must
-  stay intact, so foreign keys use ON DELETE RESTRICT.
-* `storage_locations.occupied_count` is a deliberate, guarded denormalisation:
-  it lets us reserve a slot with one atomic conditional UPDATE. Invariant:
+These are plain, mutable dataclasses — the MongoDB equivalent of the previous
+SQLAlchemy models. Repositories translate them to and from BSON documents and
+hydrate the related-object attributes (`package.recipient`, `record.package`, …)
+that the presenters expect.
+
+* No hard deletes: history, pickup records and audit logs stay intact.
+* `storage_locations.occupied_count` is a guarded denormalisation reserved with
+  one atomic conditional update; invariant:
   occupied_count == number of packages whose storage_location_id points here.
 * Pickup codes are stored only as salted HMAC hashes.
 """
+from dataclasses import dataclass, field, fields
 from datetime import datetime
+from typing import Any, ClassVar
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    CheckConstraint,
-    Enum,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.core.time import utcnow
+from app.core.time import ensure_utc, utcnow
 from app.domain.enums import (
     IncidentStatus,
     IncidentType,
@@ -35,193 +26,247 @@ from app.domain.enums import (
     PackageStatus,
     Role,
 )
-from app.infrastructure.database import Base, UTCDateTime
 
 
-def _enum(enum_cls, length: int = 32) -> Enum:  # noqa: ANN001
-    return Enum(enum_cls, native_enum=False, length=length, validate_strings=True)
+@dataclass
+class Document:
+    COLLECTION: ClassVar[str] = ""
+    RELATIONS: ClassVar[tuple[str, ...]] = ()
+    ENUMS: ClassVar[dict[str, Any]] = {}
+    DATES: ClassVar[tuple[str, ...]] = ()
+
+    id: int | None = None
+
+    def to_doc(self) -> dict[str, Any]:
+        doc: dict[str, Any] = {}
+        for f in fields(self):
+            if f.name == "id" or f.name in self.RELATIONS:
+                continue
+            value = getattr(self, f.name)
+            if isinstance(value, str):
+                doc[f.name] = value
+            elif hasattr(value, "value"):  # StrEnum
+                doc[f.name] = value.value
+            else:
+                doc[f.name] = value
+        if self.id is not None:
+            doc["_id"] = self.id
+        return doc
+
+    @classmethod
+    def from_doc(cls, doc: dict[str, Any]) -> "Document":
+        data: dict[str, Any] = {"id": doc.get("_id")}
+        for f in fields(cls):
+            if f.name == "id" or f.name in cls.RELATIONS:
+                continue
+            if f.name not in doc:
+                continue
+            value = doc[f.name]
+            if f.name in cls.ENUMS and value is not None:
+                value = cls.ENUMS[f.name](value)
+            elif f.name in cls.DATES and value is not None:
+                value = ensure_utc(value)
+            data[f.name] = value
+        return cls(**data)
+
+    def apply_doc(self, doc: dict[str, Any]) -> None:
+        for key, value in self.from_doc(doc).__dict__.items():
+            if key in self.RELATIONS:
+                continue
+            setattr(self, key, value)
 
 
-class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, onupdate=utcnow, nullable=False
+@dataclass
+class User(Document):
+    COLLECTION: ClassVar[str] = "users"
+    ENUMS: ClassVar[dict[str, Any]] = {"role": Role}
+    DATES: ClassVar[tuple[str, ...]] = ("created_at", "updated_at")
+
+    institutional_id: str = ""
+    full_name: str = ""
+    email: str = ""
+    phone: str | None = None
+    role: Role = Role.LEARNER
+    password_hash: str = ""
+    is_active: bool = True
+    created_at: datetime = field(default_factory=utcnow)
+    updated_at: datetime = field(default_factory=utcnow)
+
+
+@dataclass
+class StorageLocation(Document):
+    COLLECTION: ClassVar[str] = "storage_locations"
+    ENUMS: ClassVar[dict[str, Any]] = {"max_package_size": PackageSize}
+    DATES: ClassVar[tuple[str, ...]] = ("created_at", "updated_at")
+
+    code: str = ""
+    description: str | None = None
+    capacity: int = 0
+    occupied_count: int = 0
+    max_package_size: PackageSize = PackageSize.SMALL
+    is_active: bool = True
+    created_at: datetime = field(default_factory=utcnow)
+    updated_at: datetime = field(default_factory=utcnow)
+
+
+@dataclass
+class Package(Document):
+    COLLECTION: ClassVar[str] = "packages"
+    RELATIONS: ClassVar[tuple[str, ...]] = ("recipient", "received_by", "storage_location")
+    ENUMS: ClassVar[dict[str, Any]] = {
+        "size": PackageSize,
+        "condition": PackageCondition,
+        "status": PackageStatus,
+    }
+    DATES: ClassVar[tuple[str, ...]] = (
+        "arrived_at", "ready_at", "closed_at", "created_at", "updated_at"
     )
 
+    internal_code: str = ""
+    courier_name: str = ""
+    tracking_id: str | None = None
+    recipient_id: int | None = None
+    recipient_hint: str | None = None
+    size: PackageSize = PackageSize.SMALL
+    condition: PackageCondition = PackageCondition.GOOD
+    condition_notes: str | None = None
+    status: PackageStatus = PackageStatus.RECEIVED
+    storage_location_id: int | None = None
+    arrived_at: datetime = field(default_factory=utcnow)
+    received_by_id: int = 0
+    ready_at: datetime | None = None
+    closed_at: datetime | None = None
+    notes: str | None = None
+    version: int = 1
+    created_at: datetime = field(default_factory=utcnow)
+    updated_at: datetime = field(default_factory=utcnow)
 
-class User(TimestampMixin, Base):
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    institutional_id: Mapped[str] = mapped_column(String(32), unique=True, index=True)
-    full_name: Mapped[str] = mapped_column(String(120))
-    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
-    phone: Mapped[str | None] = mapped_column(String(20))
-    role: Mapped[Role] = mapped_column(_enum(Role), index=True)
-    password_hash: Mapped[str] = mapped_column(String(100))
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
-
-class StorageLocation(TimestampMixin, Base):
-    __tablename__ = "storage_locations"
-    __table_args__ = (
-        CheckConstraint("capacity > 0", name="capacity_positive"),
-        CheckConstraint("occupied_count >= 0", name="occupied_non_negative"),
-        CheckConstraint("occupied_count <= capacity", name="occupied_within_capacity"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    code: Mapped[str] = mapped_column(String(20), unique=True)
-    description: Mapped[str | None] = mapped_column(String(200))
-    capacity: Mapped[int] = mapped_column(Integer)
-    occupied_count: Mapped[int] = mapped_column(Integer, default=0)
-    max_package_size: Mapped[PackageSize] = mapped_column(_enum(PackageSize, 10))
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    recipient: User | None = None
+    received_by: User | None = None
+    storage_location: StorageLocation | None = None
 
 
-class Package(TimestampMixin, Base):
-    __tablename__ = "packages"
-    __table_args__ = (Index("ix_packages_status_arrived_at", "status", "arrived_at"),)
+@dataclass
+class PackageStatusHistory(Document):
+    COLLECTION: ClassVar[str] = "package_status_history"
+    RELATIONS: ClassVar[tuple[str, ...]] = ("changed_by",)
+    ENUMS: ClassVar[dict[str, Any]] = {"from_status": PackageStatus, "to_status": PackageStatus}
+    DATES: ClassVar[tuple[str, ...]] = ("created_at",)
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    internal_code: Mapped[str] = mapped_column(String(24), unique=True)
-    courier_name: Mapped[str] = mapped_column(String(80))
-    # Uniqueness policy: a normalised tracking ID may be registered once. NULL allowed.
-    tracking_id: Mapped[str | None] = mapped_column(String(64), unique=True)
-    recipient_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), index=True
-    )
-    recipient_hint: Mapped[str | None] = mapped_column(String(200))
-    size: Mapped[PackageSize] = mapped_column(_enum(PackageSize, 10))
-    condition: Mapped[PackageCondition] = mapped_column(_enum(PackageCondition, 16))
-    condition_notes: Mapped[str | None] = mapped_column(String(500))
-    status: Mapped[PackageStatus] = mapped_column(_enum(PackageStatus), index=True)
-    storage_location_id: Mapped[int | None] = mapped_column(
-        ForeignKey("storage_locations.id", ondelete="RESTRICT"), index=True
-    )
-    arrived_at: Mapped[datetime] = mapped_column(UTCDateTime(), index=True)
-    received_by_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    ready_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
-    closed_at: Mapped[datetime | None] = mapped_column(UTCDateTime())  # collected/returned/lost
-    notes: Mapped[str | None] = mapped_column(String(500))
-    version: Mapped[int] = mapped_column(Integer, default=1)
+    package_id: int = 0
+    from_status: PackageStatus | None = None
+    to_status: PackageStatus = PackageStatus.RECEIVED
+    changed_by_id: int = 0
+    reason: str | None = None
+    created_at: datetime = field(default_factory=utcnow)
 
-    recipient: Mapped[User | None] = relationship(foreign_keys=[recipient_id], lazy="joined")
-    received_by: Mapped[User] = relationship(foreign_keys=[received_by_id], lazy="joined")
-    storage_location: Mapped[StorageLocation | None] = relationship(lazy="joined")
+    changed_by: User | None = None
 
 
-class PackageStatusHistory(Base):
-    __tablename__ = "package_status_history"
+@dataclass
+class PickupToken(Document):
+    COLLECTION: ClassVar[str] = "pickup_tokens"
+    DATES: ClassVar[tuple[str, ...]] = ("expires_at", "used_at", "revoked_at", "created_at")
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    package_id: Mapped[int] = mapped_column(ForeignKey("packages.id", ondelete="RESTRICT"), index=True)
-    from_status: Mapped[PackageStatus | None] = mapped_column(_enum(PackageStatus))
-    to_status: Mapped[PackageStatus] = mapped_column(_enum(PackageStatus))
-    changed_by_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    reason: Mapped[str | None] = mapped_column(String(500))
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
-
-    changed_by: Mapped[User] = relationship(lazy="joined")
-
-
-class PickupToken(Base):
-    __tablename__ = "pickup_tokens"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    package_id: Mapped[int] = mapped_column(ForeignKey("packages.id", ondelete="RESTRICT"), index=True)
-    learner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    code_hash: Mapped[str] = mapped_column(String(64))
-    salt: Mapped[str] = mapped_column(String(32))
-    expires_at: Mapped[datetime] = mapped_column(UTCDateTime())
-    used_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
-    revoked_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
-    failed_attempts: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
+    package_id: int = 0
+    learner_id: int = 0
+    code_hash: str = ""
+    salt: str = ""
+    expires_at: datetime = field(default_factory=utcnow)
+    used_at: datetime | None = None
+    revoked_at: datetime | None = None
+    failed_attempts: int = 0
+    created_at: datetime = field(default_factory=utcnow)
 
 
-class PickupRecord(Base):
-    """Proof of handover. UNIQUE(package_id) is the last line of defence against
-    double collection."""
+@dataclass
+class PickupRecord(Document):
+    """Proof of handover. The unique index on package_id is the last line of
+    defence against double collection."""
 
-    __tablename__ = "pickup_records"
+    COLLECTION: ClassVar[str] = "pickup_records"
+    RELATIONS: ClassVar[tuple[str, ...]] = ("package", "handed_over_by")
+    DATES: ClassVar[tuple[str, ...]] = ("collected_at",)
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    package_id: Mapped[int] = mapped_column(ForeignKey("packages.id", ondelete="RESTRICT"), unique=True)
-    learner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
-    handed_over_by_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    token_id: Mapped[int] = mapped_column(ForeignKey("pickup_tokens.id", ondelete="RESTRICT"), unique=True)
-    storage_location_code: Mapped[str | None] = mapped_column(String(20))
-    collected_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, index=True)
+    package_id: int = 0
+    learner_id: int = 0
+    handed_over_by_id: int = 0
+    token_id: int = 0
+    storage_location_code: str | None = None
+    collected_at: datetime = field(default_factory=utcnow)
 
-    package: Mapped[Package] = relationship(lazy="joined")
-    handed_over_by: Mapped[User] = relationship(foreign_keys=[handed_over_by_id], lazy="joined")
-
-
-class Notification(Base):
-    __tablename__ = "notifications"
-    __table_args__ = (Index("ix_notifications_user_created", "user_id", "created_at"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    package_id: Mapped[int | None] = mapped_column(ForeignKey("packages.id", ondelete="RESTRICT"))
-    channel: Mapped[NotificationChannelType] = mapped_column(_enum(NotificationChannelType, 16))
-    title: Mapped[str] = mapped_column(String(120))
-    message: Mapped[str] = mapped_column(String(500))
-    delivery_status: Mapped[NotificationStatus] = mapped_column(_enum(NotificationStatus, 16), index=True)
-    attempts: Mapped[int] = mapped_column(Integer, default=0)
-    last_error: Mapped[str | None] = mapped_column(String(300))
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
-    sent_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
-    read_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
+    package: Package | None = None
+    handed_over_by: User | None = None
 
 
-class Incident(Base):
-    __tablename__ = "incidents"
+@dataclass
+class Notification(Document):
+    COLLECTION: ClassVar[str] = "notifications"
+    ENUMS: ClassVar[dict[str, Any]] = {
+        "channel": NotificationChannelType,
+        "delivery_status": NotificationStatus,
+    }
+    DATES: ClassVar[tuple[str, ...]] = ("created_at", "sent_at", "read_at")
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    package_id: Mapped[int | None] = mapped_column(
-        ForeignKey("packages.id", ondelete="RESTRICT"), index=True
-    )
-    type: Mapped[IncidentType] = mapped_column(_enum(IncidentType))
-    status: Mapped[IncidentStatus] = mapped_column(_enum(IncidentStatus, 16), index=True)
-    description: Mapped[str] = mapped_column(Text)
-    reported_by_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    resolved_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    resolution_note: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, index=True)
-    resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
-
-    package: Mapped[Package | None] = relationship(lazy="joined")
-    reported_by: Mapped[User] = relationship(foreign_keys=[reported_by_id], lazy="joined")
-    resolved_by: Mapped[User | None] = relationship(foreign_keys=[resolved_by_id], lazy="joined")
-
-
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-    __table_args__ = (Index("ix_audit_logs_entity", "entity_type", "entity_id"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    actor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), index=True)
-    action: Mapped[str] = mapped_column(String(64), index=True)
-    entity_type: Mapped[str] = mapped_column(String(32))
-    entity_id: Mapped[str | None] = mapped_column(String(64))
-    details: Mapped[dict | None] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, index=True)
-
-    actor: Mapped[User | None] = relationship(lazy="joined")
+    user_id: int = 0
+    package_id: int | None = None
+    channel: NotificationChannelType = NotificationChannelType.IN_APP
+    title: str = ""
+    message: str = ""
+    delivery_status: NotificationStatus = NotificationStatus.PENDING
+    attempts: int = 0
+    last_error: str | None = None
+    created_at: datetime = field(default_factory=utcnow)
+    sent_at: datetime | None = None
+    read_at: datetime | None = None
 
 
-class IdempotencyKey(Base):
-    """Remembers state-changing requests so network retries are replayed, not re-executed."""
+@dataclass
+class Incident(Document):
+    COLLECTION: ClassVar[str] = "incidents"
+    RELATIONS: ClassVar[tuple[str, ...]] = ("package", "reported_by", "resolved_by")
+    ENUMS: ClassVar[dict[str, Any]] = {"type": IncidentType, "status": IncidentStatus}
+    DATES: ClassVar[tuple[str, ...]] = ("created_at", "resolved_at")
 
-    __tablename__ = "idempotency_keys"
-    __table_args__ = (UniqueConstraint("user_id", "scope", "key", name="uq_idempotency_user_scope_key"),)
+    package_id: int | None = None
+    type: IncidentType = IncidentType.OPERATIONAL
+    status: IncidentStatus = IncidentStatus.OPEN
+    description: str = ""
+    reported_by_id: int = 0
+    resolved_by_id: int | None = None
+    resolution_note: str | None = None
+    created_at: datetime = field(default_factory=utcnow)
+    resolved_at: datetime | None = None
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    scope: Mapped[str] = mapped_column(String(40))
-    key: Mapped[str] = mapped_column(String(80))
-    request_hash: Mapped[str] = mapped_column(String(64))
-    resource_id: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
+    package: Package | None = None
+    reported_by: User | None = None
+    resolved_by: User | None = None
+
+
+@dataclass
+class AuditLog(Document):
+    COLLECTION: ClassVar[str] = "audit_logs"
+    RELATIONS: ClassVar[tuple[str, ...]] = ("actor",)
+    DATES: ClassVar[tuple[str, ...]] = ("created_at",)
+
+    actor_id: int | None = None
+    action: str = ""
+    entity_type: str = ""
+    entity_id: str | None = None
+    details: dict | None = None
+    created_at: datetime = field(default_factory=utcnow)
+
+    actor: User | None = None
+
+
+@dataclass
+class IdempotencyKey(Document):
+    COLLECTION: ClassVar[str] = "idempotency_keys"
+    DATES: ClassVar[tuple[str, ...]] = ("created_at",)
+
+    user_id: int = 0
+    scope: str = ""
+    key: str = ""
+    request_hash: str = ""
+    resource_id: int = 0
+    created_at: datetime = field(default_factory=utcnow)

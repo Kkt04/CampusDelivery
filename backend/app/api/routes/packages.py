@@ -19,6 +19,7 @@ from app.schemas.packages import (
     IdentifyRecipientRequest,
     PackageOut,
     RegisterPackageRequest,
+    ReturnRequest,
     StorageAssignRequest,
     TransitionRequest,
 )
@@ -114,6 +115,17 @@ def identify_recipient(package_id: int, body: IdentifyRecipientRequest,
                        settings: Settings = Depends(get_settings_dep)) -> PackageOut:
     package = PackageIntakeService(uow).identify_recipient(
         package_id=package_id, learner_institutional_id=body.learner_institutional_id, actor=user)
+    return present_package(package, user, utcnow(), settings)
+
+
+@router.post("/{package_id}/return-request", response_model=PackageOut, status_code=201,
+             summary="Ask for a package to be sent back to the courier")
+def request_return(package_id: int, body: ReturnRequest,
+                   user: User = Depends(require(Permission.PACKAGE_REQUEST_RETURN)),
+                   uow: UnitOfWork = Depends(get_uow),
+                   settings: Settings = Depends(get_settings_dep)) -> PackageOut:
+    package = PackageLifecycleService(uow).request_return(
+        package_id=package_id, actor=user, reason=body.reason)
     return present_package(package, user, utcnow(), settings)
 
 

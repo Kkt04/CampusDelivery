@@ -70,7 +70,7 @@ export function PackageDetailPage() {
         </Card>
 
         <div className="space-y-6">
-          {isLearner ? <LearnerPanel pkg={p} /> : (
+          {isLearner ? <LearnerPanel pkg={p} onUpdated={onUpdated} /> : (
             <>
               {!p.recipient && ["UNIDENTIFIED", "DAMAGED", "UNDER_INVESTIGATION"].includes(p.status) && (
                 <IdentifyPanel pkg={p} onUpdated={onUpdated} />
@@ -106,8 +106,9 @@ export function PackageDetailPage() {
   );
 }
 
-function LearnerPanel({ pkg }: { pkg: Package }) {
+function LearnerPanel({ pkg, onUpdated }: { pkg: Package; onUpdated: (p: Package, message: string) => void }) {
   const canCollect = pkg.status === "READY_FOR_PICKUP" || pkg.status === "PICKUP_REQUESTED";
+  const canReturn = ["STORED", "READY_FOR_PICKUP", "PICKUP_REQUESTED"].includes(pkg.status);
   const [description, setDescription] = useState("");
   const [sent, setSent] = useState(false);
   const report = useAction(() => incidentsApi.create({ package_id: pkg.id, type: "LEARNER_REPORTED_ISSUE", description, escalate: false }));
@@ -133,6 +134,14 @@ function LearnerPanel({ pkg }: { pkg: Package }) {
           </p>
         )}
       </Card>
+      {canReturn && <ReturnPanel pkg={pkg} onUpdated={onUpdated} />}
+      {pkg.status === "RETURN_REQUESTED" && (
+        <Card title="Return requested">
+          <p className="text-sm text-muted">
+            Gate No. 2 will hand this package back to {pkg.courier_name}. You do not need to collect it.
+          </p>
+        </Card>
+      )}
       <Card title="Report a problem">
         {sent ? <Alert tone="success">Thanks. Operations will review your report.</Alert> : (
           <form className="space-y-3" onSubmit={onReport}>
@@ -146,6 +155,35 @@ function LearnerPanel({ pkg }: { pkg: Package }) {
         )}
       </Card>
     </>
+  );
+}
+
+function ReturnPanel({ pkg, onUpdated }: { pkg: Package; onUpdated: (p: Package, message: string) => void }) {
+  const [reason, setReason] = useState("");
+  const request = useAction(() => packagesApi.requestReturn(pkg.id, reason.trim()));
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    const updated = await request.run();
+    if (updated) onUpdated(updated, "Return requested. Security will hand the package back to the courier.");
+  }
+
+  return (
+    <Card title="Return to courier">
+      <form className="space-y-3" onSubmit={onSubmit}>
+        <p className="text-sm text-muted">
+          Ask Gate No. 2 to send this package back to {pkg.courier_name}. You will not be able to collect it afterwards.
+        </p>
+        <ErrorAlert error={request.error} />
+        <Field label="Why are you returning it?" htmlFor="return-reason">
+          <textarea id="return-reason" className="input min-h-20" value={reason}
+            onChange={(e) => setReason(e.target.value)} placeholder="e.g. I no longer need it, or it is not mine" />
+        </Field>
+        <Button variant="danger" type="submit" pending={request.pending} disabled={reason.trim().length < 3}>
+          Request return
+        </Button>
+      </form>
+    </Card>
   );
 }
 

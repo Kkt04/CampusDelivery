@@ -16,8 +16,8 @@ class Settings(BaseSettings):
 
     app_name: str = "Campus Delivery Management System"
     environment: str = "development"  # development | test | production
-    database_url: str = "postgresql+psycopg://campus:campus@localhost:5432/campus_delivery"
-    sql_echo: bool = False
+    mongo_url: str = "mongodb://localhost:27017"
+    mongo_db: str = "campus_delivery"
 
     # Authentication
     secret_key: str = DEV_SECRET_PLACEHOLDER
@@ -54,10 +54,6 @@ class Settings(BaseSettings):
     @property
     def notification_channel_names(self) -> list[str]:
         return [c.strip() for c in self.notification_channels.split(",") if c.strip()]
-
-    @property
-    def is_sqlite(self) -> bool:
-        return self.database_url.startswith("sqlite")
 
 
 @lru_cache

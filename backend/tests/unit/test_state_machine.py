@@ -55,7 +55,7 @@ def test_guards_enforce_preconditions():
 
 def test_available_actions_respect_role_and_guards():
     learner_actions = {t.action for t in state_machine.available(S.READY_FOR_PICKUP, Role.LEARNER, FULL)}
-    assert learner_actions == {"request_pickup"}
+    assert learner_actions == {"request_pickup", "request_return"}
     security_actions = {t.target for t in state_machine.available(S.UNIDENTIFIED, Role.SECURITY, NO_RECIPIENT)}
     assert S.RETURN_REQUESTED not in security_actions  # admin only
     assert S.VERIFIED not in security_actions  # guard: no recipient yet

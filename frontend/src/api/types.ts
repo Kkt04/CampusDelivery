@@ -24,6 +24,14 @@ export interface User extends UserBrief {
 
 export interface TokenResponse { access_token: string; token_type: string; expires_in: number; user: User }
 
+export interface SignupInput {
+  institutional_id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  password: string;
+}
+
 export interface PackageAction { action: string; label: string; target_status: PackageStatus; dedicated: boolean }
 
 export interface Package {

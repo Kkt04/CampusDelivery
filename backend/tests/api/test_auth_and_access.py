@@ -92,3 +92,31 @@ def test_security_can_search_learners(client, h):
     results = client.get("/api/v1/users/learners?q=learner two", headers=h["sec1"]).json()
     assert [r["institutional_id"] for r in results] == ["LRN-1002"]
     assert client.get("/api/v1/users/learners?q=lrn", headers=h["learner1"]).status_code == 403
+
+
+def test_signup_creates_learner_and_signs_in(client):
+    response = client.post("/api/v1/auth/signup", json={
+        "institutional_id": "lrn-2001", "full_name": "New Learner", "email": "new.learner@campus.example.edu",
+        "password": "NewLearner1"})
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["user"]["role"] == "LEARNER"
+    assert body["user"]["institutional_id"] == "LRN-2001"
+    me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {body['access_token']}"})
+    assert me.json()["email"] == "new.learner@campus.example.edu"
+
+
+def test_signup_rejects_duplicate_id_or_email(client):
+    payload = {"institutional_id": "LRN-2001", "full_name": "First", "email": "first@campus.example.edu",
+               "password": "FirstPass1"}
+    assert client.post("/api/v1/auth/signup", json=payload).status_code == 201
+    assert client.post("/api/v1/auth/signup", json=payload).status_code == 409
+    clash = {**payload, "institutional_id": "LRN-2002", "email": "first@campus.example.edu"}
+    assert client.post("/api/v1/auth/signup", json=clash).status_code == 409
+
+
+def test_signup_enforces_password_strength(client):
+    response = client.post("/api/v1/auth/signup", json={
+        "institutional_id": "lrn-2003", "full_name": "Weak Pass", "email": "weak@campus.example.edu",
+        "password": "passwordonly"})
+    assert response.status_code == 422

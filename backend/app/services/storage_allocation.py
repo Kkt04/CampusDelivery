@@ -43,6 +43,7 @@ class StorageAllocationService:
             if previous_id is not None:
                 self._uow.storage.release(previous_id)
             package.storage_location_id = chosen.id
+            package.storage_location = chosen
             self._uow.session.flush()
             self._uow.session.refresh(package)
             self._audit.record(actor, "package.storage_assigned", "package", package.id, {

@@ -3,6 +3,7 @@ import threading
 
 from app.container import container
 from app.core.exceptions import AppError
+from app.infrastructure.database import get_db
 from app.infrastructure.models import Incident, Package, StorageLocation
 from app.services.storage_allocation import StorageAllocationService
 from tests.conftest import register
@@ -62,9 +63,8 @@ def test_unidentified_package_enters_workflow_and_can_be_identified(client, h, l
                              json={"learner_institutional_id": "LRN-1001"}, headers=h["sec1"]).json()
     assert identified["status"] == "STORED"
     assert identified["recipient"]["institutional_id"] == "LRN-1001"
-    with container.session_factory() as s:
-        incident = s.query(Incident).filter_by(package_id=package["id"]).one()
-        assert incident.status == "RESOLVED"
+    incident = get_db()[Incident.COLLECTION].find_one({"package_id": package["id"]})
+    assert incident["status"] == "RESOLVED"
 
 
 def test_damaged_package_is_held_and_incident_opened(client, h, locations):
@@ -88,8 +88,7 @@ def test_idempotent_registration_replays_instead_of_duplicating(client, h):
     assert first.status_code == 201 and second.status_code == 200
     assert second.headers["Idempotent-Replayed"] == "true"
     assert first.json()["id"] == second.json()["id"]
-    with container.session_factory() as s:
-        assert s.query(Package).count() == 1
+    assert get_db()[Package.COLLECTION].count_documents({}) == 1
     different = client.post("/api/v1/packages", json={**body, "courier_name": "Ekart"}, headers=headers)
     assert different.status_code == 409 and different.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"
 
@@ -137,9 +136,9 @@ def test_moving_storage_releases_the_old_slot(client, h, locations):
                 headers=h["sec1"])
     client.post(f"/api/v1/packages/{package['id']}/storage", json={"location_id": locations["medium"].id},
                 headers=h["sec1"])
-    with container.session_factory() as s:
-        assert s.get(StorageLocation, locations["small"].id).occupied_count == 0
-        assert s.get(StorageLocation, locations["medium"].id).occupied_count == 1
+    db = get_db()
+    assert db[StorageLocation.COLLECTION].find_one({"_id": locations["small"].id})["occupied_count"] == 0
+    assert db[StorageLocation.COLLECTION].find_one({"_id": locations["medium"].id})["occupied_count"] == 1
 
 
 def test_concurrent_allocation_never_exceeds_capacity(client, h, users, locations):
@@ -161,5 +160,4 @@ def test_concurrent_allocation_never_exceeds_capacity(client, h, users, location
     [t.start() for t in threads]
     [t.join() for t in threads]
     assert sorted(outcomes) == ["STORAGE_FULL", "STORAGE_FULL", "ok"]
-    with container.session_factory() as s:
-        assert s.get(StorageLocation, locations["large"].id).occupied_count == 1
+    assert get_db()[StorageLocation.COLLECTION].find_one({"_id": locations["large"].id})["occupied_count"] == 1

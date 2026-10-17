@@ -61,6 +61,8 @@ STAFF = frozenset({Role.SECURITY, Role.ADMIN})
 ADMIN = frozenset({Role.ADMIN})
 SECURITY = frozenset({Role.SECURITY})
 LEARNER = frozenset({Role.LEARNER})
+# A learner may ask for their own package to go back to the courier while it is still on campus.
+ADMIN_OR_LEARNER = frozenset({Role.ADMIN, Role.LEARNER})
 
 
 def _t(source, target, roles, action, label, guard=None, dedicated=False) -> Transition:
@@ -101,7 +103,7 @@ TRANSITIONS: tuple[Transition, ...] = (
         for src in (S.STORED, S.READY_FOR_PICKUP, S.PICKUP_REQUESTED)
     ),
     *(
-        _t(src, S.RETURN_REQUESTED, ADMIN, "request_return", "Request return to courier")
+        _t(src, S.RETURN_REQUESTED, ADMIN_OR_LEARNER, "request_return", "Request return to courier")
         for src in (S.STORED, S.READY_FOR_PICKUP, S.PICKUP_REQUESTED)
     ),
     # Investigation outcomes

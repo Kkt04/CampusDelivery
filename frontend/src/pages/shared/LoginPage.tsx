@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { HOME_BY_ROLE, useAuth } from "../../auth/AuthContext";
 import { Brand } from "../../components/Layout";
@@ -50,6 +50,10 @@ export function LoginPage() {
             </Field>
             <Button type="submit" className="w-full" pending={pending} disabled={!identifier || !password}>Sign in</Button>
           </form>
+          <p className="mt-6 text-center text-sm text-muted">
+            New here?{" "}
+            <Link to="/signup" className="font-semibold text-brand hover:underline">Create an account</Link>
+          </p>
           {import.meta.env.DEV && (
             <details className="mt-8 rounded-md border border-line bg-white p-3 text-xs text-muted">
               <summary className="cursor-pointer font-semibold text-ink">Local testing accounts</summary>

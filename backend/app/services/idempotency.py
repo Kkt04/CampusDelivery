@@ -12,7 +12,7 @@ from typing import Any
 
 from app.core.exceptions import IdempotencyKeyReuseError
 from app.infrastructure.models import IdempotencyKey
-from app.repositories.sqlalchemy_repos import SqlIdempotencyRepository
+from app.repositories.mongo_repos import MongoIdempotencyRepository
 
 
 def fingerprint(payload: dict[str, Any]) -> str:
@@ -20,7 +20,7 @@ def fingerprint(payload: dict[str, Any]) -> str:
 
 
 class IdempotencyGuard:
-    def __init__(self, repository: SqlIdempotencyRepository) -> None:
+    def __init__(self, repository: MongoIdempotencyRepository) -> None:
         self._repository = repository
 
     def find(self, user_id: int, scope: str, key: str | None, request_hash: str) -> int | None:

@@ -9,7 +9,7 @@ Double-collection protection (defence in depth):
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy.exc import IntegrityError
+from pymongo.errors import DuplicateKeyError as IntegrityError
 
 from app.core.config import Settings
 from app.core.exceptions import AlreadyCollectedError, InvalidTransitionError, NotFoundError, PickupCodeError
@@ -140,6 +140,9 @@ class PickupService:
             if not pickup_code_matches(code, token.salt, token.code_hash):
                 raise PickupCodeError("Incorrect pickup code.", code="PICKUP_CODE_INVALID")
         except PickupCodeError as error:
+            # A concurrent handover already consumed the code, so the package was collected.
+            if error.code == "PICKUP_CODE_USED":
+                raise AlreadyCollectedError("This package has already been collected.") from None
             # Persist the failed attempt even though the request is rejected.
             if token is not None and error.code in _COUNTED_FAILURES:
                 self._uow.tokens.increment_failed_attempts(token.id)

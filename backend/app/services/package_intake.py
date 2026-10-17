@@ -2,7 +2,7 @@
 import secrets
 from datetime import datetime
 
-from sqlalchemy.exc import IntegrityError
+from pymongo.errors import DuplicateKeyError as IntegrityError
 
 from app.core.exceptions import (
     ConflictError,
@@ -90,22 +90,25 @@ class PackageIntakeService:
 
         recipient = self._resolve_learner(recipient_institutional_id) if recipient_institutional_id else None
         now = utcnow()
-        package = self._uow.packages.add(
-            Package(
-                internal_code=self._new_internal_code(now),
-                courier_name=" ".join(courier_name.split()),
-                tracking_id=tracking,
-                recipient_id=recipient.id if recipient else None,
-                recipient_hint=recipient_hint,
-                size=size,
-                condition=condition,
-                condition_notes=condition_notes,
-                status=PackageStatus.RECEIVED,
-                arrived_at=arrived_at or now,
-                received_by_id=actor.id,
-                notes=notes,
+        try:
+            package = self._uow.packages.add(
+                Package(
+                    internal_code=self._new_internal_code(now),
+                    courier_name=" ".join(courier_name.split()),
+                    tracking_id=tracking,
+                    recipient_id=recipient.id if recipient else None,
+                    recipient_hint=recipient_hint,
+                    size=size,
+                    condition=condition,
+                    condition_notes=condition_notes,
+                    status=PackageStatus.RECEIVED,
+                    arrived_at=arrived_at or now,
+                    received_by_id=actor.id,
+                    notes=notes,
+                )
             )
-        )
+        except IntegrityError:
+            return self._recover_duplicate(actor, tracking, idempotency_key, request_hash)
         self._uow.packages.add_history(PackageStatusHistory(
             package_id=package.id, from_status=None, to_status=PackageStatus.RECEIVED,
             changed_by_id=actor.id, reason="Registered at Gate No. 2", created_at=now))
@@ -129,17 +132,21 @@ class PackageIntakeService:
         try:
             self._uow.commit()
         except IntegrityError:
-            # A concurrent request inserted the same tracking ID or idempotency key first.
-            self._uow.rollback()
-            if (existing_id := self._idempotency.find(actor.id, self.SCOPE, idempotency_key, request_hash)):
-                return self._uow.packages.get(existing_id), True
-            if tracking and (duplicate := self._uow.packages.get_by_tracking_id(tracking)):
-                raise DuplicateTrackingIdError(
-                    f"Tracking ID {tracking} is already registered as {duplicate.internal_code}.",
-                    details={"existing_package_id": duplicate.id},
-                ) from None
-            raise ConflictError("The package could not be saved because of a conflicting record.") from None
+            return self._recover_duplicate(actor, tracking, idempotency_key, request_hash)
         return package, False
+
+    def _recover_duplicate(self, actor: User, tracking: str | None, idempotency_key: str | None,
+                           request_hash: str) -> tuple[Package, bool]:
+        """A concurrent request inserted the same tracking ID or idempotency key first."""
+        self._uow.rollback()
+        if (existing_id := self._idempotency.find(actor.id, self.SCOPE, idempotency_key, request_hash)):
+            return self._uow.packages.get(existing_id), True
+        if tracking and (duplicate := self._uow.packages.get_by_tracking_id(tracking)):
+            raise DuplicateTrackingIdError(
+                f"Tracking ID {tracking} is already registered as {duplicate.internal_code}.",
+                details={"existing_package_id": duplicate.id},
+            ) from None
+        raise ConflictError("The package could not be saved because of a conflicting record.") from None
 
     def _open_incident(self, package: Package, actor: User, kind: IncidentType, description: str) -> None:
         incident = self._uow.incidents.add(Incident(
@@ -159,6 +166,7 @@ class PackageIntakeService:
             raise InvalidTransitionError(f"A recipient cannot be set while the package is {package.status.value}.")
         learner = self._resolve_learner(learner_institutional_id)
         package.recipient_id = learner.id
+        package.recipient = learner
         self._uow.session.flush()
         self._uow.session.refresh(package)
         self._audit.record(actor, "package.recipient_identified", "package", package.id,

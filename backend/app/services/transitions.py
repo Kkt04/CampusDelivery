@@ -47,6 +47,7 @@ class PackageTransitioner:
                 released_location = package.storage_location.code if package.storage_location else None
                 self._uow.storage.release(package.storage_location_id)
                 values["storage_location_id"] = None
+                package.storage_location = None
 
         self._uow.session.flush()
         if not self._uow.packages.compare_and_set_status(package.id, source, target, values):

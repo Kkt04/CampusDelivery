@@ -18,6 +18,7 @@ import { PickupVerification } from "./pages/security/PickupVerification";
 import { RegisterPackage } from "./pages/security/RegisterPackage";
 import { SecurityDashboard } from "./pages/security/SecurityDashboard";
 import { LoginPage } from "./pages/shared/LoginPage";
+import { SignupPage } from "./pages/shared/SignupPage";
 import { NotFoundPage, UnauthorizedPage } from "./pages/shared/StatusPages";
 import { NotificationsPage } from "./pages/shared/NotificationsPage";
 import { PackageDetailPage } from "./pages/shared/PackageDetailPage";
@@ -34,6 +35,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       <Route element={<RequireRole roles={["LEARNER", "SECURITY", "ADMIN"]} />}>

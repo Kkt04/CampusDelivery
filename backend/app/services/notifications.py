@@ -10,16 +10,19 @@ import logging
 from collections.abc import Callable
 from datetime import datetime
 
-from sqlalchemy.orm import Session
-
 from app.core.exceptions import NotFoundError
 from app.core.time import utcnow
 from app.domain.enums import NotificationStatus, PackageStatus
 from app.domain.events import DomainEvent, PackageStatusChanged
 from app.domain.interfaces import NotificationChannel, NotificationRecipient
 from app.infrastructure.models import Notification, Package, User
+from app.infrastructure.store import Store
 from app.repositories.filters import Page
-from app.repositories.sqlalchemy_repos import SqlNotificationRepository
+from app.repositories.mongo_repos import (
+    MongoNotificationRepository,
+    MongoPackageRepository,
+    MongoUserRepository,
+)
 from app.repositories.unit_of_work import UnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -55,9 +58,8 @@ TEMPLATES: dict[PackageStatus, Template] = {
 
 
 class NotificationDispatcher:
-    def __init__(self, session_factory: Callable[[], Session], channels: list[NotificationChannel],
+    def __init__(self, channels: list[NotificationChannel],
                  templates: dict[PackageStatus, Template] | None = None) -> None:
-        self._session_factory = session_factory
         self.channels = channels
         self._templates = templates or TEMPLATES
 
@@ -67,20 +69,21 @@ class NotificationDispatcher:
         template = self._templates.get(event.to_status)
         if template is None:
             return
-        with self._session_factory() as session:
-            package = session.get(Package, event.package_id)
-            user = session.get(User, event.recipient_id)
-            if package is None or user is None or (rendered := template(event, package)) is None:
-                return
-            title, message = rendered
-            rows = [Notification(user_id=user.id, package_id=package.id, channel=ch.channel_type, title=title,
-                                 message=message, delivery_status=NotificationStatus.PENDING)
-                    for ch in self.channels]
-            session.add_all(rows)
-            session.commit()  # the record exists even if every channel fails below
-            for channel, row in zip(self.channels, rows):
-                self.attempt(channel, row, user)
-            session.commit()
+        store = Store()
+        package = MongoPackageRepository(store).get(event.package_id)
+        user = MongoUserRepository(store).get(event.recipient_id)
+        if package is None or user is None or (rendered := template(event, package)) is None:
+            return
+        title, message = rendered
+        repo = MongoNotificationRepository(store)
+        rows = [repo.add(Notification(user_id=user.id, package_id=package.id, channel=ch.channel_type,
+                                      title=title, message=message,
+                                      delivery_status=NotificationStatus.PENDING))
+                for ch in self.channels]
+        store.commit()  # the record exists even if every channel fails below
+        for channel, row in zip(self.channels, rows):
+            self.attempt(channel, row, user)
+        store.commit()
 
     def attempt(self, channel: NotificationChannel, row: Notification, user: User) -> None:
         row.attempts += 1
@@ -95,19 +98,21 @@ class NotificationDispatcher:
             row.sent_at = utcnow()
             row.last_error = None
 
-    def retry(self, session: Session, max_attempts: int) -> dict[str, int]:
+    def retry(self, max_attempts: int) -> dict[str, int]:
         by_type = {ch.channel_type: ch for ch in self.channels}
         result = {"retried": 0, "sent": 0, "failed": 0, "skipped": 0}
-        for row in SqlNotificationRepository(session).retryable(max_attempts):
+        store = Store()
+        users = MongoUserRepository(store)
+        for row in MongoNotificationRepository(store).retryable(max_attempts):
             channel = by_type.get(row.channel)
-            user = session.get(User, row.user_id)
+            user = users.get(row.user_id)
             if channel is None or user is None:
                 result["skipped"] += 1
                 continue
             self.attempt(channel, row, user)
             result["retried"] += 1
             result["sent" if row.delivery_status == NotificationStatus.SENT else "failed"] += 1
-        session.commit()
+        store.commit()
         return result
 
 

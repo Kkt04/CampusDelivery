@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.routes import auth, incidents, notifications, packages, pickups, reports, storage, users
 from app.core.config import get_settings
 from app.core.exceptions import AppError
+from app.infrastructure.database import init_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("campus")
@@ -31,6 +32,10 @@ def create_app() -> FastAPI:
     app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allow_credentials=False,
                        allow_methods=["GET", "POST", "PATCH"], allow_headers=["Authorization", "Content-Type",
                                                                                "Idempotency-Key"])
+
+    @app.on_event("startup")
+    def _startup() -> None:
+        init_db()
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # noqa: ANN001, ANN202

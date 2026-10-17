@@ -5,6 +5,7 @@ over) have dedicated services and are rejected here.
 """
 from app.core.exceptions import InvalidTransitionError, NotFoundError, ValidationFailedError
 from app.domain.enums import PackageStatus
+from app.domain.enums import Role
 from app.domain.state_machine import state_machine
 from app.infrastructure.models import Package, User
 from app.repositories.unit_of_work import UnitOfWork
@@ -30,5 +31,17 @@ class PackageLifecycleService:
         if target in REASON_REQUIRED and not (reason and reason.strip()):
             raise ValidationFailedError("A reason is required for this change.", code="REASON_REQUIRED")
         self._transitioner.apply(package, target, actor, reason)
+        self._uow.commit()
+        return package
+
+    def request_return(self, *, package_id: int, actor: User, reason: str) -> Package:
+        """A learner asks for their own package to go back to the courier."""
+        package = self._uow.packages.get_for_update(package_id)
+        # Learners may only act on their own packages; pretend others do not exist.
+        if package is None or (actor.role == Role.LEARNER and package.recipient_id != actor.id):
+            raise NotFoundError("Package not found")
+        if not (reason and reason.strip()):
+            raise ValidationFailedError("A reason is required for this change.", code="REASON_REQUIRED")
+        self._transitioner.apply(package, PackageStatus.RETURN_REQUESTED, actor, reason.strip())
         self._uow.commit()
         return package
