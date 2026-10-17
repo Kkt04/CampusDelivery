@@ -1,0 +1,13 @@
+"""Single source of 'now'. All timestamps in the system are timezone-aware UTC."""
+from datetime import datetime, timezone
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def ensure_utc(value: datetime) -> datetime:
+    """Treat naive datetimes as UTC and convert aware ones to UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)

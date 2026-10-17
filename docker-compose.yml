@@ -1,0 +1,43 @@
+# Local full-stack environment: PostgreSQL + FastAPI + React (nginx).
+# Usage: docker compose up --build   then open http://localhost:8080
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: campus
+      POSTGRES_PASSWORD: campus          # local development only
+      POSTGRES_DB: campus_delivery
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus -d campus_delivery"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+psycopg://campus:campus@db:5432/campus_delivery
+      SECRET_KEY: ${SECRET_KEY:-local-docker-dev-secret-change-me-0123456789}
+      SEED_DEMO_DATA: "true"
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
+      NOTIFICATION_CHANNELS: in_app,console_email
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  pgdata:

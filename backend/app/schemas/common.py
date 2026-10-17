@@ -1,0 +1,26 @@
+from typing import Generic, TypeVar
+
+from pydantic import BaseModel, ConfigDict
+
+T = TypeVar("T")
+
+
+class ORMModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PageOut(BaseModel, Generic[T]):
+    items: list[T]
+    total: int
+    page: int
+    page_size: int
+
+
+class UserBrief(ORMModel):
+    id: int
+    institutional_id: str
+    full_name: str
+
+
+class MessageOut(BaseModel):
+    message: str
