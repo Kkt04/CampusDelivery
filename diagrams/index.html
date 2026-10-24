@@ -150,20 +150,6 @@
       display: block;
       background: #ffffff;
     }
-    .source-wrapper {
-      width: 100%;
-      display: none;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 16px;
-      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #1e293b;
-      overflow-x: auto;
-      white-space: pre-wrap;
-    }
     .notes-box {
       width: 100%;
       margin-top: 18px;
@@ -193,9 +179,8 @@
       <div class="actions">
         <button class="btn active" id="btn-png" onclick="switchView('png')">PNG Photo</button>
         <button class="btn" id="btn-svg" onclick="switchView('svg')">Vector SVG</button>
-        <button class="btn" id="btn-mmd" onclick="switchView('mmd')">Mermaid Source</button>
         <button class="btn" onclick="openRawPNG()">Open Fullscreen PNG</button>
-        <button class="btn" onclick="copyMermaid()">Copy Code</button>
+        <button class="btn" onclick="openRawSVG()">Open SVG</button>
       </div>
     </div>
     <div id="viewer-container">
@@ -204,7 +189,6 @@
           <img id="png-img" src="01_use_case_diagram.png" alt="Diagram PNG" />
         </div>
         <div class="svg-wrapper" id="svg-view"></div>
-        <pre class="source-wrapper" id="mmd-view"></pre>
         <div class="notes-box" id="notes-view"></div>
       </div>
     </div>
@@ -272,15 +256,6 @@
       } catch (e) {
         document.getElementById('svg-view').innerHTML = `<p>Error loading SVG: ${e.message}</p>`;
       }
-
-      // Update Mermaid view
-      try {
-        const mmdRes = await fetch(`${d.id}.mmd`);
-        const mmdText = await mmdRes.text();
-        document.getElementById('mmd-view').textContent = mmdText;
-      } catch (e) {
-        document.getElementById('mmd-view').textContent = `// Error loading Mermaid source: ${e.message}`;
-      }
     }
 
     function selectDiagram(idx) {
@@ -291,11 +266,9 @@
       currentView = view;
       document.getElementById('btn-png').classList.toggle('active', view === 'png');
       document.getElementById('btn-svg').classList.toggle('active', view === 'svg');
-      document.getElementById('btn-mmd').classList.toggle('active', view === 'mmd');
 
       document.getElementById('png-view').style.display = view === 'png' ? 'flex' : 'none';
       document.getElementById('svg-view').style.display = view === 'svg' ? 'block' : 'none';
-      document.getElementById('mmd-view').style.display = view === 'mmd' ? 'block' : 'none';
     }
 
     function openRawPNG() {
@@ -303,11 +276,9 @@
       window.open(`${d.id}.png`, '_blank');
     }
 
-    function copyMermaid() {
-      const mmdText = document.getElementById('mmd-view').textContent;
-      navigator.clipboard.writeText(mmdText).then(() => {
-        alert("Mermaid source code copied to clipboard!");
-      });
+    function openRawSVG() {
+      const d = DIAGRAMS[currentDiagramIndex];
+      window.open(`${d.id}.svg`, '_blank');
     }
 
     initNav();

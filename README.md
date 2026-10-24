@@ -24,20 +24,20 @@ Architecture: a **layered modular monolith** (see `docs/02-architecture.md`).
 > [!IMPORTANT]
 > **Final Year Capstone Project Evaluation (November 2026)**: All 10 Low-Level Design (LLD) evaluation components, architectural defense points, and viva preparations are documented in:
 > - **Master Evaluation Guide**: [`docs/00-capstone-evaluation-guide.md`](docs/00-capstone-evaluation-guide.md)
-> - **Interactive Diagram Viewer**: [`diagrams/index.html`](diagrams/index.html) *(Open in any browser for interactive SVGs, Mermaid source, and pan/zoom)*
-> - **Diagrams Directory**: [`diagrams/`](diagrams/) *(13 publication-grade vector SVGs + Mermaid sources)*
+> - **Interactive Diagram Viewer**: [`diagrams/index.html`](diagrams/index.html) *(Open in browser for clean PNG photos and SVGs on pure white background)*
+> - **Diagrams Directory**: [`diagrams/`](diagrams/) *(13 clean PNG photos + 13 scalable SVGs)*
 
-| # | Evaluation Component | Primary Code Reference | Dedicated Diagram |
+| # | Evaluation Component | Primary Code Reference | Dedicated Diagram Photo (PNG) |
 |---|---|---|---|
-| 1 | **Requirement Analysis** | [`docs/01-requirements.md`](docs/01-requirements.md) | [`01_use_case_diagram.svg`](diagrams/01_use_case_diagram.svg) |
-| 2 | **Class Diagram** | [`backend/app/infrastructure/models.py`](backend/app/infrastructure/models.py) | [`02_class_diagram_domain_entities.svg`](diagrams/02_class_diagram_domain_entities.svg) |
-| 3 | **Object-Oriented Design** | [`backend/app/domain/`](backend/app/domain/) | [`03_class_diagram_services_and_architecture.svg`](diagrams/03_class_diagram_services_and_architecture.svg) |
-| 4 | **SOLID Principles** | [`docs/07-solid-and-patterns.md`](docs/07-solid-and-patterns.md) | [`13_design_patterns_diagram.svg`](diagrams/13_design_patterns_diagram.svg) |
-| 5 | **Design Patterns** | [`backend/app/domain/allocation.py`](backend/app/domain/allocation.py), `events.py` | [`13_design_patterns_diagram.svg`](diagrams/13_design_patterns_diagram.svg), [`10_state_machine_diagram.svg`](diagrams/10_state_machine_diagram.svg) |
-| 6 | **Sequence & Activity** | [`backend/app/services/`](backend/app/services/) | [`04_sequence_package_intake.svg`](diagrams/04_sequence_package_intake.svg) to [`09_activity_concurrency_storage_handover.svg`](diagrams/09_activity_concurrency_storage_handover.svg) |
-| 7 | **API / Interface Design** | [`backend/app/api/routes/`](backend/app/api/routes/), [`docs/06-api.md`](docs/06-api.md) | [`11_component_architecture_diagram.svg`](diagrams/11_component_architecture_diagram.svg) |
-| 8 | **Database Schema** | [`backend/app/infrastructure/database.py`](backend/app/infrastructure/database.py) | [`12_database_er_schema_diagram.svg`](diagrams/12_database_er_schema_diagram.svg) |
-| 9 | **Error & Concurrency** | [`docs/08-edge-cases.md`](docs/08-edge-cases.md), `pickup.py` | [`07_sequence_pickup_handover_concurrency.svg`](diagrams/07_sequence_pickup_handover_concurrency.svg), [`09_activity_concurrency_storage_handover.svg`](diagrams/09_activity_concurrency_storage_handover.svg) |
+| 1 | **Requirement Analysis** | [`docs/01-requirements.md`](docs/01-requirements.md) | [`01_use_case_diagram.png`](diagrams/01_use_case_diagram.png) |
+| 2 | **Class Diagram** | [`backend/app/infrastructure/models.py`](backend/app/infrastructure/models.py) | [`02_class_diagram_domain_entities.png`](diagrams/02_class_diagram_domain_entities.png) |
+| 3 | **Object-Oriented Design** | [`backend/app/domain/`](backend/app/domain/) | [`03_class_diagram_services_and_architecture.png`](diagrams/03_class_diagram_services_and_architecture.png) |
+| 4 | **SOLID Principles** | [`docs/07-solid-and-patterns.md`](docs/07-solid-and-patterns.md) | [`13_design_patterns_diagram.png`](diagrams/13_design_patterns_diagram.png) |
+| 5 | **Design Patterns** | [`backend/app/domain/allocation.py`](backend/app/domain/allocation.py), `events.py` | [`13_design_patterns_diagram.png`](diagrams/13_design_patterns_diagram.png), [`10_state_machine_diagram.png`](diagrams/10_state_machine_diagram.png) |
+| 6 | **Sequence & Activity** | [`backend/app/services/`](backend/app/services/) | [`04_sequence_package_intake.png`](diagrams/04_sequence_package_intake.png) to [`09_activity_concurrency_storage_handover.png`](diagrams/09_activity_concurrency_storage_handover.png) |
+| 7 | **API / Interface Design** | [`backend/app/api/routes/`](backend/app/api/routes/), [`docs/06-api.md`](docs/06-api.md) | [`11_component_architecture_diagram.png`](diagrams/11_component_architecture_diagram.png) |
+| 8 | **Database Schema** | [`backend/app/infrastructure/database.py`](backend/app/infrastructure/database.py) | [`12_database_er_schema_diagram.png`](diagrams/12_database_er_schema_diagram.png) |
+| 9 | **Error & Concurrency** | [`docs/08-edge-cases.md`](docs/08-edge-cases.md), `pickup.py` | [`07_sequence_pickup_handover_concurrency.png`](diagrams/07_sequence_pickup_handover_concurrency.png), [`09_activity_concurrency_storage_handover.png`](diagrams/09_activity_concurrency_storage_handover.png) |
 | 10 | **Working Implementation** | [`backend/tests/`](backend/tests/) (`pytest tests/unit -v`) | 29 unit tests passing, end-to-end API suite |
 
 ---
@@ -46,7 +46,7 @@ Architecture: a **layered modular monolith** (see `docs/02-architecture.md`).
 
 ```
 campus-delivery/
-├── diagrams/                    # 13 SVG vector diagrams, 13 Mermaid source files, index.html viewer
+├── diagrams/                    # 13 clean PNG photos, 13 SVG vector diagrams, index.html viewer
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI app, error handlers, routers
