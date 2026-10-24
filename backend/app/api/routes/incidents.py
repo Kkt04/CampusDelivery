@@ -9,7 +9,7 @@ from app.infrastructure.models import User
 from app.repositories.filters import IncidentFilters
 from app.repositories.unit_of_work import UnitOfWork
 from app.schemas.common import PageOut
-from app.schemas.misc import IncidentCreate, IncidentOut, IncidentResolve
+from app.schemas.misc import IncidentCommentCreate, IncidentCreate, IncidentOut, IncidentResolve
 from app.services.incidents import IncidentService
 
 router = APIRouter(prefix="/incidents", tags=["Incidents"])
@@ -36,6 +36,20 @@ def list_incidents(status: IncidentStatus | None = None, type: IncidentType | No
                                        package_id=package_id), page=page, page_size=page_size)
     return PageOut(items=[present_incident(i) for i in result.items], total=result.total,
                    page=page, page_size=page_size)
+
+
+@router.get("/{incident_id}", response_model=IncidentOut)
+def get_incident(incident_id: int, user: User = Depends(get_current_user),
+                 uow: UnitOfWork = Depends(get_uow)) -> IncidentOut:
+    return present_incident(IncidentService(uow).get(actor=user, incident_id=incident_id))
+
+
+@router.post("/{incident_id}/comments", response_model=IncidentOut)
+def add_incident_comment(incident_id: int, body: IncidentCommentCreate,
+                         user: User = Depends(get_current_user),
+                         uow: UnitOfWork = Depends(get_uow)) -> IncidentOut:
+    return present_incident(IncidentService(uow).add_comment(
+        actor=user, incident_id=incident_id, message=body.message))
 
 
 @router.post("/{incident_id}/resolve", response_model=IncidentOut)

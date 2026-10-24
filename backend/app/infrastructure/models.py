@@ -235,6 +235,7 @@ class Incident(Document):
     reported_by_id: int = 0
     resolved_by_id: int | None = None
     resolution_note: str | None = None
+    comments: list[dict[str, Any]] = field(default_factory=list)
     created_at: datetime = field(default_factory=utcnow)
     resolved_at: datetime | None = None
 

@@ -114,6 +114,15 @@ export interface Notification {
   read_at: string | null;
 }
 
+export interface IncidentComment {
+  id: string;
+  author_id: number;
+  author_name: string;
+  author_role: Role;
+  message: string;
+  created_at: string;
+}
+
 export interface Incident {
   id: number;
   package_id: number | null;
@@ -124,6 +133,7 @@ export interface Incident {
   reported_by: UserBrief;
   resolved_by: UserBrief | null;
   resolution_note: string | null;
+  comments?: IncidentComment[];
   created_at: string;
   resolved_at: string | null;
 }

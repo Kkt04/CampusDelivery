@@ -318,6 +318,16 @@ export const en: TranslationDictionary = {
   markResolvedBtn: "Mark resolved",
   resolveBtn: "Resolve",
   reportIncidentBtn: "Report incident",
+  openIncidentBtn: "Open",
+  closeIncidentBtn: "Close",
+  reportedByNotice: "Reported by",
+  reportedIssueLabel: "Reported issue",
+  incidentConversationTitle: "Communication & Follow-ups",
+  noFollowUpMessages: "No follow-up messages yet. Add a comment below to communicate with the user.",
+  replyPlaceholder: "Write a message or reply...",
+  sendReplyBtn: "Send message",
+  resolveIncidentBoxTitle: "Resolve Incident",
+  resolvedByLabel: "Resolved by",
 
   // Packages List
   incomingPackagesTitle: "Incoming packages",

@@ -1,4 +1,4 @@
-"""Use cases: report, list and resolve incidents."""
+import uuid
 from app.core.exceptions import InvalidTransitionError, NotFoundError, PermissionDeniedError, ValidationFailedError
 from app.core.time import utcnow
 from app.domain.enums import IncidentStatus, IncidentType, PackageStatus, Role
@@ -46,6 +46,42 @@ class IncidentService:
         if actor.role == Role.LEARNER:
             filters.reported_by_id = actor.id
         return self._uow.incidents.search(filters, page, page_size)
+
+    def get(self, *, actor: User, incident_id: int) -> Incident:
+        incident = self._uow.incidents.get(incident_id)
+        if incident is None:
+            raise NotFoundError("Incident not found")
+        if actor.role == Role.LEARNER and incident.reported_by_id != actor.id:
+            if not (incident.package and incident.package.recipient_id == actor.id):
+                raise NotFoundError("Incident not found")
+        return incident
+
+    def add_comment(self, *, actor: User, incident_id: int, message: str) -> Incident:
+        incident = self.get(actor=actor, incident_id=incident_id)
+        text = message.strip()
+        if not text:
+            raise ValidationFailedError("Comment message cannot be empty.")
+        comment = {
+            "id": str(uuid.uuid4())[:8],
+            "author_id": actor.id,
+            "author_name": actor.full_name,
+            "author_role": actor.role.value,
+            "message": text,
+            "created_at": utcnow().isoformat(),
+        }
+        current_comments = list(getattr(incident, "comments", []) or [])
+        current_comments.append(comment)
+        incident.comments = current_comments
+
+        # Persist directly in MongoDB
+        self._uow.incidents.collection.update_one(
+            {"_id": incident.id},
+            {"$set": {"comments": current_comments}}
+        )
+        self._audit.record(actor, "incident.commented", "incident", incident.id,
+                           {"comment_id": comment["id"], "author": actor.full_name})
+        self._uow.commit()
+        return incident
 
     def resolve(self, *, actor: User, incident_id: int, resolution_note: str) -> Incident:
         if actor.role != Role.ADMIN:

@@ -8,7 +8,7 @@ import { useAction, useApi } from "../../lib/useApi";
 const BAR_ORDER: PackageStatus[] = ["VERIFIED", "STORED", "READY_FOR_PICKUP", "PICKUP_REQUESTED", "UNIDENTIFIED", "DAMAGED",
   "UNDER_INVESTIGATION", "RETURN_REQUESTED"];
 const BAR_COLOR: Record<string, string> = { neutral: "bg-muted/40", brand: "bg-brand", warn: "bg-warn", danger: "bg-danger", done: "bg-done" };
-
+import { IncidentList } from "../../components/IncidentList";
 import { useLanguage } from "../../i18n/LanguageContext";
 
 export function OpsDashboard() {
@@ -104,6 +104,10 @@ export function OpsDashboard() {
           </>
         )}
       </Card>
+
+      <div className="mt-8">
+        <IncidentList canResolve packageBase="/ops/packages" />
+      </div>
     </div>
   );
 }

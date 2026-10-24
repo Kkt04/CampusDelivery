@@ -318,6 +318,16 @@ export const hi: TranslationDictionary = {
   markResolvedBtn: "समाधानित चिह्नित करें",
   resolveBtn: "समाधान करें",
   reportIncidentBtn: "घटना रिपोर्ट करें",
+  openIncidentBtn: "खोलें",
+  closeIncidentBtn: "बंद करें",
+  reportedByNotice: "द्वारा रिपोर्ट किया गया",
+  reportedIssueLabel: "रिपोर्ट की गई समस्या",
+  incidentConversationTitle: "बातचीत एवं अनुवर्ती संदेश",
+  noFollowUpMessages: "अभी तक कोई अनुवर्ती संदेश नहीं है। उपयोगकर्ता से संपर्क करने के लिए नीचे टिप्पणी जोड़ें।",
+  replyPlaceholder: "संदेश या उत्तर लिखें...",
+  sendReplyBtn: "संदेश भेजें",
+  resolveIncidentBoxTitle: "घटना का समाधान करें",
+  resolvedByLabel: "द्वारा समाधान किया गया",
 
   // Packages List
   incomingPackagesTitle: "आने वाले पार्सल",

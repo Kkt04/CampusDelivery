@@ -7,7 +7,7 @@ from app.domain.overdue import is_overdue
 from app.domain.state_machine import state_machine
 from app.infrastructure.models import AuditLog, Incident, Package, PackageStatusHistory, PickupRecord, User
 from app.schemas.common import UserBrief
-from app.schemas.misc import AuditLogOut, IncidentOut
+from app.schemas.misc import AuditLogOut, IncidentCommentOut, IncidentOut
 from app.schemas.packages import ActionOut, HistoryEntryOut, PackageOut, StorageBrief
 from app.schemas.pickups import PickupRecordOut
 from app.services.transitions import context_of
@@ -70,12 +70,26 @@ def present_pickup(record: PickupRecord, viewer: User) -> PickupRecordOut:
 
 
 def present_incident(incident: Incident) -> IncidentOut:
+    raw_comments = getattr(incident, "comments", []) or []
+    comments = [
+        IncidentCommentOut(
+            id=str(c.get("id", "")),
+            author_id=int(c.get("author_id", 0)),
+            author_name=str(c.get("author_name", "")),
+            author_role=str(c.get("author_role", "")),
+            message=str(c.get("message", "")),
+            created_at=str(c.get("created_at", "")),
+        )
+        for c in raw_comments
+    ]
     return IncidentOut(
         id=incident.id, package_id=incident.package_id,
         package_code=incident.package.internal_code if incident.package else None,
         type=incident.type, status=incident.status, description=incident.description,
         reported_by=brief(incident.reported_by), resolved_by=brief(incident.resolved_by),
-        resolution_note=incident.resolution_note, created_at=incident.created_at,
+        resolution_note=incident.resolution_note,
+        comments=comments,
+        created_at=incident.created_at,
         resolved_at=incident.resolved_at,
     )
 

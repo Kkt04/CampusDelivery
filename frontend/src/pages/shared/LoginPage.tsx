@@ -275,17 +275,6 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
                 {t("authSignInBtn")}
               </Button>
 
-              <p className="mt-4 text-center text-xs sm:text-sm text-muted">
-                {t("authNewHere")}{" "}
-                <button
-                  type="button"
-                  onClick={() => switchMode("signup")}
-                  className="font-semibold text-primary-700 hover:text-primary-800 transition-colors hover:underline"
-                >
-                  {t("authCreateAccountLink")}
-                </button>
-              </p>
-
               {import.meta.env.DEV && (
                 <div className="mt-5 rounded-xl border border-line bg-surface-alt/70 p-3.5 text-xs text-muted shadow-2xs">
                   <div className="flex items-center justify-between">
@@ -438,17 +427,6 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
               >
                 {t("signupSubmitBtn")}
               </Button>
-
-              <p className="mt-4 text-center text-xs sm:text-sm text-muted">
-                {t("signupAlreadyHaveAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => switchMode("login")}
-                  className="font-semibold text-primary-700 hover:text-primary-800 transition-colors hover:underline"
-                >
-                  {t("signupSignInLink")}
-                </button>
-              </p>
             </form>
           )}
         </div>

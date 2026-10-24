@@ -59,6 +59,19 @@ class IncidentResolve(BaseModel):
     resolution_note: str = Field(min_length=3, max_length=2000)
 
 
+class IncidentCommentOut(BaseModel):
+    id: str
+    author_id: int
+    author_name: str
+    author_role: str
+    message: str
+    created_at: str
+
+
+class IncidentCommentCreate(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+
+
 class IncidentOut(BaseModel):
     id: int
     package_id: int | None
@@ -69,6 +82,7 @@ class IncidentOut(BaseModel):
     reported_by: UserBrief
     resolved_by: UserBrief | None
     resolution_note: str | None
+    comments: list[IncidentCommentOut] = Field(default_factory=list)
     created_at: datetime
     resolved_at: datetime | None
 

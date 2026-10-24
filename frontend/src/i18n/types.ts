@@ -316,6 +316,16 @@ export interface TranslationDictionary {
   markResolvedBtn: string;
   resolveBtn: string;
   reportIncidentBtn: string;
+  openIncidentBtn: string;
+  closeIncidentBtn: string;
+  reportedByNotice: string;
+  reportedIssueLabel: string;
+  incidentConversationTitle: string;
+  noFollowUpMessages: string;
+  replyPlaceholder: string;
+  sendReplyBtn: string;
+  resolveIncidentBoxTitle: string;
+  resolvedByLabel: string;
 
   // Packages List
   incomingPackagesTitle: string;

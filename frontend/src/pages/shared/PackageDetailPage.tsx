@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { incidentsApi, packagesApi, storageApi } from "../../api/endpoints";
-import type { Package, PackageAction, PackageStatus, Role, UserBrief } from "../../api/types";
+import type { Incident, IncidentComment, Package, PackageAction, PackageStatus, Role, UserBrief } from "../../api/types";
 import { useUser } from "../../auth/AuthContext";
 import { LearnerPicker } from "../../components/LearnerPicker";
 import { LifecycleTrack } from "../../components/LifecycleTrack";
@@ -131,6 +131,9 @@ function LearnerPanel({ pkg, onUpdated }: { pkg: Package; onUpdated: (p: Package
   const canReturn = ["STORED", "READY_FOR_PICKUP", "PICKUP_REQUESTED"].includes(pkg.status);
   const [description, setDescription] = useState("");
   const [sent, setSent] = useState(false);
+  const [showNewReport, setShowNewReport] = useState(false);
+
+  const incidents = useApi(() => incidentsApi.list({ package_id: pkg.id }), [pkg.id, sent]);
   const report = useAction(() => incidentsApi.create({ package_id: pkg.id, type: "LEARNER_REPORTED_ISSUE", description, escalate: false }));
 
   async function onReport(e: FormEvent) {
@@ -138,8 +141,12 @@ function LearnerPanel({ pkg, onUpdated }: { pkg: Package; onUpdated: (p: Package
     if (await report.run()) {
       setSent(true);
       setDescription("");
+      setShowNewReport(false);
+      void incidents.reload();
     }
   }
+
+  const existingIncidents = incidents.data?.items ?? [];
 
   return (
     <>
@@ -174,28 +181,170 @@ function LearnerPanel({ pkg, onUpdated }: { pkg: Package; onUpdated: (p: Package
         </Card>
       )}
 
-      <Card title={t("pkgReportProblem")}>
-        {sent ? (
-          <Alert tone="success">{t("pkgReportSuccess")}</Alert>
-        ) : (
-          <form className="space-y-3" onSubmit={onReport}>
-            <ErrorAlert error={report.error} />
-            <Field label={t("pkgReportDescLabel")} htmlFor="issue" error={report.error?.fieldErrors.description}>
-              <textarea
-                id="issue"
-                className="input min-h-24"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("pkgReportDescPlaceholder")}
-              />
-            </Field>
-            <Button variant="secondary" type="submit" pending={report.pending} disabled={description.trim().length < 5}>
-              {t("pkgReportBtn")}
-            </Button>
-          </form>
-        )}
-      </Card>
+      {/* Reported Incidents & Communication Thread */}
+      {existingIncidents.map((inc) => (
+        <LearnerIncidentItem key={inc.id} incident={inc} onReload={() => void incidents.reload()} />
+      ))}
+
+      {/* Report a Problem Form */}
+      {existingIncidents.length === 0 || showNewReport ? (
+        <Card title={t("pkgReportProblem")}>
+          {sent ? (
+            <Alert tone="success">{t("pkgReportSuccess")}</Alert>
+          ) : (
+            <form className="space-y-3" onSubmit={onReport}>
+              <ErrorAlert error={report.error} />
+              <Field label={t("pkgReportDescLabel")} htmlFor="issue" error={report.error?.fieldErrors.description}>
+                <textarea
+                  id="issue"
+                  className="input min-h-24"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={t("pkgReportDescPlaceholder")}
+                />
+              </Field>
+              <div className="flex gap-2">
+                <Button variant="secondary" type="submit" pending={report.pending} disabled={description.trim().length < 5}>
+                  {t("pkgReportBtn")}
+                </Button>
+                {existingIncidents.length > 0 && (
+                  <Button variant="ghost" type="button" onClick={() => setShowNewReport(false)}>
+                    {t("cancel")}
+                  </Button>
+                )}
+              </div>
+            </form>
+          )}
+        </Card>
+      ) : (
+        <div className="text-center pt-1">
+          <Button variant="ghost" className="text-xs py-1.5 px-3" onClick={() => setShowNewReport(true)}>
+            + {t("pkgReportProblem")}
+          </Button>
+        </div>
+      )}
     </>
+  );
+}
+
+function LearnerIncidentItem({ incident: inc, onReload }: { incident: Incident; onReload: () => void }) {
+  const { t } = useLanguage();
+  const [replyText, setReplyText] = useState("");
+  const replyAction = useAction(() => incidentsApi.addComment(inc.id, replyText));
+
+  return (
+    <Card title={`#${inc.id} ${sentenceCase(inc.type)}`}>
+      <div className="space-y-4">
+        {/* Status and timestamp */}
+        <div className="flex items-center justify-between">
+          <span
+            className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+              inc.status === "OPEN"
+                ? "bg-amber-50 text-amber-800 border-amber-200"
+                : "bg-emerald-50 text-emerald-800 border-emerald-200"
+            }`}
+          >
+            {inc.status === "OPEN" ? t("filterOpen") : t("filterResolved")}
+          </span>
+          <span className="text-xs text-muted">{formatDateTime(inc.created_at)}</span>
+        </div>
+
+        {/* Reported message */}
+        <div className="rounded-lg bg-surface-alt p-3.5 border border-line">
+          <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+            {t("reportedIssueLabel")}
+          </p>
+          <p className="text-sm font-medium text-ink whitespace-pre-wrap leading-relaxed">{inc.description}</p>
+        </div>
+
+        {/* Communication Thread */}
+        <div className="space-y-2.5">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
+            <span>💬</span> <span>{t("incidentConversationTitle")}</span>
+          </h4>
+
+          {inc.comments && inc.comments.length > 0 ? (
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {inc.comments.map((c: IncidentComment) => {
+                const isAdmin = c.author_role === "ADMIN";
+                return (
+                  <div
+                    key={c.id}
+                    className={`rounded-xl p-3 text-xs border ${
+                      isAdmin ? "bg-brand/5 border-brand/20 ml-4" : "bg-surface-alt border-line mr-4"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-ink">{c.author_name}</span>
+                        <span
+                          className={`text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                            isAdmin ? "bg-brand text-white" : "bg-neutral-200 text-neutral-700"
+                          }`}
+                        >
+                          {isAdmin ? "Admin" : "You"}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-muted">{formatDateTime(c.created_at)}</span>
+                    </div>
+                    <p className="text-sm text-text whitespace-pre-wrap leading-relaxed">{c.message}</p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-muted italic bg-surface-alt rounded-lg p-3 border border-line">
+              {t("noFollowUpMessages")}
+            </p>
+          )}
+
+          {/* Follow-up input for active incident */}
+          {inc.status === "OPEN" && (
+            <div className="pt-2 space-y-2 border-t border-line">
+              <ErrorAlert error={replyAction.error} />
+              <textarea
+                className="input min-h-16 text-sm"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder={t("replyPlaceholder")}
+                aria-label={t("replyPlaceholder")}
+              />
+              <div className="flex justify-end">
+                <Button
+                  className="text-xs py-1.5 px-3"
+                  pending={replyAction.pending}
+                  disabled={!replyText.trim()}
+                  onClick={async () => {
+                    const res = await replyAction.run();
+                    if (res) {
+                      setReplyText("");
+                      onReload();
+                    }
+                  }}
+                >
+                  {t("sendReplyBtn")}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Resolution note if resolved */}
+        {inc.status === "RESOLVED" && (
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-950">
+            <p className="font-bold text-sm">
+              ✓ {t("resolvedByLabel")}: {inc.resolved_by?.full_name ?? "Admin"}
+              {inc.resolved_at && ` • ${formatDateTime(inc.resolved_at)}`}
+            </p>
+            {inc.resolution_note && (
+              <p className="mt-1.5 text-sm bg-white/80 rounded p-2 border border-emerald-100 text-text leading-relaxed">
+                {inc.resolution_note}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }
 

@@ -83,8 +83,11 @@ export const notificationsApi = {
 export const incidentsApi = {
   list: (query: { status?: "OPEN" | "RESOLVED"; type?: IncidentType; package_id?: number; page?: number } = {}) =>
     request<Page<Incident>>("/incidents", { query }),
+  get: (id: number) => request<Incident>(`/incidents/${id}`),
   create: (body: { package_id?: number | null; type: IncidentType; description: string; escalate: boolean }) =>
     request<Incident>("/incidents", { method: "POST", body }),
+  addComment: (id: number, message: string) =>
+    request<Incident>(`/incidents/${id}/comments`, { method: "POST", body: { message } }),
   resolve: (id: number, note: string) =>
     request<Incident>(`/incidents/${id}/resolve`, { method: "POST", body: { resolution_note: note } }),
 };
