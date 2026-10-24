@@ -16,7 +16,7 @@ function nowLocal(): string {
 }
 
 const EMPTY = { courier: "", tracking: "", unknownRecipient: false, hint: "", size: "SMALL" as PackageSize,
-  condition: "GOOD" as PackageCondition, conditionNotes: "", arrivedAt: nowLocal(), notes: "" };
+  condition: "GOOD" as PackageCondition, conditionNotes: "", arrivedAt: nowLocal(), notes: "", autoAssignShelf: true };
 
 export function RegisterPackage() {
   const [form, setForm] = useState(EMPTY);
@@ -26,17 +26,37 @@ export function RegisterPackage() {
   const [idemKey, setIdemKey] = useState(newIdempotencyKey);
   const set = <K extends keyof typeof EMPTY>(k: K, v: (typeof EMPTY)[K]) => setForm((f) => ({ ...f, [k]: v }));
 
-  const submit = useAction(() => packagesApi.register({
-    courier_name: form.courier.trim(),
-    tracking_id: form.tracking.trim() || null,
-    recipient_institutional_id: form.unknownRecipient ? null : learner?.institutional_id ?? null,
-    recipient_hint: form.unknownRecipient ? form.hint.trim() || null : learner?.full_name ?? null,
-    size: form.size,
-    condition: form.condition,
-    condition_notes: form.condition === "DAMAGED" ? form.conditionNotes.trim() || null : null,
-    arrived_at: form.arrivedAt ? new Date(form.arrivedAt).toISOString() : null,
-    notes: form.notes.trim() || null,
-  }, idemKey));
+  const submit = useAction(async () => {
+    const isUnlistedLearner = !form.unknownRecipient && learner && learner.id === 0;
+    const recipientInstitutionalId = form.unknownRecipient || isUnlistedLearner ? null : learner?.institutional_id ?? null;
+    const recipientHint = form.unknownRecipient
+      ? (form.hint.trim() || null)
+      : isUnlistedLearner
+        ? `${learner.full_name} (${learner.institutional_id})`
+        : (learner?.full_name ?? null);
+
+    const pkg = await packagesApi.register({
+      courier_name: form.courier.trim(),
+      tracking_id: form.tracking.trim() || null,
+      recipient_institutional_id: recipientInstitutionalId,
+      recipient_hint: recipientHint,
+      size: form.size,
+      condition: form.condition,
+      condition_notes: form.condition === "DAMAGED" ? form.conditionNotes.trim() || null : null,
+      arrived_at: form.arrivedAt ? new Date(form.arrivedAt).toISOString() : null,
+      notes: form.notes.trim() || null,
+    }, idemKey);
+
+    if (form.autoAssignShelf && form.condition !== "DAMAGED") {
+      try {
+        const stored = await packagesApi.assignStorage(pkg.id, null, true);
+        return stored;
+      } catch {
+        return pkg;
+      }
+    }
+    return pkg;
+  });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,11 +86,23 @@ export function RegisterPackage() {
             </div>
             <StatusBadge status={created.status} />
           </div>
-          {created.status === "UNIDENTIFIED" && <div className="mt-4"><Alert tone="warn">Recipient not identified. An incident was opened so operations can follow up.</Alert></div>}
+          {created.storage_location && (
+            <div className="mt-4 rounded-md border border-line bg-surface-alt p-3 text-sm">
+              <p className="font-semibold text-ink">
+                Stored at shelf: <span className="code-text text-brand">{created.storage_location.code}</span>
+              </p>
+              {created.status === "READY_FOR_PICKUP" && (
+                <p className="mt-1 text-xs text-muted">The recipient has been notified and can collect their parcel now.</p>
+              )}
+            </div>
+          )}
+          {created.status === "UNIDENTIFIED" && <div className="mt-4"><Alert tone="warn">Recipient not yet registered. When the student signs up or logs in with this ID, the package will automatically link to their account.</Alert></div>}
           {created.status === "DAMAGED" && <div className="mt-4"><Alert tone="warn">Held as damaged. An incident was opened for review.</Alert></div>}
           <div className="mt-5 flex flex-wrap gap-3">
-            <TextLink to={`/security/packages/${created.id}`}>Assign storage now</TextLink>
-            <button className="text-sm font-semibold text-muted hover:text-ink" onClick={reset}>Register another package</button>
+            {!created.storage_location && (
+              <TextLink to={`/security/packages/${created.id}`}>Assign storage now</TextLink>
+            )}
+            <button className="text-sm font-semibold text-brand hover:underline" onClick={reset}>Register another package</button>
           </div>
         </Card>
       </div>
@@ -149,6 +181,23 @@ export function RegisterPackage() {
             <Field label="Notes for staff" htmlFor="notes">
               <input id="notes" className="input" value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="e.g. fragile, keep upright" />
             </Field>
+          </div>
+        </Card>
+
+        <Card title="Storage & Pickup">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-brand"
+                checked={form.autoAssignShelf}
+                onChange={(e) => set("autoAssignShelf", e.target.checked)}
+              />
+              Auto-assign shelf and mark ready for pickup immediately
+            </label>
+            <p className="text-xs text-muted">
+              Recommended: Automatically allocates an available shelf slot for {form.size.toLowerCase()} parcels and makes it ready for collection right away.
+            </p>
           </div>
         </Card>
 

@@ -22,6 +22,8 @@ export const authApi = {
     request<TokenResponse>("/auth/login", { method: "POST", body: { identifier, password } }),
   signup: (input: SignupInput) =>
     request<TokenResponse>("/auth/signup", { method: "POST", body: input }),
+  resetPassword: (identifier: string, new_password: string) =>
+    request<TokenResponse>("/auth/reset-password", { method: "POST", body: { identifier, new_password } }),
   me: () => request<User>("/auth/me"),
 };
 
@@ -39,6 +41,8 @@ export const packagesApi = {
     request<Package>(`/packages/${id}/transitions`, { method: "POST", body: { target_status: target, reason } }),
   requestReturn: (id: number, reason: string) =>
     request<Package>(`/packages/${id}/return-request`, { method: "POST", body: { reason } }),
+  initiateReturn: (body: { package_id?: number | null; courier_name?: string | null; tracking_id?: string | null; reason: string; size?: PackageSize; notes?: string | null }) =>
+    request<Package>("/packages/return-initiate", { method: "POST", body }),
 };
 
 export const pickupApi = {

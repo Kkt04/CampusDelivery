@@ -19,6 +19,11 @@ class SignupRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class ResetPasswordRequest(BaseModel):
+    identifier: str = Field(min_length=2, max_length=254, description="Institutional ID or email")
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class UserOut(ORMModel):
     id: int
     institutional_id: str

@@ -1,6 +1,7 @@
-"""Use cases: register an incoming package and identify an unknown recipient."""
+import re
 import secrets
 from datetime import datetime
+from typing import Any
 
 from pymongo.errors import DuplicateKeyError as IntegrityError
 
@@ -183,3 +184,59 @@ class PackageIntakeService:
                     incident.resolution_note = f"Recipient identified as {learner.institutional_id}"
         self._uow.commit()
         return package
+
+    def claim_packages_for_learner(self, learner: User) -> int:
+        """Finds packages registered without recipient (UNIDENTIFIED) whose hint or label
+        contains this learner's institutional ID (e.g. 230136) or full name, and links them."""
+        raw_id = learner.institutional_id.strip()
+        id_pattern = rf"\b{re.escape(raw_id)}\b"
+        name_clean = learner.full_name.strip()
+        name_pattern = rf"\b{re.escape(name_clean)}\b" if len(name_clean) >= 3 else None
+
+        or_filters: list[dict[str, Any]] = [
+            {"recipient_hint": {"$regex": id_pattern, "$options": "i"}},
+            {"recipient_hint": {"$regex": re.escape(raw_id), "$options": "i"}},
+        ]
+        if name_pattern:
+            or_filters.append({"recipient_hint": {"$regex": name_pattern, "$options": "i"}})
+
+        query: dict[str, Any] = {
+            "recipient_id": None,
+            "status": {"$in": [PackageStatus.UNIDENTIFIED.value, PackageStatus.RECEIVED.value]},
+            "$or": or_filters,
+        }
+
+        docs = list(self._uow.session.db[Package.COLLECTION].find(query))
+        count = 0
+        now = utcnow()
+        for doc in docs:
+            pkg = self._uow.packages.get(doc["_id"])
+            if not pkg or pkg.recipient_id is not None:
+                continue
+            pkg.recipient_id = learner.id
+            pkg.recipient = learner
+            target = PackageStatus.STORED if pkg.storage_location_id else PackageStatus.VERIFIED
+            self._uow.session.flush()
+            self._uow.session.refresh(pkg)
+
+            # Use the staff member who received the package, or default to sec1 / admin
+            staff_actor = (pkg.received_by if (pkg.received_by and pkg.received_by.role in {Role.SECURITY, Role.ADMIN})
+                           else (self._uow.users.get_by_institutional_id("SEC-001") or learner))
+
+            self._transitioner.apply(pkg, target, staff_actor,
+                                     f"Auto-matched to learner account {learner.institutional_id}")
+            self._audit.record(learner, "package.auto_claimed", "package", pkg.id,
+                               {"learner_id": learner.id, "institutional_id": learner.institutional_id})
+
+            for incident in self._uow.incidents.open_for_package(pkg.id):
+                if incident.type == IncidentType.UNIDENTIFIED_RECIPIENT:
+                    incident.status = IncidentStatus.RESOLVED
+                    incident.resolved_by_id = staff_actor.id
+                    incident.resolved_at = now
+                    incident.resolution_note = f"Auto-matched to learner {learner.institutional_id}"
+            count += 1
+
+        if count > 0:
+            self._uow.commit()
+        return count
+

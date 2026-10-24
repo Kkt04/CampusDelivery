@@ -12,6 +12,7 @@ from app.infrastructure.models import User
 from app.repositories.filters import Page
 from app.repositories.unit_of_work import UnitOfWork
 from app.services.audit import AuditService
+from app.services.package_intake import PackageIntakeService
 
 
 
@@ -39,6 +40,8 @@ class AuthService:
             self._uow.commit()
             raise AuthenticationError("Incorrect ID/email or password, or the account is disabled.")
         self._limiter.reset(key)
+        if user.role == Role.LEARNER:
+            PackageIntakeService(self._uow).claim_packages_for_learner(user)
         token, expires_in = create_access_token(user.id, user.role.value)
         self._audit.record(user, "auth.login_succeeded", "user", user.id, {"ip": client_ip})
         self._uow.commit()
@@ -61,6 +64,21 @@ class AuthService:
             raise ConflictError("An account with this institutional ID or email already exists.",
                                 code="USER_EXISTS") from None
         self._audit.record(user, "auth.signup", "user", user.id, {"role": Role.LEARNER.value})
+        PackageIntakeService(self._uow).claim_packages_for_learner(user)
+        self._uow.commit()
+        token, expires_in = create_access_token(user.id, user.role.value)
+        return token, expires_in, user
+
+    def reset_password(self, identifier: str, new_password: str) -> tuple[str, int, User]:
+        user = self._uow.users.get_by_login(identifier)
+        if not user or not user.is_active:
+            raise NotFoundError("No active account matches this ID or email.")
+        require_password_strength(new_password)
+        user.password_hash = hash_password(new_password)
+        self._uow.session.flush()
+        self._audit.record(user, "auth.password_reset", "user", user.id, {"identifier": identifier.strip()})
+        if user.role == Role.LEARNER:
+            PackageIntakeService(self._uow).claim_packages_for_learner(user)
         self._uow.commit()
         token, expires_in = create_access_token(user.id, user.role.value)
         return token, expires_in, user

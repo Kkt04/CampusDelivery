@@ -70,6 +70,15 @@ class ReturnRequest(BaseModel):
     reason: str = Field(min_length=3, max_length=500, description="Why the package should go back to the courier")
 
 
+class InitiateReturnRequest(BaseModel):
+    package_id: int | None = None
+    courier_name: str | None = Field(default=None, max_length=80)
+    tracking_id: str | None = Field(default=None, max_length=64)
+    reason: str = Field(min_length=3, max_length=500)
+    size: PackageSize = PackageSize.SMALL
+    notes: str | None = Field(default=None, max_length=500)
+
+
 class StorageBrief(ORMModel):
     id: int
     code: str

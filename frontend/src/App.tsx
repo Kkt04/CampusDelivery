@@ -7,6 +7,7 @@ import { LearnerDashboard } from "./pages/learner/LearnerDashboard";
 import { MyPackages } from "./pages/learner/MyPackages";
 import { PickupCodePage } from "./pages/learner/PickupCodePage";
 import { PickupHistory } from "./pages/learner/PickupHistory";
+import { ReturnParcelPage } from "./pages/learner/ReturnParcelPage";
 import { OpsDashboard } from "./pages/ops/OpsDashboard";
 import { AuditPage } from "./pages/ops/AuditPage";
 import { ExceptionsPage } from "./pages/ops/ExceptionsPage";
@@ -48,6 +49,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/learner" element={<LearnerDashboard />} />
           <Route path="/learner/packages" element={<MyPackages />} />
+          <Route path="/learner/returns" element={<ReturnParcelPage />} />
           <Route path="/learner/packages/:id" element={<PackageDetailPage />} />
           <Route path="/learner/packages/:id/pickup" element={<PickupCodePage />} />
           <Route path="/learner/history" element={<PickupHistory />} />

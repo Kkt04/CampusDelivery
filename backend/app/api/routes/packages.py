@@ -17,6 +17,7 @@ from app.schemas.common import PageOut
 from app.schemas.packages import (
     HistoryEntryOut,
     IdentifyRecipientRequest,
+    InitiateReturnRequest,
     PackageOut,
     RegisterPackageRequest,
     ReturnRequest,
@@ -70,6 +71,7 @@ def list_packages(
         storage_location_id=storage_location_id,
     )
     if user.role == Role.LEARNER:
+        PackageIntakeService(uow).claim_packages_for_learner(user)
         filters.recipient_id = user.id  # server-side scoping; cannot be overridden by the client
         filters.storage_location_id = None
     now = utcnow()
@@ -126,6 +128,18 @@ def request_return(package_id: int, body: ReturnRequest,
                    settings: Settings = Depends(get_settings_dep)) -> PackageOut:
     package = PackageLifecycleService(uow).request_return(
         package_id=package_id, actor=user, reason=body.reason)
+    return present_package(package, user, utcnow(), settings)
+
+
+@router.post("/return-initiate", response_model=PackageOut, status_code=201,
+             summary="Learner: initiate a parcel return request")
+def initiate_return(body: InitiateReturnRequest,
+                    user: User = Depends(require(Permission.PACKAGE_REQUEST_RETURN)),
+                    uow: UnitOfWork = Depends(get_uow),
+                    settings: Settings = Depends(get_settings_dep)) -> PackageOut:
+    package = PackageLifecycleService(uow).initiate_learner_return(
+        actor=user, package_id=body.package_id, courier_name=body.courier_name,
+        tracking_id=body.tracking_id, reason=body.reason, size=body.size, notes=body.notes)
     return present_package(package, user, utcnow(), settings)
 
 

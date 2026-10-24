@@ -27,32 +27,39 @@ from app.repositories.unit_of_work import UnitOfWork
 
 logger = logging.getLogger(__name__)
 
-Template = Callable[[PackageStatusChanged, Package], tuple[str, str] | None]
+Template = Callable[..., tuple[str, str] | None]
 
 
-def _arrived(event: PackageStatusChanged, pkg: Package) -> tuple[str, str] | None:
+def _arrived(event: PackageStatusChanged, pkg: Package, user: User | None = None) -> tuple[str, str] | None:
     if event.from_status in {PackageStatus.RECEIVED, PackageStatus.UNIDENTIFIED}:
+        name = user.full_name.split()[0] if user and user.full_name else "there"
         return ("Package arrived",
-                f"A {pkg.courier_name} package ({pkg.internal_code}) arrived at Gate No. 2. "
-                "We will tell you when it is ready for pickup.")
+                f"Hey {name} you have a parcel... 🙂, the parcel is waiting for you at Gate No. 2 ({pkg.courier_name}, {pkg.internal_code}). "
+                "We will notify you the moment it is placed on a shelf.")
     return None
+
+
+def _ready(event: PackageStatusChanged, pkg: Package, user: User | None = None) -> tuple[str, str]:
+    name = user.full_name.split()[0] if user and user.full_name else "there"
+    return (
+        "Ready for pickup",
+        f"Hey {name} you have a parcel... 🙂, the parcel is waiting for you at Gate No. 2 ({pkg.courier_name}, {pkg.internal_code}). "
+        "Open your dashboard to get your one-time pickup code!"
+    )
 
 
 # Which lifecycle events produce a learner message (extend here; workflow code is untouched).
 TEMPLATES: dict[PackageStatus, Template] = {
     PackageStatus.VERIFIED: _arrived,
-    PackageStatus.READY_FOR_PICKUP: lambda e, p: (
-        "Ready for pickup",
-        f"Your {p.courier_name} package {p.internal_code} is ready at Gate No. 2. "
-        "Open the app to get your pickup code."),
-    PackageStatus.COLLECTED: lambda e, p: (
+    PackageStatus.READY_FOR_PICKUP: _ready,
+    PackageStatus.COLLECTED: lambda e, p, u=None: (
         "Package collected", f"Package {p.internal_code} was handed over to you. Thank you."),
-    PackageStatus.DAMAGED: lambda e, p: (
+    PackageStatus.DAMAGED: lambda e, p, u=None: (
         "Package arrived damaged",
         f"Package {p.internal_code} arrived damaged and is held at Gate No. 2 while staff review it."),
-    PackageStatus.RETURN_REQUESTED: lambda e, p: (
+    PackageStatus.RETURN_REQUESTED: lambda e, p, u=None: (
         "Package being returned", f"Package {p.internal_code} will be returned to {p.courier_name}."),
-    PackageStatus.LOST: lambda e, p: (
+    PackageStatus.LOST: lambda e, p, u=None: (
         "Package reported lost", f"Package {p.internal_code} could not be located. Operations will contact you."),
 }
 
@@ -72,7 +79,13 @@ class NotificationDispatcher:
         store = Store()
         package = MongoPackageRepository(store).get(event.package_id)
         user = MongoUserRepository(store).get(event.recipient_id)
-        if package is None or user is None or (rendered := template(event, package)) is None:
+        if package is None or user is None:
+            return
+        try:
+            rendered = template(event, package, user)
+        except TypeError:
+            rendered = template(event, package)
+        if rendered is None:
             return
         title, message = rendered
         repo = MongoNotificationRepository(store)

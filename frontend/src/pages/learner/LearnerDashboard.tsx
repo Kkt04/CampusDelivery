@@ -13,10 +13,27 @@ export function LearnerDashboard() {
   const onTheWay = useApi(() => packagesApi.list({
     status: ["RECEIVED", "VERIFIED", "STORED", "DAMAGED", "UNDER_INVESTIGATION", "RETURN_REQUESTED"], page_size: 10 }), []);
   const notes = useApi(() => notificationsApi.list(1), []);
+  const returns = useApi(() => packagesApi.list({ status: ["RETURN_REQUESTED"], page_size: 5 }), []);
 
   return (
     <div className="space-y-8">
       <PageHeader title={`Hello, ${user.full_name.split(" ")[0]}`} description="Packages addressed to you at Gate No. 2." />
+
+      {onTheWay.data && onTheWay.data.items.length > 0 && (
+        <div className="rounded-lg border border-brand/40 bg-brand-soft/70 p-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📦</span>
+            <div>
+              <p className="font-semibold text-brand-strong">
+                {onTheWay.data.items.length} parcel{onTheWay.data.items.length > 1 ? "s" : ""} logged at Gate No. 2!
+              </p>
+              <p className="text-sm text-muted">
+                Security has logged your parcel. As soon as it is placed on a shelf, your one-time pickup code will be available here.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Ready to collect</h2>
@@ -59,6 +76,62 @@ export function LearnerDashboard() {
                 ))}
               </ul>
             )}
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card
+          title="Return a parcel"
+          actions={<TextLink to="/learner/returns">Schedule a return</TextLink>}
+        >
+          <div className="space-y-3 text-sm">
+            <p className="text-muted">
+              Need to send a parcel back to Amazon, Delhivery, BlueDart, etc.? Drop it at Gate No. 2 with the return label.
+            </p>
+            {returns.data && returns.data.items.length > 0 ? (
+              <div className="mt-2 space-y-2">
+                <p className="font-semibold text-brand-strong">Your active return requests:</p>
+                <ul className="divide-y divide-line rounded border border-line bg-surface-alt/50">
+                  {returns.data.items.map((r) => (
+                    <li key={r.id} className="flex items-center justify-between p-2.5 text-xs">
+                      <div>
+                        <Link to={`/learner/packages/${r.id}`} className="font-semibold text-brand hover:underline">
+                          {r.internal_code}
+                        </Link>{" "}
+                        <span className="text-muted">({r.courier_name})</span>
+                        <p className="text-ink">{r.notes ?? "Return to courier"}</p>
+                      </div>
+                      <StatusBadge status={r.status} learner />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <Link
+                to="/learner/returns"
+                className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-alt px-3 py-1.5 text-xs font-semibold text-ink hover:bg-slate-100 transition"
+              >
+                + Initiate parcel return
+              </Link>
+            )}
+          </div>
+        </Card>
+
+        <Card
+          title="Pickup history"
+          actions={<TextLink to="/learner/history">View all</TextLink>}
+        >
+          <p className="text-sm text-muted">
+            Track all parcels you have collected from Gate No. 2, including the date, time, and collection shelf.
+          </p>
+          <div className="mt-4">
+            <Link
+              to="/learner/history"
+              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-alt px-3 py-1.5 text-xs font-semibold text-ink hover:bg-slate-100 transition"
+            >
+              📜 View past pickup collections
+            </Link>
+          </div>
         </Card>
       </div>
     </div>

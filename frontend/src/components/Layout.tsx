@@ -10,6 +10,7 @@ const NAV: Record<Role, NavItem[]> = {
   LEARNER: [
     { to: "/learner", label: "Overview", end: true },
     { to: "/learner/packages", label: "My packages" },
+    { to: "/learner/returns", label: "Return parcel" },
     { to: "/learner/history", label: "Pickup history" },
     { to: "/notifications", label: "Notifications" },
   ],

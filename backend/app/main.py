@@ -36,6 +36,13 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def _startup() -> None:
         init_db()
+        if settings.environment != "production":
+            try:
+                from app.seed import ensure_demo_users
+                ensure_demo_users()
+                logger.info("Local testing accounts ensured in database.")
+            except Exception as e:
+                logger.warning("Could not auto-ensure demo users on startup: %s", e)
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # noqa: ANN001, ANN202

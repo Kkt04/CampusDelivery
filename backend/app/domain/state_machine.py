@@ -104,7 +104,7 @@ TRANSITIONS: tuple[Transition, ...] = (
     ),
     *(
         _t(src, S.RETURN_REQUESTED, ADMIN_OR_LEARNER, "request_return", "Request return to courier")
-        for src in (S.STORED, S.READY_FOR_PICKUP, S.PICKUP_REQUESTED)
+        for src in (S.VERIFIED, S.STORED, S.READY_FOR_PICKUP, S.PICKUP_REQUESTED)
     ),
     # Investigation outcomes
     _t(S.UNDER_INVESTIGATION, S.STORED, ADMIN, "resolve_investigation", "Resolve: back to storage",
