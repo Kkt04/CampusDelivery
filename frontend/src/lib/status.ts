@@ -2,6 +2,8 @@ import type { PackageStatus } from "../api/types";
 
 export type Tone = "neutral" | "brand" | "warn" | "danger" | "done";
 
+import type { TranslationDictionary } from "../i18n/types";
+
 export const STATUS_META: Record<PackageStatus, { label: string; learnerLabel: string; tone: Tone }> = {
   RECEIVED: { label: "Received", learnerLabel: "Arrived at gate", tone: "neutral" },
   VERIFIED: { label: "Verified", learnerLabel: "Arrived, being stored", tone: "neutral" },
@@ -15,6 +17,21 @@ export const STATUS_META: Record<PackageStatus, { label: string; learnerLabel: s
   RETURN_REQUESTED: { label: "Return requested", learnerLabel: "Being returned to courier", tone: "warn" },
   RETURNED: { label: "Returned to courier", learnerLabel: "Returned to courier", tone: "done" },
   LOST: { label: "Lost", learnerLabel: "Reported lost", tone: "danger" },
+};
+
+export const STATUS_KEYS: Record<PackageStatus, { labelKey: keyof TranslationDictionary; learnerKey: keyof TranslationDictionary; tone: Tone }> = {
+  RECEIVED: { labelKey: "statusReceived", learnerKey: "statusReceivedLearner", tone: "neutral" },
+  VERIFIED: { labelKey: "statusVerified", learnerKey: "statusVerifiedLearner", tone: "neutral" },
+  STORED: { labelKey: "statusStored", learnerKey: "statusStoredLearner", tone: "neutral" },
+  READY_FOR_PICKUP: { labelKey: "statusReadyForPickup", learnerKey: "statusReadyForPickupLearner", tone: "brand" },
+  PICKUP_REQUESTED: { labelKey: "statusPickupRequested", learnerKey: "statusPickupRequestedLearner", tone: "brand" },
+  COLLECTED: { labelKey: "statusCollected", learnerKey: "statusCollectedLearner", tone: "done" },
+  UNIDENTIFIED: { labelKey: "statusUnidentified", learnerKey: "statusUnidentifiedLearner", tone: "warn" },
+  DAMAGED: { labelKey: "statusDamaged", learnerKey: "statusDamagedLearner", tone: "danger" },
+  UNDER_INVESTIGATION: { labelKey: "statusUnderInvestigation", learnerKey: "statusUnderInvestigationLearner", tone: "warn" },
+  RETURN_REQUESTED: { labelKey: "statusReturnRequested", learnerKey: "statusReturnRequestedLearner", tone: "warn" },
+  RETURNED: { labelKey: "statusReturned", learnerKey: "statusReturnedLearner", tone: "done" },
+  LOST: { labelKey: "statusLost", learnerKey: "statusLostLearner", tone: "danger" },
 };
 
 export const ALL_STATUSES = Object.keys(STATUS_META) as PackageStatus[];

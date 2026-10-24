@@ -18,8 +18,8 @@ import { IncidentReporting } from "./pages/security/IncidentReporting";
 import { PickupVerification } from "./pages/security/PickupVerification";
 import { RegisterPackage } from "./pages/security/RegisterPackage";
 import { SecurityDashboard } from "./pages/security/SecurityDashboard";
+import { LandingPage } from "./pages/shared/LandingPage";
 import { LoginPage } from "./pages/shared/LoginPage";
-import { SignupPage } from "./pages/shared/SignupPage";
 import { NotFoundPage, UnauthorizedPage } from "./pages/shared/StatusPages";
 import { NotificationsPage } from "./pages/shared/NotificationsPage";
 import { PackageDetailPage } from "./pages/shared/PackageDetailPage";
@@ -28,15 +28,15 @@ import { PackagesListPage } from "./pages/shared/PackagesListPage";
 function Home() {
   const { user, ready } = useAuth();
   if (!ready) return <Spinner />;
-  return <Navigate to={user ? HOME_BY_ROLE[user.role] : "/login"} replace />;
+  return user ? <Navigate to={HOME_BY_ROLE[user.role]} replace /> : <LandingPage />;
 }
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/login" element={<LoginPage defaultMode="login" />} />
+      <Route path="/signup" element={<LoginPage defaultMode="signup" />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       <Route element={<RequireRole roles={["LEARNER", "SECURITY", "ADMIN"]} />}>
@@ -60,9 +60,8 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/security" element={<SecurityDashboard />} />
           <Route path="/security/register" element={<RegisterPackage />} />
-          <Route path="/security/packages" element={<PackagesListPage title="Incoming packages"
-            description="Everything currently in custody at Gate No. 2. Open a package to assign storage or update it."
-            basePath="/security/packages" defaultScope="custody" />} />
+          <Route path="/security/packages" element={<PackagesListPage titleKey="incomingPackagesTitle"
+            descriptionKey="incomingPackagesDesc" basePath="/security/packages" defaultScope="custody" />} />
           <Route path="/security/packages/:id" element={<PackageDetailPage />} />
           <Route path="/security/pickup" element={<PickupVerification />} />
           <Route path="/security/incidents" element={<IncidentReporting />} />
@@ -72,8 +71,8 @@ export default function App() {
       <Route element={<RequireRole roles={["ADMIN"]} />}>
         <Route element={<Layout />}>
           <Route path="/ops" element={<OpsDashboard />} />
-          <Route path="/ops/packages" element={<PackagesListPage title="Packages"
-            description="Search every package by code, tracking ID, courier or learner." basePath="/ops/packages" defaultScope="all" />} />
+          <Route path="/ops/packages" element={<PackagesListPage titleKey="allPackagesTitle"
+            descriptionKey="allPackagesDesc" basePath="/ops/packages" defaultScope="all" />} />
           <Route path="/ops/packages/:id" element={<PackageDetailPage />} />
           <Route path="/ops/exceptions" element={<ExceptionsPage />} />
           <Route path="/ops/storage" element={<StorageManagement />} />

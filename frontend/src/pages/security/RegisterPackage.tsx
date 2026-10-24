@@ -1,10 +1,11 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { newIdempotencyKey } from "../../api/client";
-import { packagesApi } from "../../api/endpoints";
-import type { Package, PackageCondition, PackageSize, UserBrief } from "../../api/types";
+import { packagesApi, storageApi } from "../../api/endpoints";
+import type { Package, PackageSize, StorageLocation, UserBrief } from "../../api/types";
 import { LearnerPicker } from "../../components/LearnerPicker";
 import { StatusBadge } from "../../components/StatusBadge";
 import { Alert, Button, Card, ErrorAlert, Field, PageHeader, TextLink } from "../../components/ui";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { useAction } from "../../lib/useApi";
 
 const COURIERS = ["Amazon Logistics", "BlueDart", "Delhivery", "DTDC", "Ekart", "India Post", "Shadowfax", "Xpressbees"];
@@ -15,16 +16,29 @@ function nowLocal(): string {
   return d.toISOString().slice(0, 16);
 }
 
-const EMPTY = { courier: "", tracking: "", unknownRecipient: false, hint: "", size: "SMALL" as PackageSize,
-  condition: "GOOD" as PackageCondition, conditionNotes: "", arrivedAt: nowLocal(), notes: "", autoAssignShelf: true };
+const EMPTY = {
+  courier: "",
+  tracking: "",
+  unknownRecipient: false,
+  hint: "",
+  size: "SMALL" as PackageSize,
+  arrivedAt: nowLocal(),
+};
 
 export function RegisterPackage() {
+  const { t } = useLanguage();
   const [form, setForm] = useState(EMPTY);
+  const [rackNumber, setRackNumber] = useState("");
   const [learner, setLearner] = useState<UserBrief | null>(null);
   const [created, setCreated] = useState<Package | null>(null);
+  const [existingLocations, setExistingLocations] = useState<StorageLocation[]>([]);
   // One key per form submission: a retry after a dropped connection reuses it, so the package is never registered twice.
   const [idemKey, setIdemKey] = useState(newIdempotencyKey);
   const set = <K extends keyof typeof EMPTY>(k: K, v: (typeof EMPTY)[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    storageApi.list(true).then(setExistingLocations).catch(() => {});
+  }, []);
 
   const submit = useAction(async () => {
     const isUnlistedLearner = !form.unknownRecipient && learner && learner.id === 0;
@@ -41,13 +55,42 @@ export function RegisterPackage() {
       recipient_institutional_id: recipientInstitutionalId,
       recipient_hint: recipientHint,
       size: form.size,
-      condition: form.condition,
-      condition_notes: form.condition === "DAMAGED" ? form.conditionNotes.trim() || null : null,
+      condition: "GOOD",
+      condition_notes: null,
       arrived_at: form.arrivedAt ? new Date(form.arrivedAt).toISOString() : null,
-      notes: form.notes.trim() || null,
+      notes: null,
     }, idemKey);
 
-    if (form.autoAssignShelf && form.condition !== "DAMAGED") {
+    const trimmedRack = rackNumber.trim();
+    if (trimmedRack) {
+      let location = existingLocations.find(
+        (l) => l.code.trim().toUpperCase() === trimmedRack.toUpperCase()
+      );
+      if (!location) {
+        try {
+          location = await storageApi.create({
+            code: trimmedRack.toUpperCase(),
+            capacity: 50,
+            max_package_size: "LARGE",
+          });
+          setExistingLocations((prev) => [...prev, location!]);
+        } catch {
+          try {
+            const all = await storageApi.list(false);
+            location = all.find((l) => l.code.trim().toUpperCase() === trimmedRack.toUpperCase());
+          } catch {
+            // fallback
+          }
+        }
+      }
+
+      try {
+        const stored = await packagesApi.assignStorage(pkg.id, location?.id ?? null, true);
+        return stored;
+      } catch {
+        return pkg;
+      }
+    } else {
       try {
         const stored = await packagesApi.assignStorage(pkg.id, null, true);
         return stored;
@@ -55,7 +98,6 @@ export function RegisterPackage() {
         return pkg;
       }
     }
-    return pkg;
   });
 
   async function onSubmit(e: FormEvent) {
@@ -66,9 +108,11 @@ export function RegisterPackage() {
 
   function reset() {
     setForm({ ...EMPTY, arrivedAt: nowLocal() });
+    setRackNumber("");
     setLearner(null);
     setCreated(null);
     setIdemKey(newIdempotencyKey());
+    storageApi.list(true).then(setExistingLocations).catch(() => {});
   }
 
   const fe = submit.error?.fieldErrors ?? {};
@@ -77,32 +121,47 @@ export function RegisterPackage() {
   if (created) {
     return (
       <div className="mx-auto max-w-2xl space-y-4">
-        <PageHeader title="Package registered" />
+        <PageHeader title={t("regSuccessTitle")} />
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="code-text text-xl">{created.internal_code}</p>
-              <p className="text-sm text-muted">{created.courier_name}, for {created.recipient?.full_name ?? created.recipient_hint}</p>
+              <p className="code-text text-xl font-bold text-ink">{created.internal_code}</p>
+              <p className="text-sm text-muted">
+                {created.courier_name}, for {created.recipient?.full_name ?? created.recipient_hint}
+              </p>
             </div>
             <StatusBadge status={created.status} />
           </div>
           {created.storage_location && (
-            <div className="mt-4 rounded-md border border-line bg-surface-alt p-3 text-sm">
-              <p className="font-semibold text-ink">
-                Stored at shelf: <span className="code-text text-brand">{created.storage_location.code}</span>
+            <div className="mt-4 rounded-xl border border-primary-200 bg-primary-50 p-4 text-sm">
+              <p className="font-semibold text-primary-900">
+                {t("regStoredAtShelf")}{" "}
+                <span className="code-text text-base font-bold text-primary-700 bg-white px-2.5 py-0.5 rounded-lg border border-primary-200 ml-1">
+                  {created.storage_location.code}
+                </span>
               </p>
               {created.status === "READY_FOR_PICKUP" && (
-                <p className="mt-1 text-xs text-muted">The recipient has been notified and can collect their parcel now.</p>
+                <p className="mt-1.5 text-xs text-primary-800">{t("regReadyNotification")}</p>
               )}
             </div>
           )}
-          {created.status === "UNIDENTIFIED" && <div className="mt-4"><Alert tone="warn">Recipient not yet registered. When the student signs up or logs in with this ID, the package will automatically link to their account.</Alert></div>}
-          {created.status === "DAMAGED" && <div className="mt-4"><Alert tone="warn">Held as damaged. An incident was opened for review.</Alert></div>}
-          <div className="mt-5 flex flex-wrap gap-3">
+          {created.status === "UNIDENTIFIED" && (
+            <div className="mt-4">
+              <Alert tone="warn">
+                Recipient not yet registered. When the student signs up or logs in with this ID, the package will automatically link to their account.
+              </Alert>
+            </div>
+          )}
+          <div className="mt-5 flex flex-wrap items-center gap-4">
             {!created.storage_location && (
-              <TextLink to={`/security/packages/${created.id}`}>Assign storage now</TextLink>
+              <TextLink to={`/security/packages/${created.id}`}>{t("regAssignStorageBtn")}</TextLink>
             )}
-            <button className="text-sm font-semibold text-brand hover:underline" onClick={reset}>Register another package</button>
+            <button
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800 hover:underline"
+              onClick={reset}
+            >
+              <span>+</span> {t("regAnotherBtn")}
+            </button>
           </div>
         </Card>
       </div>
@@ -111,7 +170,10 @@ export function RegisterPackage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Register a package" description="Record the parcel as the courier hands it over. Required fields are marked." />
+      <PageHeader
+        title={t("regPageTitle")}
+        description={t("regPageSubtitle")}
+      />
       <form onSubmit={onSubmit} className="space-y-6" noValidate>
         {submit.error && !duplicate && <ErrorAlert error={submit.error} />}
         {duplicate && (
@@ -120,90 +182,132 @@ export function RegisterPackage() {
           </Alert>
         )}
 
-        <Card title="Shipment">
+        {/* Shipment Details */}
+        <Card title={t("regShipmentCard")}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Courier (required)" htmlFor="courier" error={fe.courier_name}>
-              <input id="courier" list="couriers" className="input" value={form.courier} onChange={(e) => set("courier", e.target.value)} />
-              <datalist id="couriers">{COURIERS.map((c) => <option key={c} value={c} />)}</datalist>
+            <Field label={t("regCourierLabel")} htmlFor="courier" error={fe.courier_name}>
+              <input
+                id="courier"
+                list="couriers"
+                className="input"
+                placeholder="Amazon Logistics, BlueDart, Delhivery..."
+                value={form.courier}
+                onChange={(e) => set("courier", e.target.value)}
+                required
+              />
+              <datalist id="couriers">
+                {COURIERS.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
             </Field>
-            <Field label="Tracking ID" htmlFor="tracking" error={fe.tracking_id} hint="Leave blank if the label has none.">
-              <input id="tracking" className="input" value={form.tracking} onChange={(e) => set("tracking", e.target.value)} />
+            <Field label={t("regTrackingLabel")} htmlFor="tracking" error={fe.tracking_id} hint={t("regTrackingHint")}>
+              <input
+                id="tracking"
+                className="input"
+                placeholder="e.g. 1Z9999999999999999"
+                value={form.tracking}
+                onChange={(e) => set("tracking", e.target.value)}
+              />
             </Field>
-            <Field label="Arrived at" htmlFor="arrived" error={fe.arrived_at}>
-              <input id="arrived" type="datetime-local" className="input" value={form.arrivedAt} max={nowLocal()} onChange={(e) => set("arrivedAt", e.target.value)} />
+            <Field label={t("regArrivedAtLabel")} htmlFor="arrived" error={fe.arrived_at}>
+              <input
+                id="arrived"
+                type="datetime-local"
+                className="input"
+                value={form.arrivedAt}
+                max={nowLocal()}
+                onChange={(e) => set("arrivedAt", e.target.value)}
+              />
             </Field>
-            <Field label="Size" htmlFor="size">
+            <Field label={t("regSizeLabel")} htmlFor="size">
               <select id="size" className="input" value={form.size} onChange={(e) => set("size", e.target.value as PackageSize)}>
-                <option value="SMALL">Small (envelope, small box)</option>
-                <option value="MEDIUM">Medium (shoebox)</option>
-                <option value="LARGE">Large (bulky)</option>
+                <option value="SMALL">{t("regSizeSmall")}</option>
+                <option value="MEDIUM">{t("regSizeMedium")}</option>
+                <option value="LARGE">{t("regSizeLarge")}</option>
               </select>
             </Field>
           </div>
         </Card>
 
-        <Card title="Recipient">
+        {/* Recipient Details */}
+        <Card title={t("regRecipientCard")}>
           <div className="space-y-4">
             {!form.unknownRecipient && (
-              <Field label="Learner (required)" htmlFor="learner" error={fe.recipient_institutional_id ?? (submit.error?.code === "LEARNER_NOT_FOUND" ? submit.error.message : undefined)}>
+              <Field
+                label={t("regLearnerLabel")}
+                htmlFor="learner"
+                error={fe.recipient_institutional_id ?? (submit.error?.code === "LEARNER_NOT_FOUND" ? submit.error.message : undefined)}
+              >
                 <LearnerPicker id="learner" value={learner} onChange={setLearner} />
               </Field>
             )}
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="h-4 w-4 accent-brand" checked={form.unknownRecipient}
-                onChange={(e) => { set("unknownRecipient", e.target.checked); setLearner(null); }} />
-              I can’t match the label to a learner
-            </label>
-            {form.unknownRecipient && (
-              <Field label="What the label says (required)" htmlFor="hint" hint="The package goes to the unidentified queue for follow-up.">
-                <input id="hint" className="input" value={form.hint} onChange={(e) => set("hint", e.target.value)} placeholder="Name, hostel, phone as written" />
-              </Field>
-            )}
-          </div>
-        </Card>
-
-        <Card title="Condition">
-          <div className="space-y-4">
-            <fieldset className="flex gap-6 text-sm">
-              <legend className="sr-only">Condition</legend>
-              {(["GOOD", "DAMAGED"] as const).map((c) => (
-                <label key={c} className="flex items-center gap-2">
-                  <input type="radio" name="condition" className="h-4 w-4 accent-brand" checked={form.condition === c} onChange={() => set("condition", c)} />
-                  {c === "GOOD" ? "Looks intact" : "Damaged"}
-                </label>
-              ))}
-            </fieldset>
-            {form.condition === "DAMAGED" && (
-              <Field label="Describe the damage (required)" htmlFor="damage">
-                <textarea id="damage" className="input min-h-20" value={form.conditionNotes} onChange={(e) => set("conditionNotes", e.target.value)} />
-              </Field>
-            )}
-            <Field label="Notes for staff" htmlFor="notes">
-              <input id="notes" className="input" value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="e.g. fragile, keep upright" />
-            </Field>
-          </div>
-        </Card>
-
-        <Card title="Storage & Pickup">
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium">
+            <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
               <input
                 type="checkbox"
-                className="h-4 w-4 accent-brand"
-                checked={form.autoAssignShelf}
-                onChange={(e) => set("autoAssignShelf", e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                checked={form.unknownRecipient}
+                onChange={(e) => {
+                  set("unknownRecipient", e.target.checked);
+                  setLearner(null);
+                }}
               />
-              Auto-assign shelf and mark ready for pickup immediately
+              {t("regUnknownCheckbox")}
             </label>
+            {form.unknownRecipient && (
+              <Field label={t("regUnknownHintLabel")} htmlFor="hint" hint={t("regUnknownHintHelp")}>
+                <input
+                  id="hint"
+                  className="input"
+                  value={form.hint}
+                  onChange={(e) => set("hint", e.target.value)}
+                  placeholder={t("regUnknownHintPlaceholder")}
+                  required
+                />
+              </Field>
+            )}
+          </div>
+        </Card>
+
+        {/* Rack Number / Storage Card (Condition removed, Manual Rack added) */}
+        <Card title={t("regStorageCard")}>
+          <div className="space-y-3">
+            <Field
+              label={t("regRackLabel")}
+              htmlFor="rackNumber"
+              hint={t("regRackHint")}
+            >
+              <div className="relative">
+                <input
+                  id="rackNumber"
+                  list="storage-racks"
+                  className="input font-mono uppercase font-semibold text-primary-800 placeholder:normal-case placeholder:font-normal"
+                  value={rackNumber}
+                  onChange={(e) => setRackNumber(e.target.value)}
+                  placeholder={t("regRackPlaceholder")}
+                  required
+                />
+                <datalist id="storage-racks">
+                  {existingLocations.map((loc) => (
+                    <option key={loc.id} value={loc.code}>
+                      {loc.code} ({loc.occupied_count}/{loc.capacity} {loc.description ? `- ${loc.description}` : ""})
+                    </option>
+                  ))}
+                </datalist>
+              </div>
+            </Field>
             <p className="text-xs text-muted">
-              Recommended: Automatically allocates an available shelf slot for {form.size.toLowerCase()} parcels and makes it ready for collection right away.
+              {t("regReadyNotification")}
             </p>
           </div>
         </Card>
 
-        <Button type="submit" pending={submit.pending}
-          disabled={!form.courier.trim() || (form.unknownRecipient ? !form.hint.trim() : !learner) || (form.condition === "DAMAGED" && !form.conditionNotes.trim())}>
-          Register package
+        <Button
+          type="submit"
+          pending={submit.pending}
+          disabled={!form.courier.trim() || (form.unknownRecipient ? !form.hint.trim() : !learner) || !rackNumber.trim()}
+        >
+          {t("regSubmitBtn")}
         </Button>
       </form>
     </div>

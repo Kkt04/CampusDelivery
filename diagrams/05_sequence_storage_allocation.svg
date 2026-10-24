@@ -38,8 +38,8 @@
   <rect width="1200" height="650" fill="#ffffff" />
   
   <!-- Header Title -->
-  <text x="50" y="45" class="title">05. Sequence Diagram - Dynamic Storage Allocation</text>
-  <text x="50" y="70" class="subtitle">Strategy ranking followed by atomic Compare-And-Swap (CAS) shelf slot reservation</text>
+  <text x="50" y="45" class="title">05. Sequence Diagram - Storage Allocation (Manual Rack &amp; Auto Strategy)</text>
+  <text x="50" y="70" class="subtitle">Direct manual rack assignment or strategy ranking with atomic Compare-And-Swap (CAS) slot reservation</text>
   
   <!-- Diagram Content -->
   
@@ -106,12 +106,12 @@
 
   <!-- Step 8: Update Package Status -->
   <line x1="465" y1="470" x2="1050" y2="470" class="line" marker-end="url(#arrow)" />
-  <rect x="520" y="452" width="300" height="18" fill="#ffffff" />
-  <text x="670" y="465" font-size="11" font-weight="600" fill="#0f172a">8. update(package, status=STORED, shelf_id=B-02)</text>
+  <rect x="520" y="452" width="340" height="18" fill="#ffffff" />
+  <text x="690" y="465" font-size="11" font-weight="600" fill="#0f172a">8. update(package, status=READY_FOR_PICKUP, rack=B-02)</text>
 
   <!-- Step 9: Return allocated shelf to staff -->
   <line x1="465" y1="510" x2="170" y2="510" class="line-green" marker-end="url(#arrow-green)" />
-  <rect x="210" y="495" width="220" height="18" fill="#ffffff" />
-  <text x="320" y="508" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">9. 200 OK (Assigned Shelf "B-02")</text>
+  <rect x="190" y="495" width="260" height="18" fill="#ffffff" />
+  <text x="320" y="508" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">9. 200 OK (Assigned "B-02" &amp; Ready)</text>
 
 </svg>

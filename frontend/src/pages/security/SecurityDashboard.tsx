@@ -4,42 +4,84 @@ import type { PackageStatus } from "../../api/types";
 import { CountStrip } from "../../components/CountStrip";
 import { PackageTable } from "../../components/PackageTable";
 import { Card, EmptyState, ErrorAlert, PageHeader, Spinner } from "../../components/ui";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { useApi } from "../../lib/useApi";
 
 function Queue({ title, statuses, empty }: { title: string; statuses: PackageStatus[]; empty: string }) {
   const list = useApi(() => packagesApi.list({ status: statuses, page_size: 5 }), []);
   return (
     <Card title={`${title}${list.data ? ` (${list.data.total})` : ""}`} bodyClass="p-0">
-      {list.loading ? <div className="px-5"><Spinner /></div> : list.error ? <div className="p-5"><ErrorAlert error={list.error} /></div>
-        : list.data!.items.length === 0 ? <EmptyState title={empty} />
-        : <PackageTable packages={list.data!.items} basePath="/security/packages" />}
+      {list.loading ? (
+        <div className="px-5 py-4"><Spinner /></div>
+      ) : list.error ? (
+        <div className="p-5"><ErrorAlert error={list.error} /></div>
+      ) : list.data!.items.length === 0 ? (
+        <EmptyState title={empty} />
+      ) : (
+        <PackageTable packages={list.data!.items} basePath="/security/packages" />
+      )}
     </Card>
   );
 }
 
 export function SecurityDashboard() {
+  const { t } = useLanguage();
   const stats = useApi(() => reportsApi.dashboard(), []);
   const s = stats.data;
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Gate No. 2" description="Today’s intake and the queues that need a guard."
-        actions={<>
-          <Link to="/security/register" className="rounded-md bg-brand px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-strong">Register package</Link>
-          <Link to="/security/pickup" className="rounded-md border border-line bg-white px-3.5 py-2 text-sm font-semibold hover:border-muted/50">Hand over a package</Link>
-        </>} />
-      {stats.error ? <ErrorAlert error={stats.error} onRetry={stats.reload} /> : !s ? <Spinner /> : (
-        <CountStrip items={[
-          { label: "Received today", value: s.received_today },
-          { label: "Collected today", value: s.collected_today },
-          { label: "In custody", value: s.in_custody, to: "/security/packages" },
-          { label: "Awaiting storage", value: s.by_status.VERIFIED, tone: "brand" },
-          { label: "Unidentified", value: s.by_status.UNIDENTIFIED, tone: "warn" },
-          { label: "Held as damaged", value: s.by_status.DAMAGED, tone: "danger" },
-        ]} />
+      <PageHeader
+        title={t("gateDashboardTitle")}
+        description={t("gateDashboardSubtitle")}
+        actions={
+          <div className="flex items-center gap-3">
+            <Link
+              to="/security/register"
+              className="rounded-lg bg-primary-700 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-800 transition active:scale-95"
+            >
+              + {t("navRegisterPackage")}
+            </Link>
+            <Link
+              to="/security/pickup"
+              className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow-sm hover:bg-primary-50 hover:border-primary-300 transition active:scale-95"
+            >
+              {t("navPickupHandover")}
+            </Link>
+          </div>
+        }
+      />
+      {stats.error ? (
+        <ErrorAlert error={stats.error} onRetry={stats.reload} />
+      ) : !s ? (
+        <Spinner label={t("loading")} />
+      ) : (
+        <CountStrip
+          items={[
+            { label: t("statReceivedToday"), value: s.received_today },
+            { label: t("statCollectedToday"), value: s.collected_today },
+            { label: t("statInCustody"), value: s.in_custody, to: "/security/packages" },
+            { label: t("statAwaitingStorage"), value: s.by_status.VERIFIED, tone: "brand" },
+            { label: t("statUnidentified"), value: s.by_status.UNIDENTIFIED, tone: "warn" },
+            { label: t("statHeldDamaged"), value: s.by_status.DAMAGED, tone: "danger" },
+          ]}
+        />
       )}
-      <Queue title="Waiting for a shelf" statuses={["VERIFIED"]} empty="Every verified package has a shelf." />
-      <Queue title="Needs identification or review" statuses={["UNIDENTIFIED", "DAMAGED", "UNDER_INVESTIGATION"]} empty="No exceptions waiting." />
-      <Queue title="Stored, not yet marked ready" statuses={["STORED"]} empty="Nothing waiting to be marked ready." />
+      <Queue
+        title={t("queueWaitingShelf")}
+        statuses={["VERIFIED"]}
+        empty={t("queueWaitingShelfEmpty")}
+      />
+      <Queue
+        title={t("queueNeedsReview")}
+        statuses={["UNIDENTIFIED", "DAMAGED", "UNDER_INVESTIGATION"]}
+        empty={t("queueNeedsReviewEmpty")}
+      />
+      <Queue
+        title={t("queueStoredNotReady")}
+        statuses={["STORED"]}
+        empty={t("queueStoredNotReadyEmpty")}
+      />
     </div>
   );
 }

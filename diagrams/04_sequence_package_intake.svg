@@ -69,10 +69,10 @@
     <line x1="70" y1="36" x2="70" y2="580" class="line-dash" />
   </g>
 
-  <!-- Step 1: POST /intake -->
+  <!-- Step 1: POST /packages -->
   <line x1="190" y1="180" x2="470" y2="180" class="line" marker-end="url(#arrow)" />
-  <rect x="220" y="162" width="220" height="18" fill="#ffffff" />
-  <text x="330" y="175" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">1. POST /packages/intake (barcode, learner)</text>
+  <rect x="200" y="162" width="260" height="18" fill="#ffffff" />
+  <text x="330" y="175" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">1. POST /packages (courier, recipient, rack_no)</text>
 
   <!-- Step 2: Validate &amp; Dispatch -->
   <line x1="470" y1="220" x2="755" y2="220" class="line" marker-end="url(#arrow)" />
@@ -89,30 +89,30 @@
   <rect x="830" y="285" width="140" height="16" fill="#ffffff" />
   <text x="900" y="297" font-size="10.5" fill="#64748b" text-anchor="middle">null (unique confirmed)</text>
 
-  <!-- Step 5: Triage Recipient -->
+  <!-- Step 5: Triage Recipient & Allocate Rack -->
   <path d="M 755 330 C 810 330, 810 355, 755 355" class="line" marker-end="url(#arrow)" />
-  <rect x="765" y="335" width="180" height="16" fill="#ffffff" />
-  <text x="850" y="347" font-size="11" font-weight="600" fill="#059669">4. Match student -> SORTED</text>
+  <rect x="765" y="335" width="260" height="16" fill="#ffffff" />
+  <text x="895" y="347" font-size="11" font-weight="600" fill="#059669">4. Match learner &amp; assign Rack (e.g. RACK-A-12)</text>
 
   <!-- Step 6: Atomic Insert Package -->
   <line x1="755" y1="390" x2="1050" y2="390" class="line" marker-end="url(#arrow)" />
-  <rect x="790" y="372" width="220" height="18" fill="#ffffff" />
-  <text x="900" y="385" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">5. insert_one(package, status=SORTED)</text>
+  <rect x="770" y="372" width="260" height="18" fill="#ffffff" />
+  <text x="900" y="385" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">5. insert_one(status=READY_FOR_PICKUP, rack)</text>
 
   <!-- Step 7: DB Success -->
   <line x1="1050" y1="430" x2="755" y2="430" class="line-dash" marker-end="url(#arrow-gray)" />
-  <rect x="850" y="415" width="100" height="16" fill="#ffffff" />
-  <text x="900" y="427" font-size="10.5" fill="#64748b" text-anchor="middle">{id: 1042, ok: 1}</text>
+  <rect x="830" y="415" width="140" height="16" fill="#ffffff" />
+  <text x="900" y="427" font-size="10.5" fill="#64748b" text-anchor="middle">{id: 1042, status: "READY"}</text>
 
   <!-- Step 8: Publish Event -->
   <path d="M 755 460 C 810 460, 810 485, 755 485" class="line-blue" marker-end="url(#arrow-blue)" />
-  <rect x="765" y="465" width="220" height="16" fill="#ffffff" />
-  <text x="870" y="477" font-size="11" font-weight="600" fill="#2563eb">6. EventBus.publish(PackageRegistered)</text>
+  <rect x="765" y="465" width="250" height="16" fill="#ffffff" />
+  <text x="890" y="477" font-size="11" font-weight="600" fill="#2563eb">6. EventBus.publish(ReadyForPickupAlert)</text>
 
   <!-- Step 9: Return HTTP 201 Created -->
   <line x1="755" y1="520" x2="470" y2="520" class="line-dash" marker-end="url(#arrow-gray)" />
   <line x1="470" y1="530" x2="190" y2="530" class="line-green" marker-end="url(#arrow-green)" />
-  <rect x="230" y="518" width="200" height="18" fill="#ffffff" />
-  <text x="330" y="531" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">7. 201 Created (internal_code: "PKG-042")</text>
+  <rect x="210" y="518" width="240" height="18" fill="#ffffff" />
+  <text x="330" y="531" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">7. 201 Created (code: "PKG-042", rack: "A-12")</text>
 
 </svg>

@@ -3,17 +3,27 @@ import { useSearchParams } from "react-router-dom";
 import { packagesApi, type PackageQuery } from "../../api/endpoints";
 import { PackageTable } from "../../components/PackageTable";
 import { Card, EmptyState, ErrorAlert, PageHeader, Pagination, Spinner } from "../../components/ui";
+import { useLanguage } from "../../i18n/LanguageContext";
+import type { TranslationDictionary } from "../../i18n/types";
 import { useApi } from "../../lib/useApi";
 
-const TABS: { key: string; label: string; query: PackageQuery; empty: string }[] = [
-  { key: "overdue", label: "Overdue", query: { overdue: true }, empty: "No package is past the collection deadline." },
-  { key: "unidentified", label: "Unidentified", query: { status: ["UNIDENTIFIED"] }, empty: "Every package has a recipient." },
-  { key: "damaged", label: "Damaged", query: { condition: "DAMAGED" }, empty: "No damaged packages recorded." },
-  { key: "investigation", label: "Investigations", query: { status: ["UNDER_INVESTIGATION"] }, empty: "Nothing under investigation." },
-  { key: "returns", label: "Returns", query: { status: ["RETURN_REQUESTED"] }, empty: "No returns waiting for the courier." },
+interface TabDef {
+  key: string;
+  labelKey: keyof TranslationDictionary;
+  query: PackageQuery;
+  emptyKey: keyof TranslationDictionary;
+}
+
+const TABS: TabDef[] = [
+  { key: "overdue", labelKey: "tabOverdue", query: { overdue: true }, emptyKey: "emptyOverdue" },
+  { key: "unidentified", labelKey: "tabUnidentified", query: { status: ["UNIDENTIFIED"] }, emptyKey: "emptyUnidentified" },
+  { key: "damaged", labelKey: "tabDamaged", query: { condition: "DAMAGED" }, emptyKey: "emptyDamaged" },
+  { key: "investigation", labelKey: "tabInvestigation", query: { status: ["UNDER_INVESTIGATION"] }, emptyKey: "emptyInvestigation" },
+  { key: "returns", labelKey: "tabReturns", query: { status: ["RETURN_REQUESTED"] }, emptyKey: "emptyReturns" },
 ];
 
 export function ExceptionsPage() {
+  const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
   const tab = TABS.find((t) => t.key === params.get("tab")) ?? TABS[0];
   const [page, setPage] = useState(1);
@@ -21,26 +31,45 @@ export function ExceptionsPage() {
 
   return (
     <div>
-      <PageHeader title="Needs attention" description="Overdue, unidentified, damaged and other packages that need a decision. Open one to act on it." />
-      <div className="mb-4 flex flex-wrap gap-1 rounded-md border border-line bg-white p-1 sm:w-fit" role="tablist">
-        {TABS.map((t) => (
-          <button key={t.key} role="tab" aria-selected={t.key === tab.key}
-            className={`rounded px-3 py-1.5 text-sm font-semibold ${t.key === tab.key ? "bg-brand-soft text-brand-strong" : "text-muted"}`}
-            onClick={() => { setParams({ tab: t.key }); setPage(1); }}>
-            {t.label}
+      <PageHeader
+        title={t("exceptionsTitle")}
+        description={t("exceptionsDesc")}
+      />
+      <div className="mb-4 flex flex-wrap gap-1 rounded-xl border border-line bg-white p-1 sm:w-fit" role="tablist">
+        {TABS.map((tabItem) => (
+          <button
+            key={tabItem.key}
+            role="tab"
+            aria-selected={tabItem.key === tab.key}
+            className={`rounded-lg px-3.5 py-1.5 text-sm font-semibold transition ${
+              tabItem.key === tab.key ? "bg-primary-50 text-primary-700 shadow-sm" : "text-muted hover:text-ink"
+            }`}
+            onClick={() => {
+              setParams({ tab: tabItem.key });
+              setPage(1);
+            }}
+          >
+            {t(tabItem.labelKey)}
           </button>
         ))}
       </div>
       <Card bodyClass="p-0">
-        {list.loading && !list.data ? <div className="px-5"><Spinner /></div>
-          : list.error ? <div className="p-5"><ErrorAlert error={list.error} onRetry={list.reload} /></div>
-          : list.data!.items.length === 0 ? <EmptyState title={tab.empty} />
-          : (
-            <>
-              <PackageTable packages={list.data!.items} basePath="/ops/packages" />
-              <Pagination page={page} pageSize={20} total={list.data!.total} onPage={setPage} />
-            </>
-          )}
+        {list.loading && !list.data ? (
+          <div className="px-5 py-6">
+            <Spinner label={t("loading")} />
+          </div>
+        ) : list.error ? (
+          <div className="p-5">
+            <ErrorAlert error={list.error} onRetry={list.reload} />
+          </div>
+        ) : list.data!.items.length === 0 ? (
+          <EmptyState title={t(tab.emptyKey)} />
+        ) : (
+          <>
+            <PackageTable packages={list.data!.items} basePath="/ops/packages" />
+            <Pagination page={page} pageSize={20} total={list.data!.total} onPage={setPage} />
+          </>
+        )}
       </Card>
     </div>
   );

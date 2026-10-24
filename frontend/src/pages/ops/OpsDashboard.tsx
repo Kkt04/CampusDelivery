@@ -9,7 +9,10 @@ const BAR_ORDER: PackageStatus[] = ["VERIFIED", "STORED", "READY_FOR_PICKUP", "P
   "UNDER_INVESTIGATION", "RETURN_REQUESTED"];
 const BAR_COLOR: Record<string, string> = { neutral: "bg-muted/40", brand: "bg-brand", warn: "bg-warn", danger: "bg-danger", done: "bg-done" };
 
+import { useLanguage } from "../../i18n/LanguageContext";
+
 export function OpsDashboard() {
+  const { t } = useLanguage();
   const stats = useApi(() => reportsApi.dashboard(), []);
   const daily = useApi(() => reportsApi.daily(), []);
   const retry = useAction(() => notificationsApi.retryFailed());
@@ -23,15 +26,15 @@ export function OpsDashboard() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Operations overview" description={`Live figures from the database. Packages count as overdue after ${s.collection_deadline_days} days uncollected.`} />
+      <PageHeader title={t("opsOverviewTitle")} description={t("opsOverviewSubtitle")} />
       <CountStrip items={[
-        { label: "Received (all time)", value: s.received, to: "/ops/packages" },
-        { label: "In custody", value: s.in_custody },
-        { label: "Ready for pickup", value: s.by_status.READY_FOR_PICKUP + s.by_status.PICKUP_REQUESTED, tone: "brand" },
-        { label: "Collected", value: s.by_status.COLLECTED },
-        { label: "Overdue", value: s.overdue, to: "/ops/exceptions?tab=overdue", tone: "warn" },
-        { label: "Unidentified", value: s.by_status.UNIDENTIFIED, to: "/ops/exceptions?tab=unidentified", tone: "warn" },
-        { label: "Arrived damaged", value: s.damaged_condition, to: "/ops/exceptions?tab=damaged", tone: "danger" },
+        { label: t("statReceivedToday"), value: s.received_today, to: "/ops/packages" },
+        { label: t("statInCustody"), value: s.in_custody },
+        { label: t("statusReadyForPickup"), value: s.by_status.READY_FOR_PICKUP + s.by_status.PICKUP_REQUESTED, tone: "brand" },
+        { label: t("statusCollected"), value: s.by_status.COLLECTED },
+        { label: t("overdue"), value: s.overdue, to: "/ops/exceptions?tab=overdue", tone: "warn" },
+        { label: t("statUnidentified"), value: s.by_status.UNIDENTIFIED, to: "/ops/exceptions?tab=unidentified", tone: "warn" },
+        { label: t("statusDamaged"), value: s.damaged_condition, to: "/ops/exceptions?tab=damaged", tone: "danger" },
       ]} />
 
       <div className="grid gap-6 lg:grid-cols-2">

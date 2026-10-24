@@ -1,43 +1,54 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { notificationsApi } from "../api/endpoints";
 import type { Role } from "../api/types";
-import { useAuth, useUser } from "../auth/AuthContext";
+import { HOME_BY_ROLE, useAuth, useUser } from "../auth/AuthContext";
+import { LanguageToggle, useLanguage } from "../i18n/LanguageContext";
+import type { TranslationDictionary } from "../i18n/types";
 
-interface NavItem { to: string; label: string; end?: boolean }
+interface NavConfigItem {
+  to: string;
+  labelKey: keyof TranslationDictionary;
+  end?: boolean;
+}
 
-const NAV: Record<Role, NavItem[]> = {
+const NAV_CONFIG: Record<Role, NavConfigItem[]> = {
   LEARNER: [
-    { to: "/learner", label: "Overview", end: true },
-    { to: "/learner/packages", label: "My packages" },
-    { to: "/learner/returns", label: "Return parcel" },
-    { to: "/learner/history", label: "Pickup history" },
-    { to: "/notifications", label: "Notifications" },
+    { to: "/learner", labelKey: "navOverview", end: true },
+    { to: "/learner/packages", labelKey: "navMyPackages" },
+    { to: "/learner/returns", labelKey: "navReturnParcel" },
+    { to: "/learner/history", labelKey: "navPickupHistory" },
+    { to: "/notifications", labelKey: "navNotifications" },
   ],
   SECURITY: [
-    { to: "/security", label: "Gate dashboard", end: true },
-    { to: "/security/register", label: "Register package" },
-    { to: "/security/packages", label: "Incoming packages" },
-    { to: "/security/pickup", label: "Pickup handover" },
-    { to: "/security/incidents", label: "Incidents" },
-    { to: "/notifications", label: "Notifications" },
+    { to: "/security", labelKey: "navGateDashboard", end: true },
+    { to: "/security/register", labelKey: "navRegisterPackage" },
+    { to: "/security/packages", labelKey: "navIncomingPackages" },
+    { to: "/security/pickup", labelKey: "navPickupHandover" },
+    { to: "/security/incidents", labelKey: "navIncidents" },
+    { to: "/notifications", labelKey: "navNotifications" },
   ],
   ADMIN: [
-    { to: "/ops", label: "Operations overview", end: true },
-    { to: "/ops/packages", label: "Packages" },
-    { to: "/ops/exceptions", label: "Needs attention" },
-    { to: "/ops/storage", label: "Storage" },
-    { to: "/ops/incidents", label: "Incidents" },
-    { to: "/ops/users", label: "Users" },
-    { to: "/ops/audit", label: "Audit log" },
+    { to: "/ops", labelKey: "navOpsOverview", end: true },
+    { to: "/ops/packages", labelKey: "navPackages" },
+    { to: "/ops/exceptions", labelKey: "navNeedsAttention" },
+    { to: "/ops/storage", labelKey: "navStorage" },
+    { to: "/ops/incidents", labelKey: "navIncidents" },
+    { to: "/ops/users", labelKey: "navUsers" },
+    { to: "/ops/audit", labelKey: "navAuditLog" },
   ],
 };
 
-const ROLE_NAME: Record<Role, string> = { LEARNER: "Learner", SECURITY: "Gate No. 2 security", ADMIN: "Operations" };
+const ROLE_KEYS: Record<Role, keyof TranslationDictionary> = {
+  LEARNER: "roleLearner",
+  SECURITY: "roleSecurity",
+  ADMIN: "roleAdmin",
+};
 
 export function Layout() {
   const user = useUser();
   const { logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -48,74 +59,140 @@ export function Layout() {
     notificationsApi.unreadCount().then((r) => setUnread(r.unread)).catch(() => setUnread(0));
   }, [location.pathname]);
 
+  function handleSignOut() {
+    logout();
+    navigate("/login");
+  }
+
   const nav = (
-    <nav className="flex flex-col gap-0.5" aria-label="Main">
-      {NAV[user.role].map((item) => (
-        <NavLink key={item.to} to={item.to} end={item.end}
+    <nav className="flex flex-col gap-1" aria-label="Main">
+      {NAV_CONFIG[user.role].map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.end}
           className={({ isActive }) =>
-            `flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium ${
-              isActive ? "bg-brand-soft text-brand-strong" : "text-ink hover:bg-paper"}`}>
-          {item.label}
+            `flex items-center justify-between rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all ${
+              isActive
+                ? "bg-brand-soft text-brand-strong font-semibold shadow-2xs border-l-3 border-brand"
+                : "text-ink hover:bg-surface-alt hover:text-brand"
+            }`
+          }
+        >
+          {t(item.labelKey)}
           {item.to === "/notifications" && unread > 0 && (
-            <span className="rounded-full bg-brand px-1.5 text-xs font-semibold text-white" aria-label={`${unread} unread`}>{unread}</span>
+            <span
+              className="rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-white shadow-2xs"
+              aria-label={`${unread} unread`}
+            >
+              {unread}
+            </span>
           )}
         </NavLink>
       ))}
     </nav>
   );
 
-  const identity = (
-    <div className="border-t border-line pt-4">
-      <p className="text-sm font-semibold">{user.full_name}</p>
-      <p className="text-xs text-muted">{user.institutional_id}, {ROLE_NAME[user.role]}</p>
-      <button className="mt-3 text-sm font-semibold text-brand-strong hover:underline"
-        onClick={() => { logout(); navigate("/login"); }}>
-        Sign out
-      </button>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
-      <aside className="hidden border-r border-line bg-white lg:flex lg:flex-col lg:justify-between lg:p-5">
-        <div>
-          <Brand />
-          <div className="mt-6">{nav}</div>
+    <div className="min-h-screen bg-surface-alt/40 flex flex-col">
+      {/* Fixed Sticky Header across all screens */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-white/95 px-4 sm:px-6 py-2.5 shadow-2xs backdrop-blur-xs">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="rounded-lg border border-line p-2 text-ink hover:bg-surface-alt transition-colors lg:hidden"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? t("navClose") : t("navMenu")}
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {open ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+          <Link to={HOME_BY_ROLE[user.role]} className="focus:outline-none">
+            <Brand />
+          </Link>
         </div>
-        {identity}
-      </aside>
 
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
-        <Brand />
-        <button className="rounded-md border border-line px-3 py-1.5 text-sm font-semibold" aria-expanded={open}
-          aria-controls="mobile-nav" onClick={() => setOpen((o) => !o)}>
-          {open ? "Close" : "Menu"}
-        </button>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <LanguageToggle />
+
+          <div className="hidden md:flex flex-col text-right leading-tight border-r border-line pr-3">
+            <span className="text-sm font-semibold text-ink">{user.full_name}</span>
+            <span className="text-xs text-muted">
+              {user.institutional_id} • {t(ROLE_KEYS[user.role])}
+            </span>
+          </div>
+
+          {/* Fixed, Always-Accessible Sign-Out Button */}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-brand/20 bg-brand-soft px-3 py-1.5 text-xs sm:text-sm font-semibold text-brand hover:bg-brand hover:text-white transition-all active:scale-95 shadow-2xs"
+            title={t("navSignOut")}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="hidden sm:inline">{t("navSignOut")}</span>
+          </button>
+        </div>
       </header>
+
+      {/* Mobile navigation dropdown */}
       {open && (
-        <div id="mobile-nav" className="border-b border-line bg-white px-4 pb-4 pt-2 lg:hidden">
+        <div id="mobile-nav" className="border-b border-line bg-white px-4 pb-4 pt-2 shadow-sm lg:hidden">
           {nav}
-          <div className="mt-4">{identity}</div>
+          <div className="mt-4 border-t border-line pt-3 flex items-center justify-between">
+            <div className="text-xs text-muted">
+              <span className="font-semibold text-ink">{user.full_name}</span> ({user.institutional_id})
+            </div>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="text-xs font-semibold text-brand hover:underline"
+            >
+              {t("navSignOut")}
+            </button>
+          </div>
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
-        <Outlet />
-      </main>
+      {/* Main Layout Area */}
+      <div className="flex-1 lg:grid lg:grid-cols-[256px_1fr]">
+        <aside className="hidden border-r border-line bg-white lg:flex lg:flex-col lg:p-5 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto shadow-2xs">
+          <div className="flex-1">{nav}</div>
+          <div className="border-t border-line pt-4 text-xs text-muted">
+            <p className="font-semibold text-ink">{user.full_name}</p>
+            <p className="mt-0.5">{user.institutional_id}</p>
+            <p className="mt-0.5 text-brand font-medium">{t(ROLE_KEYS[user.role])}</p>
+          </div>
+        </aside>
+
+        <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
 
-export function Brand() {
+export function Brand({ subtitle }: { subtitle?: string }) {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 32 32" className="h-8 w-8" aria-hidden>
-        <rect width="32" height="32" rx="7" fill="#C2410C" />
+      <svg viewBox="0 0 32 32" className="h-8 w-8 shrink-0 drop-shadow-xs" aria-hidden>
+        <rect width="32" height="32" rx="7" fill="#C62828" />
         <path d="M8 12.5 16 8l8 4.5v8L16 25l-8-4.5zM8 12.5 16 17l8-4.5M16 17v8" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
       </svg>
       <div className="leading-tight">
-        <p className="text-sm font-bold">Campus Deliveries</p>
-        <p className="text-xs text-muted">Gate No. 2</p>
+        <p className="text-base font-bold tracking-tight text-ink">{t("appTitle")}</p>
+        <p className="text-xs text-muted">{subtitle ?? t("brandSubtitle")}</p>
       </div>
     </div>
   );
