@@ -1,204 +1,77 @@
 classDiagram
-  direction TB
+    direction TB
+    class BaseDocument {
+        <<abstract>>
+        +int id
+        +datetime created_at
+        +datetime updated_at
+        +to_doc() dict
+        +from_doc(d) Document
+    }
 
-  class Document {
-    <<abstract>>
-    +int? id
-    +str COLLECTION*
-    +tuple RELATIONS*
-    +dict ENUMS*
-    +tuple DATES*
-    +to_doc() dict
-    +from_doc(dict doc) Document$
-    +apply_doc(dict doc) void
-  }
+    class User {
+        +int id
+        +string email
+        +string full_name
+        +UserRole role
+        +string phone
+        +bool is_active
+        +is_learner() bool
+        +can_perform(perm) bool
+    }
 
-  class User {
-    +str institutional_id
-    +str full_name
-    +str email
-    +str? phone
-    +Role role
-    +str password_hash
-    +bool is_active
-    +datetime created_at
-    +datetime updated_at
-  }
+    class Package {
+        +int id
+        +string tracking_id
+        +string internal_code
+        +int recipient_user_id
+        +CourierService courier
+        +PackageSize size
+        +PackageStatus status
+        +int storage_location_id
+        +datetime arrival_date
+        +is_overdue() bool
+        +can_transition_to(target) bool
+    }
 
-  class StorageLocation {
-    +str code
-    +str? description
-    +int capacity
-    +int occupied_count
-    +PackageSize max_package_size
-    +bool is_active
-    +datetime created_at
-    +datetime updated_at
-    +int free_slots()
-    +bool accepts(PackageSize size)
-  }
+    class StorageLocation {
+        +int id
+        +string code
+        +string zone
+        +PackageSize size_class
+        +int capacity
+        +int occupied_count
+        +bool is_active
+        +accepts(pkg_size) bool
+        +available_slots() int
+    }
 
-  class Package {
-    +str internal_code
-    +str courier_name
-    +str? tracking_id
-    +int? recipient_id
-    +str? recipient_hint
-    +PackageSize size
-    +PackageCondition condition
-    +str? condition_notes
-    +PackageStatus status
-    +int? storage_location_id
-    +datetime arrived_at
-    +int received_by_id
-    +datetime? ready_at
-    +datetime? closed_at
-    +str? notes
-    +int version
-    +User? recipient
-    +User? received_by
-    +StorageLocation? storage_location
-    +bool is_overdue(int deadline_days)
-  }
+    class PickupToken {
+        +int id
+        +int package_id
+        +string token_hash
+        +datetime expires_at
+        +datetime used_at
+        +int attempt_count
+        +is_valid() bool
+        +verify(code) bool
+    }
 
-  class PackageStatusHistory {
-    +int package_id
-    +PackageStatus? from_status
-    +PackageStatus to_status
-    +int changed_by_id
-    +str? reason
-    +datetime created_at
-    +User? changed_by
-  }
+    class PickupRecord {
+        +int id
+        +int package_id
+        +int token_id
+        +int verified_by_user_id
+        +datetime collected_at
+    }
 
-  class PickupToken {
-    +int package_id
-    +int learner_id
-    +str code_hash
-    +str salt
-    +datetime expires_at
-    +datetime? used_at
-    +datetime? revoked_at
-    +int failed_attempts
-    +Package? package
-    +User? learner
-    +bool is_usable()
-    +bool is_expired()
-    +bool verify(str raw_code)
-  }
+    BaseDocument <|-- User
+    BaseDocument <|-- Package
+    BaseDocument <|-- StorageLocation
+    BaseDocument <|-- PickupToken
+    BaseDocument <|-- PickupRecord
 
-  class PickupRecord {
-    +int package_id
-    +int token_id
-    +int learner_id
-    +int handed_over_by_id
-    +str storage_location_code
-    +datetime collected_at
-    +Package? package
-    +PickupToken? token
-    +User? learner
-    +User? handed_over_by
-  }
-
-  class Notification {
-    +int user_id
-    +int? package_id
-    +NotificationChannelType channel
-    +str title
-    +str message
-    +NotificationStatus delivery_status
-    +int attempts
-    +str? last_error
-    +datetime? sent_at
-    +datetime? read_at
-    +datetime created_at
-    +User? user
-  }
-
-  class Incident {
-    +int? package_id
-    +IncidentType type
-    +IncidentStatus status
-    +str description
-    +int reported_by_id
-    +int? resolved_by_id
-    +str? resolution_note
-    +datetime created_at
-    +datetime? resolved_at
-    +Package? package
-    +User? reported_by
-    +User? resolved_by
-  }
-
-  class AuditLog {
-    +int? actor_id
-    +str action
-    +str entity_type
-    +str entity_id
-    +dict details
-    +datetime created_at
-    +User? actor
-  }
-
-  class IdempotencyKey {
-    +int user_id
-    +str scope
-    +str key
-    +str request_hash
-    +int? resource_id
-    +datetime created_at
-  }
-
-  class StorageCandidate {
-    <<value object>>
-    +int id
-    +str code
-    +int capacity
-    +int occupied
-    +PackageSize max_package_size
-    +bool is_active
-    +int free_slots
-    +bool accepts(PackageSize size)
-  }
-
-  class PackageContext {
-    <<value object>>
-    +bool has_recipient
-    +bool has_storage
-  }
-
-  class Transition {
-    <<value object>>
-    +PackageStatus source
-    +PackageStatus target
-    +frozenset~Role~ roles
-    +str action
-    +str label
-    +Guard? guard
-    +bool requires_dedicated_endpoint
-  }
-
-  %% Inheritance from Document
-  Document <|-- User : extends
-  Document <|-- StorageLocation : extends
-  Document <|-- Package : extends
-  Document <|-- PackageStatusHistory : extends
-  Document <|-- PickupToken : extends
-  Document <|-- PickupRecord : extends
-  Document <|-- Notification : extends
-  Document <|-- Incident : extends
-  Document <|-- AuditLog : extends
-  Document <|-- IdempotencyKey : extends
-
-  %% Multiplicities and Relationships
-  Package "1" *-- "0..*" PackageStatusHistory : composition
-  Package "1" o-- "0..*" PickupToken : has tokens
-  Package "1" -- "0..1" PickupRecord : collected as
-  PickupToken "1" -- "0..1" PickupRecord : redeemed by
-  Package "*" --> "0..1" User : recipient
-  Package "*" --> "1" User : received_by
-  Package "*" --> "0..1" StorageLocation : assigned shelf
-  User "1" o-- "0..*" Notification : inbox
-  Package "1" o-- "0..*" Incident : reported issues
-  User "1" --> "0..*" AuditLog : actor actions
-  User "1" --> "0..*" IdempotencyKey : idempotency scope
+    User "1" --> "0..*" Package : receives
+    Package "0..1" --> "0..1" StorageLocation : placed_in
+    Package "1" --> "0..*" PickupToken : authenticated_by
+    Package "1" --> "1" PickupRecord : verified_receipt

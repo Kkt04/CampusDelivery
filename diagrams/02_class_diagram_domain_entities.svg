@@ -1,29 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1450 1050" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 780" width="100%" height="100%">
   <defs>
     <style>
-    .bg { fill: #f8fafc; }
-    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
-    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
-    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
-    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
-    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
-    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
-    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
-    .sep { stroke: #e2e8f0; stroke-width: 1; }
-    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
-    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
-    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
-    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
-    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
-    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
-    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
-    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
-    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
-    .card { font-family: sans-serif; font-size: 11px; fill: #475569; font-weight: 600; }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
+    .subtitle { font-size: 13px; font-weight: 400; fill: #64748b; }
+    .card { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; rx: 8; }
+    .card-header { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1.5; }
+    .header-text { font-size: 14px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
+    .line { stroke: #334155; stroke-width: 2; fill: none; }
+    .line-blue { stroke: #2563eb; stroke-width: 2; fill: none; }
+    .line-green { stroke: #16a34a; stroke-width: 2; fill: none; }
+    .line-red { stroke: #dc2626; stroke-width: 2; fill: none; }
+    .line-dash { stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 5,4; fill: none; }
+    .badge { rx: 12; stroke-width: 1.2; }
+    .badge-text { font-size: 11px; font-weight: 600; text-anchor: middle; }
 </style>
     
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
     </marker>
     <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
@@ -39,220 +34,138 @@
     </marker>
 
   </defs>
-  <rect width="1450" height="1050" class="bg" />
+  <!-- Pure White Background -->
+  <rect width="1300" height="780" fill="#ffffff" />
   
-  <text x="40" y="35" class="title">02. Detailed UML Class Diagram - Domain Entities &amp; Document Models</text>
-  <text x="40" y="55" class="subtitle">Complete object model: Base Document mapper, MongoDB entities, Value Objects, exact types, and multiplicities</text>
-
-  <!-- Abstract Base: Document -->
-  <g transform="translate(40, 80)">
-    <rect width="260" height="140" class="box" fill="#ffffff" stroke="#8b5cf6" />
-    <path d="M 0 0 L 260 0 L 260 38 L 0 38 Z" fill="#f5f3ff" stroke="#8b5cf6" />
-    <text x="130" y="16" class="c-stereo">&lt;&lt;abstract base class&gt;&gt;</text>
-    <text x="130" y="32" class="c-name" fill="#6d28d9">Document</text>
-    <text x="10" y="55" class="attr">+int? id</text>
-    <text x="10" y="70" class="attr">+str COLLECTION*</text>
-    <text x="10" y="85" class="attr">+tuple RELATIONS*</text>
-    <line x1="0" y1="95" x2="260" y2="95" class="sep" />
-    <text x="10" y="112" class="method">+to_doc() dict</text>
-    <text x="10" y="127" class="method">+from_doc(doc: dict)$ Document</text>
+  <!-- Header Title -->
+  <text x="50" y="45" class="title">02. Domain Entities &amp; UML Class Diagram</text>
+  <text x="50" y="70" class="subtitle">Core domain models, attributes, value objects, and database relationships with multiplicities</text>
+  
+  <!-- Diagram Content -->
+  
+  <!-- Base Class: Document (Top Center) -->
+  <g transform="translate(490, 90)">
+    <rect width="320" height="110" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+    <rect width="320" height="32" rx="8" fill="#f5f3ff" />
+    <text x="160" y="16" font-size="10" font-weight="600" fill="#7c3aed" text-anchor="middle">&lt;&lt;abstract base class&gt;&gt;</text>
+    <text x="160" y="28" font-size="13" font-weight="700" fill="#5b21b6" text-anchor="middle">Document</text>
+    <line x1="0" y1="32" x2="320" y2="32" stroke="#e9d5ff" stroke-width="1.5" />
+    <text x="16" y="52" class="mono" font-size="11" fill="#1e293b">+ id: Optional[int]</text>
+    <text x="16" y="68" class="mono" font-size="11" fill="#1e293b">+ created_at: datetime</text>
+    <text x="16" y="84" class="mono" font-size="11" fill="#1e293b">+ updated_at: datetime</text>
+    <line x1="0" y1="92" x2="320" y2="92" stroke="#e9d5ff" stroke-width="1" />
+    <text x="16" y="104" class="mono" font-size="10.5" fill="#6d28d9">+ to_doc() dict | from_doc(d) Document</text>
   </g>
 
-  <!-- Entity 1: User -->
-  <g transform="translate(40, 260)">
-    <rect width="260" height="195" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 260 0 L 260 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="130" y="20" class="c-name">User</text>
-    <text x="10" y="48" class="attr">+str institutional_id [UK]</text>
-    <text x="10" y="63" class="attr">+str full_name</text>
-    <text x="10" y="78" class="attr">+str email [UK]</text>
-    <text x="10" y="93" class="attr">+str? phone</text>
-    <text x="10" y="108" class="attr">+Role role (LEARNER|SEC|ADM)</text>
-    <text x="10" y="123" class="attr">+str password_hash (bcrypt)</text>
-    <text x="10" y="138" class="attr">+bool is_active</text>
-    <text x="10" y="153" class="attr">+datetime created_at</text>
-    <line x1="0" y1="163" x2="260" y2="163" class="sep" />
-    <text x="10" y="180" class="method">+has_permission(perm: Permission) bool</text>
+  <!-- User Entity (Left) -->
+  <g transform="translate(60, 270)">
+    <rect width="280" height="210" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2" />
+    <rect width="280" height="32" rx="8" fill="#eff6ff" />
+    <text x="140" y="22" font-size="14" font-weight="700" fill="#1d4ed8" text-anchor="middle">User</text>
+    <line x1="0" y1="32" x2="280" y2="32" stroke="#bfdbfe" stroke-width="1.5" />
+    <text x="16" y="55" class="mono" font-size="11" fill="#1e293b">+ id: int (PK)</text>
+    <text x="16" y="73" class="mono" font-size="11" fill="#1e293b">+ email: str (UK)</text>
+    <text x="16" y="91" class="mono" font-size="11" fill="#1e293b">+ full_name: str</text>
+    <text x="16" y="109" class="mono" font-size="11" fill="#1e293b">+ role: UserRole</text>
+    <text x="16" y="127" class="mono" font-size="11" fill="#1e293b">+ phone: Optional[str]</text>
+    <text x="16" y="145" class="mono" font-size="11" fill="#1e293b">+ is_active: bool</text>
+    <line x1="0" y1="155" x2="280" y2="155" stroke="#e2e8f0" stroke-width="1" />
+    <text x="16" y="175" class="mono" font-size="11" fill="#2563eb">+ is_learner() bool</text>
+    <text x="16" y="195" class="mono" font-size="11" fill="#2563eb">+ can_perform(perm) bool</text>
   </g>
 
-  <!-- Entity 2: Package (Centerpiece) -->
-  <g transform="translate(360, 160)">
-    <rect width="320" height="340" class="box" stroke="#2563eb" stroke-width="2" />
-    <path d="M 0 0 L 320 0 L 320 32 L 0 32 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
-    <text x="160" y="21" class="c-name" font-size="14" fill="#1e40af">Package</text>
-    <text x="10" y="50" class="attr">+str internal_code [UK] (PKG-yymmdd-X)</text>
-    <text x="10" y="65" class="attr">+str courier_name</text>
-    <text x="10" y="80" class="attr">+str? tracking_id [UK]</text>
-    <text x="10" y="95" class="attr">+int? recipient_id [FK -&gt; users]</text>
-    <text x="10" y="110" class="attr">+str? recipient_hint</text>
-    <text x="10" y="125" class="attr">+PackageSize size (S|M|L|XL)</text>
-    <text x="10" y="140" class="attr">+PackageCondition condition (GOOD|DAM)</text>
-    <text x="10" y="155" class="attr">+str? condition_notes</text>
-    <text x="10" y="170" class="attr">+PackageStatus status (12 states)</text>
-    <text x="10" y="185" class="attr">+int? storage_location_id [FK]</text>
-    <text x="10" y="200" class="attr">+datetime arrived_at</text>
-    <text x="10" y="215" class="attr">+int received_by_id [FK -&gt; users]</text>
-    <text x="10" y="230" class="attr">+datetime? ready_at</text>
-    <text x="10" y="245" class="attr">+datetime? closed_at</text>
-    <text x="10" y="260" class="attr">+str? notes</text>
-    <text x="10" y="275" class="attr">+int version (optimistic lock)</text>
-    <line x1="0" y1="285" x2="320" y2="285" class="sep" />
-    <text x="10" y="303" class="method">+is_overdue(deadline_days: int) bool</text>
-    <text x="10" y="320" class="method">+is_ready_for_pickup() bool</text>
+  <!-- Package Entity (Center) -->
+  <g transform="translate(500, 260)">
+    <rect width="300" height="250" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2" />
+    <rect width="300" height="32" rx="8" fill="#ecfdf5" />
+    <text x="150" y="22" font-size="14" font-weight="700" fill="#047857" text-anchor="middle">Package</text>
+    <line x1="0" y1="32" x2="300" y2="32" stroke="#a7f3d0" stroke-width="1.5" />
+    <text x="16" y="54" class="mono" font-size="11" fill="#1e293b">+ id: int (PK)</text>
+    <text x="16" y="72" class="mono" font-size="11" fill="#1e293b">+ tracking_id: str (UK)</text>
+    <text x="16" y="90" class="mono" font-size="11" fill="#1e293b">+ internal_code: str (UK)</text>
+    <text x="16" y="108" class="mono" font-size="11" fill="#1e293b">+ recipient_user_id: int (FK)</text>
+    <text x="16" y="126" class="mono" font-size="11" fill="#1e293b">+ courier: CourierService</text>
+    <text x="16" y="144" class="mono" font-size="11" fill="#1e293b">+ size: PackageSize</text>
+    <text x="16" y="162" class="mono" font-size="11" fill="#1e293b">+ status: PackageStatus</text>
+    <text x="16" y="180" class="mono" font-size="11" fill="#1e293b">+ storage_location_id: int? (FK)</text>
+    <text x="16" y="198" class="mono" font-size="11" fill="#1e293b">+ arrival_date: datetime</text>
+    <line x1="0" y1="208" x2="300" y2="208" stroke="#e2e8f0" stroke-width="1" />
+    <text x="16" y="226" class="mono" font-size="11" fill="#059669">+ is_overdue() bool</text>
+    <text x="16" y="242" class="mono" font-size="11" fill="#059669">+ can_transition_to(target) bool</text>
   </g>
 
-  <!-- Entity 3: StorageLocation -->
-  <g transform="translate(360, 540)">
-    <rect width="320" height="190" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="160" y="20" class="c-name">StorageLocation</text>
-    <text x="10" y="48" class="attr">+str code [UK] (e.g. G2-A1)</text>
-    <text x="10" y="63" class="attr">+str? description</text>
-    <text x="10" y="78" class="attr">+int capacity (CHECK &gt; 0)</text>
-    <text x="10" y="93" class="attr">+int occupied_count (0 &lt;= occ &lt;= cap)</text>
-    <text x="10" y="108" class="attr">+PackageSize max_package_size</text>
-    <text x="10" y="123" class="attr">+bool is_active</text>
-    <text x="10" y="138" class="attr">+datetime created_at, updated_at</text>
-    <line x1="0" y1="148" x2="320" y2="148" class="sep" />
-    <text x="10" y="165" class="method">+free_slots() int</text>
-    <text x="10" y="180" class="method">+accepts(size: PackageSize) bool</text>
+  <!-- StorageShelf Entity (Right) -->
+  <g transform="translate(950, 270)">
+    <rect width="280" height="210" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2" />
+    <rect width="280" height="32" rx="8" fill="#fffbeb" />
+    <text x="140" y="22" font-size="14" font-weight="700" fill="#b45309" text-anchor="middle">StorageLocation</text>
+    <line x1="0" y1="32" x2="280" y2="32" stroke="#fde68a" stroke-width="1.5" />
+    <text x="16" y="55" class="mono" font-size="11" fill="#1e293b">+ id: int (PK)</text>
+    <text x="16" y="73" class="mono" font-size="11" fill="#1e293b">+ code: str (UK, e.g. "B-02")</text>
+    <text x="16" y="91" class="mono" font-size="11" fill="#1e293b">+ zone: str</text>
+    <text x="16" y="109" class="mono" font-size="11" fill="#1e293b">+ size_class: PackageSize</text>
+    <text x="16" y="127" class="mono" font-size="11" fill="#1e293b">+ capacity: int</text>
+    <text x="16" y="145" class="mono" font-size="11" fill="#1e293b">+ occupied_count: int</text>
+    <line x1="0" y1="155" x2="280" y2="155" stroke="#e2e8f0" stroke-width="1" />
+    <text x="16" y="175" class="mono" font-size="11" fill="#d97706">+ accepts(pkg_size) bool</text>
+    <text x="16" y="195" class="mono" font-size="11" fill="#d97706">+ available_slots() int</text>
   </g>
 
-  <!-- Entity 4: PickupToken -->
-  <g transform="translate(740, 160)">
-    <rect width="290" height="205" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 290 0 L 290 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="145" y="20" class="c-name">PickupToken</text>
-    <text x="10" y="48" class="attr">+int package_id [FK]</text>
-    <text x="10" y="63" class="attr">+int learner_id [FK]</text>
-    <text x="10" y="78" class="attr">+str code_hash (HMAC-SHA256)</text>
-    <text x="10" y="93" class="attr">+str salt</text>
-    <text x="10" y="108" class="attr">+datetime expires_at (30 min window)</text>
-    <text x="10" y="123" class="attr">+datetime? used_at</text>
-    <text x="10" y="138" class="attr">+datetime? revoked_at</text>
-    <text x="10" y="153" class="attr">+int failed_attempts (lock at 5)</text>
-    <line x1="0" y1="163" x2="290" y2="163" class="sep" />
-    <text x="10" y="180" class="method">+is_usable() bool</text>
-    <text x="10" y="195" class="method">+verify(raw_code: str) bool</text>
+  <!-- PickupToken Entity (Bottom Left) -->
+  <g transform="translate(200, 560)">
+    <rect width="280" height="170" rx="8" fill="#ffffff" stroke="#dc2626" stroke-width="2" />
+    <rect width="280" height="32" rx="8" fill="#fef2f2" />
+    <text x="140" y="22" font-size="14" font-weight="700" fill="#b91c1c" text-anchor="middle">PickupToken</text>
+    <line x1="0" y1="32" x2="280" y2="32" stroke="#fecaca" stroke-width="1.5" />
+    <text x="16" y="55" class="mono" font-size="11" fill="#1e293b">+ id: int (PK)</text>
+    <text x="16" y="73" class="mono" font-size="11" fill="#1e293b">+ package_id: int (FK)</text>
+    <text x="16" y="91" class="mono" font-size="11" fill="#1e293b">+ token_hash: str (HMAC)</text>
+    <text x="16" y="109" class="mono" font-size="11" fill="#1e293b">+ expires_at: datetime (30m)</text>
+    <text x="16" y="127" class="mono" font-size="11" fill="#1e293b">+ used_at: Optional[datetime]</text>
+    <line x1="0" y1="135" x2="280" y2="135" stroke="#e2e8f0" stroke-width="1" />
+    <text x="16" y="153" class="mono" font-size="11" fill="#dc2626">+ is_valid() bool | verify(code) bool</text>
   </g>
 
-  <!-- Entity 5: PickupRecord -->
-  <g transform="translate(740, 420)">
-    <rect width="290" height="155" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 290 0 L 290 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="145" y="20" class="c-name">PickupRecord</text>
-    <text x="10" y="48" class="attr">+int package_id [FK, UK]</text>
-    <text x="10" y="63" class="attr">+int token_id [FK, UK]</text>
-    <text x="10" y="78" class="attr">+int learner_id [FK]</text>
-    <text x="10" y="93" class="attr">+int handed_over_by_id [FK]</text>
-    <text x="10" y="108" class="attr">+str storage_location_code</text>
-    <text x="10" y="123" class="attr">+datetime collected_at [IDX]</text>
-    <line x1="0" y1="133" x2="290" y2="133" class="sep" />
-    <text x="10" y="148" class="method">+to_audit_dict() dict</text>
+  <!-- PickupRecord Entity (Bottom Right) -->
+  <g transform="translate(680, 560)">
+    <rect width="280" height="170" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+    <rect width="280" height="32" rx="8" fill="#f0f9ff" />
+    <text x="140" y="22" font-size="14" font-weight="700" fill="#0369a1" text-anchor="middle">PickupRecord (Receipt)</text>
+    <line x1="0" y1="32" x2="280" y2="32" stroke="#bae6fd" stroke-width="1.5" />
+    <text x="16" y="55" class="mono" font-size="11" fill="#1e293b">+ id: int (PK)</text>
+    <text x="16" y="73" class="mono" font-size="11" fill="#1e293b">+ package_id: int (UK, FK)</text>
+    <text x="16" y="91" class="mono" font-size="11" fill="#1e293b">+ token_id: int (UK, FK)</text>
+    <text x="16" y="109" class="mono" font-size="11" fill="#1e293b">+ verified_by_user_id: int</text>
+    <text x="16" y="127" class="mono" font-size="11" fill="#1e293b">+ collected_at: datetime</text>
+    <line x1="0" y1="135" x2="280" y2="135" stroke="#e2e8f0" stroke-width="1" />
+    <text x="16" y="153" class="mono" font-size="11" fill="#0284c7">+ immutable handover receipt</text>
   </g>
 
-  <!-- Entity 6: PackageStatusHistory -->
-  <g transform="translate(740, 620)">
-    <rect width="290" height="145" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 290 0 L 290 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="145" y="20" class="c-name">PackageStatusHistory</text>
-    <text x="10" y="48" class="attr">+int package_id [FK, IDX]</text>
-    <text x="10" y="63" class="attr">+PackageStatus? from_status</text>
-    <text x="10" y="78" class="attr">+PackageStatus to_status</text>
-    <text x="10" y="93" class="attr">+int changed_by_id [FK]</text>
-    <text x="10" y="108" class="attr">+str? reason</text>
-    <text x="10" y="123" class="attr">+datetime created_at</text>
-  </g>
+  <!-- Inheritance lines from BaseDocument -->
+  <path d="M 650 200 L 650 260" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow)" />
+  <path d="M 490 145 L 200 145 L 200 270" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow)" />
+  <path d="M 810 145 L 1090 145 L 1090 270" stroke="#7c3aed" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#arrow)" />
 
-  <!-- Entity 7: Notification -->
-  <g transform="translate(1080, 160)">
-    <rect width="320" height="185" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="160" y="20" class="c-name">Notification</text>
-    <text x="10" y="48" class="attr">+int user_id [FK, IDX]</text>
-    <text x="10" y="63" class="attr">+int? package_id [FK]</text>
-    <text x="10" y="78" class="attr">+NotificationChannelType channel</text>
-    <text x="10" y="93" class="attr">+str title, message</text>
-    <text x="10" y="108" class="attr">+NotificationStatus delivery_status</text>
-    <text x="10" y="123" class="attr">+int attempts</text>
-    <text x="10" y="138" class="attr">+datetime? sent_at, read_at</text>
-    <line x1="0" y1="148" x2="320" y2="148" class="sep" />
-    <text x="10" y="165" class="method">+mark_read() void</text>
-    <text x="10" y="180" class="method">+can_retry() bool</text>
-  </g>
+  <!-- Relationships with Multiplicities -->
+  <!-- User 1 to 0..* Package -->
+  <line x1="340" y1="360" x2="500" y2="360" stroke="#334155" stroke-width="2" />
+  <rect x="350" y="342" width="20" height="16" fill="#ffffff" /><text x="355" y="354" font-size="12" font-weight="700" fill="#334155">1</text>
+  <rect x="465" y="342" width="30" height="16" fill="#ffffff" /><text x="470" y="354" font-size="12" font-weight="700" fill="#334155">0..*</text>
 
-  <!-- Entity 8: Incident -->
-  <g transform="translate(1080, 380)">
-    <rect width="320" height="185" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="160" y="20" class="c-name">Incident</text>
-    <text x="10" y="48" class="attr">+int? package_id [FK, IDX]</text>
-    <text x="10" y="63" class="attr">+IncidentType type (DAM|UNID|MISS|DISP)</text>
-    <text x="10" y="78" class="attr">+IncidentStatus status (OPEN|RESOLVED)</text>
-    <text x="10" y="93" class="attr">+str description</text>
-    <text x="10" y="108" class="attr">+int reported_by_id, resolved_by_id?</text>
-    <text x="10" y="123" class="attr">+str? resolution_note</text>
-    <text x="10" y="138" class="attr">+datetime created_at, resolved_at?</text>
-    <line x1="0" y1="148" x2="320" y2="148" class="sep" />
-    <text x="10" y="165" class="method">+resolve(admin_id: int, note: str) void</text>
-  </g>
+  <!-- Package 0..1 to 0..1 StorageShelf -->
+  <line x1="800" y1="360" x2="950" y2="360" stroke="#334155" stroke-width="2" />
+  <rect x="810" y="342" width="30" height="16" fill="#ffffff" /><text x="815" y="354" font-size="12" font-weight="700" fill="#334155">0..1</text>
+  <rect x="915" y="342" width="30" height="16" fill="#ffffff" /><text x="920" y="354" font-size="12" font-weight="700" fill="#334155">0..1</text>
 
-  <!-- Entity 9: AuditLog & IdempotencyKey -->
-  <g transform="translate(1080, 600)">
-    <rect width="320" height="165" class="box" stroke="#3b82f6" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
-    <text x="160" y="20" class="c-name">AuditLog</text>
-    <text x="10" y="48" class="attr">+int? actor_id [FK, IDX]</text>
-    <text x="10" y="63" class="attr">+str action (e.g. pickup.completed)</text>
-    <text x="10" y="78" class="attr">+str entity_type, entity_id</text>
-    <text x="10" y="93" class="attr">+dict details (JSON payload)</text>
-    <text x="10" y="108" class="attr">+datetime created_at [IDX]</text>
-    <line x1="0" y1="118" x2="320" y2="118" class="sep" />
-    <text x="10" y="135" class="method">+format_audit_row() str</text>
-  </g>
+  <!-- Package 1 to 0..* PickupToken -->
+  <path d="M 550 510 L 550 630 L 480 630" stroke="#334155" stroke-width="2" />
+  <rect x="555" y="520" width="20" height="16" fill="#ffffff" /><text x="560" y="532" font-size="12" font-weight="700" fill="#334155">1</text>
+  <rect x="490" y="612" width="30" height="16" fill="#ffffff" /><text x="495" y="624" font-size="12" font-weight="700" fill="#334155">0..*</text>
 
-  <!-- Value Objects Box -->
-  <g transform="translate(40, 800)">
-    <rect width="400" height="180" class="box" fill="#ffffff" stroke="#10b981" />
-    <path d="M 0 0 L 400 0 L 400 30 L 0 30 Z" fill="#ecfdf5" stroke="#10b981" />
-    <text x="200" y="20" class="c-name" fill="#065f46">&lt;&lt;Value Object&gt;&gt; StorageCandidate</text>
-    <text x="10" y="50" class="attr">+int id, str code, int capacity, int occupied</text>
-    <text x="10" y="68" class="attr">+PackageSize max_package_size, bool is_active</text>
-    <line x1="0" y1="80" x2="400" y2="80" class="sep" />
-    <text x="10" y="100" class="method">+free_slots: int (capacity - occupied)</text>
-    <text x="10" y="120" class="method">+accepts(PackageSize size): bool</text>
-    <text x="10" y="140" class="subtitle" font-size="11" fill="#047857">Encapsulates shelf capacity &amp; size compatibility rules</text>
-  </g>
+  <!-- Package 1 to 1 PickupRecord -->
+  <path d="M 750 510 L 750 630 L 680 630" stroke="#334155" stroke-width="2" />
+  <rect x="755" y="520" width="20" height="16" fill="#ffffff" /><text x="760" y="532" font-size="12" font-weight="700" fill="#334155">1</text>
+  <rect x="655" y="612" width="20" height="16" fill="#ffffff" /><text x="660" y="624" font-size="12" font-weight="700" fill="#334155">1</text>
 
-  <g transform="translate(480, 800)">
-    <rect width="400" height="180" class="box" fill="#ffffff" stroke="#10b981" />
-    <path d="M 0 0 L 400 0 L 400 30 L 0 30 Z" fill="#ecfdf5" stroke="#10b981" />
-    <text x="200" y="20" class="c-name" fill="#065f46">&lt;&lt;Value Object&gt;&gt; Transition</text>
-    <text x="10" y="50" class="attr">+PackageStatus source, target</text>
-    <text x="10" y="68" class="attr">+frozenset[Role] roles</text>
-    <text x="10" y="86" class="attr">+str action, label</text>
-    <text x="10" y="104" class="attr">+Guard? guard (Callable[[PackageContext], str?])</text>
-    <text x="10" y="122" class="attr">+bool requires_dedicated_endpoint</text>
-    <text x="10" y="145" class="subtitle" font-size="11" fill="#047857">Defines valid state machine edges with precondition guards</text>
-  </g>
-
-  <!-- Association / Composition lines -->
-  <line x1="300" y1="310" x2="360" y2="310" class="msg-line" />
-  <text x="305" y="302" class="card">1</text>
-  <text x="340" y="302" class="card">0..*</text>
-  <text x="312" y="325" font-size="9" fill="#64748b">receives</text>
-
-  <line x1="520" y1="500" x2="520" y2="540" class="msg-line" />
-  <text x="525" y="515" class="card">0..1</text>
-  <text x="525" y="535" class="card">1</text>
-  <text x="470" y="525" font-size="9" fill="#64748b">stored on</text>
-
-  <line x1="680" y1="260" x2="740" y2="260" class="msg-line" />
-  <text x="702" y="253" class="card">1</text>
-  <text x="720" y="253" class="card">0..*</text>
-
-  <line x1="680" y1="440" x2="740" y2="440" class="msg-line" />
-  <text x="685" y="433" class="card">1</text>
-  <text x="720" y="433" class="card">0..1</text>
 
 </svg>

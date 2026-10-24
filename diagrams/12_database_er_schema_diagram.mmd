@@ -1,142 +1,52 @@
 erDiagram
-  users ||--o{ packages : "receives (recipient_id)"
-  users ||--o{ packages : "registers (received_by_id)"
-  storage_locations ||--o{ packages : "stores (storage_location_id)"
-  packages ||--|{ package_status_history : "records transitions"
-  users ||--o{ package_status_history : "performed_by (changed_by_id)"
-  packages ||--o{ pickup_tokens : "issued for"
-  users ||--o{ pickup_tokens : "issued to (learner_id)"
-  packages ||--o| pickup_records : "proof of collection (UNIQUE package_id)"
-  pickup_tokens ||--o| pickup_records : "redeemed by (UNIQUE token_id)"
-  users ||--o{ pickup_records : "handed over by (staff_id)"
-  users ||--o{ notifications : "receives (user_id)"
-  packages ||--o{ notifications : "concerns (package_id)"
-  packages ||--o{ incidents : "has issues (package_id)"
-  users ||--o{ incidents : "reported / resolved by"
-  users ||--o{ audit_logs : "performed action (actor_id)"
-  users ||--o{ idempotency_keys : "owns key (user_id)"
+    users ||--o{ packages : "receives"
+    storage_locations ||--o{ packages : "stores"
+    packages ||--o{ pickup_tokens : "authenticates"
+    packages ||--|| pickup_records : "generates receipt"
 
-  users {
-    int _id PK "Unique Integer Sequence"
-    string institutional_id UK "IDX: Unique Institutional ID (LRN-*, SEC-*, ADM-*)"
-    string full_name "Full legal / campus name"
-    string email UK "IDX: Unique campus email"
-    string phone "Nullable contact number"
-    string role "LEARNER | SECURITY | ADMIN"
-    string password_hash "Salted bcrypt hash (cost=12)"
-    boolean is_active "Soft deactivate flag"
-    datetime created_at "UTC timestamp"
-    datetime updated_at "UTC timestamp"
-  }
+    users {
+        int id PK
+        string email UK
+        string full_name
+        string role
+        string password_hash
+        bool is_active
+    }
 
-  storage_locations {
-    int _id PK "Unique Integer Sequence"
-    string code UK "IDX: Unique shelf code (G2-A1, G2-B2)"
-    string description "Physical description (Bay, Row, Shelf)"
-    int capacity "Total capacity limit (> 0)"
-    int occupied_count "Atomic counter (0 <= occupied <= capacity)"
-    string max_package_size "SMALL | MEDIUM | LARGE | OVERSIZED"
-    boolean is_active "Active for allocation"
-    datetime created_at "UTC timestamp"
-    datetime updated_at "UTC timestamp"
-  }
+    packages {
+        int id PK
+        string tracking_id UK
+        string internal_code UK
+        int recipient_user_id FK
+        int storage_location_id FK
+        string status
+        string size
+        string courier
+    }
 
-  packages {
-    int _id PK "Unique Integer Sequence"
-    string internal_code UK "IDX: PKG-yymmdd-XXXXX"
-    string courier_name "BlueDart | Amazon | FedEx | Delhivery"
-    string tracking_id UK "IDX: Normalized uppercase (Partial filter nullable)"
-    int recipient_id FK "References users._id (Nullable if unidentified)"
-    string recipient_hint "Label notes when recipient unknown"
-    string size "SMALL | MEDIUM | LARGE | OVERSIZED"
-    string condition "GOOD | DAMAGED"
-    string condition_notes "Required when DAMAGED"
-    string status "IDX: Compound (status, arrived_at)"
-    int storage_location_id FK "References storage_locations._id"
-    datetime arrived_at "UTC timestamp (no future dates)"
-    int received_by_id FK "References users._id (Security staff)"
-    datetime ready_at "Nullable UTC ready timestamp"
-    datetime closed_at "Nullable UTC terminal timestamp"
-    string notes "Operational notes"
-    int version "Optimistic lock / version counter"
-  }
+    storage_locations {
+        int id PK
+        string code UK
+        string zone
+        string size_class
+        int capacity
+        int occupied_count
+        bool is_active
+    }
 
-  package_status_history {
-    int _id PK "Sequence"
-    int package_id FK "IDX: References packages._id"
-    string from_status "Previous status"
-    string to_status "New status"
-    int changed_by_id FK "References users._id"
-    string reason "Nullable transition justification"
-    datetime created_at "UTC timestamp"
-  }
+    pickup_tokens {
+        int id PK
+        int package_id FK
+        string token_hash
+        datetime expires_at
+        datetime used_at
+        int attempt_count
+    }
 
-  pickup_tokens {
-    int _id PK "Sequence"
-    int package_id FK "IDX: References packages._id"
-    int learner_id FK "References users._id"
-    string code_hash "Salted HMAC-SHA256 digest"
-    string salt "Cryptographic random hex salt"
-    datetime expires_at "UTC validity deadline (30 min)"
-    datetime used_at "Nullable UTC token redemption timestamp"
-    datetime revoked_at "Nullable UTC revocation timestamp"
-    int failed_attempts "Brute force counter (locks at 5)"
-  }
-
-  pickup_records {
-    int _id PK "Sequence"
-    int package_id FK "UK: Unique reference to packages._id"
-    int token_id FK "UK: Unique reference to pickup_tokens._id"
-    int learner_id FK "References users._id"
-    int handed_over_by_id FK "References users._id"
-    string storage_location_code "Historical shelf code snapshot"
-    datetime collected_at "IDX: UTC handover timestamp"
-  }
-
-  notifications {
-    int _id PK "Sequence"
-    int user_id FK "IDX: Compound (user_id, created_at)"
-    int package_id FK "Nullable reference to packages._id"
-    string channel "IN_APP | CONSOLE_EMAIL"
-    string title "Notification header"
-    string message "Notification body text"
-    string delivery_status "PENDING | SENT | FAILED"
-    int attempts "Retry counter"
-    string last_error "Error message if delivery failed"
-    datetime sent_at "UTC timestamp"
-    datetime read_at "Nullable read timestamp"
-    datetime created_at "UTC timestamp"
-  }
-
-  incidents {
-    int _id PK "Sequence"
-    int package_id FK "IDX: Optional link to packages._id"
-    string type "DAMAGED | UNIDENTIFIED | MISSING | DISPUTE"
-    string status "IDX: OPEN | RESOLVED"
-    string description "Incident report notes"
-    int reported_by_id FK "References users._id"
-    int resolved_by_id FK "Nullable references users._id"
-    string resolution_note "Admin resolution notes"
-    datetime created_at "UTC timestamp"
-    datetime resolved_at "Nullable timestamp"
-  }
-
-  audit_logs {
-    int _id PK "Sequence"
-    int actor_id FK "IDX: References users._id"
-    string action "IDX: e.g. pickup.completed, package.registered"
-    string entity_type "IDX: package | user | storage | pickup"
-    string entity_id "Target identifier"
-    object details "BSON structured payload"
-    datetime created_at "IDX: UTC timestamp"
-  }
-
-  idempotency_keys {
-    int _id PK "Sequence"
-    int user_id FK "IDX: Compound (user_id, scope, key)"
-    string scope "POST /packages | POST /pickups/complete"
-    string key "Client provided key (8-80 chars)"
-    string request_hash "SHA256 fingerprint of request body"
-    int resource_id "ID of created/affected resource"
-    datetime created_at "UTC timestamp"
-  }
+    pickup_records {
+        int id PK
+        int package_id UK_FK
+        int token_id UK_FK
+        int verified_by_user_id FK
+        datetime collected_at
+    }

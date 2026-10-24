@@ -1,29 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 950" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" width="100%" height="100%">
   <defs>
     <style>
-    .bg { fill: #f8fafc; }
-    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
-    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
-    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
-    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
-    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
-    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
-    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
-    .sep { stroke: #e2e8f0; stroke-width: 1; }
-    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
-    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
-    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
-    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
-    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
-    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
-    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
-    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
-    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
-    .card { font-family: sans-serif; font-size: 11px; fill: #475569; font-weight: 600; }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
+    .subtitle { font-size: 13px; font-weight: 400; fill: #64748b; }
+    .card { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; rx: 8; }
+    .card-header { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1.5; }
+    .header-text { font-size: 14px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
+    .line { stroke: #334155; stroke-width: 2; fill: none; }
+    .line-blue { stroke: #2563eb; stroke-width: 2; fill: none; }
+    .line-green { stroke: #16a34a; stroke-width: 2; fill: none; }
+    .line-red { stroke: #dc2626; stroke-width: 2; fill: none; }
+    .line-dash { stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 5,4; fill: none; }
+    .badge { rx: 12; stroke-width: 1.2; }
+    .badge-text { font-size: 11px; font-weight: 600; text-anchor: middle; }
 </style>
     
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
     </marker>
     <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
@@ -39,123 +34,97 @@
     </marker>
 
   </defs>
-  <rect width="1350" height="950" class="bg" />
+  <!-- Pure White Background -->
+  <rect width="1200" height="650" fill="#ffffff" />
   
-  <text x="40" y="35" class="title">11. Component Architecture Diagram - Layered Modular Monolith</text>
-  <text x="40" y="55" class="subtitle">Architectural boundaries: Presentation (React), API/Middleware, Use Cases, Pure Domain, Repositories, and MongoDB</text>
+  <!-- Header Title -->
+  <text x="50" y="45" class="title">11. Component Architecture Diagram</text>
+  <text x="50" y="70" class="subtitle">Layered modular monolith showing physical separation between frontend, API gateway, domain core, and database</text>
+  
+  <!-- Diagram Content -->
+  
+  <!-- Tier 1: Client Presentation -->
+  <g transform="translate(100, 100)">
+    <rect width="1000" height="90" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2" />
+    <rect width="1000" height="28" rx="8" fill="#eff6ff" />
+    <text x="20" y="19" font-size="12" font-weight="700" fill="#1d4ed8">TIER 1: Single Page Application (React 18 + TypeScript + Tailwind CSS)</text>
+    
+    <g transform="translate(40, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#93c5fd" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#1e40af" text-anchor="middle">Learner Portal (Mobile First)</text>
+    </g>
+    <g transform="translate(360, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#93c5fd" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#1e40af" text-anchor="middle">Security Staff Console (Gate 2)</text>
+    </g>
+    <g transform="translate(680, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#93c5fd" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#1e40af" text-anchor="middle">Operations Admin Dashboard</text>
+    </g>
+  </g>
+  <line x1="600" y1="190" x2="600" y2="230" class="line" stroke-width="2.5" marker-end="url(#arrow)" />
+  <text x="615" y="215" font-size="10" font-weight="600" fill="#64748b">HTTPS / JSON REST</text>
 
-  <!-- Layer 1: Client Presentation -->
-  <rect x="50" y="80" width="1250" height="120" class="box" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" />
-  <text x="70" y="105" class="c-name" font-size="13" fill="#1e40af" text-anchor="start">Client Tier: React 18 + TypeScript SPA (Vite, Tailwind CSS, React Router)</text>
+  <!-- Tier 2: API Gateway &amp; Auth -->
+  <g transform="translate(100, 230)">
+    <rect width="1000" height="90" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2" />
+    <rect width="1000" height="28" rx="8" fill="#ecfdf5" />
+    <text x="20" y="19" font-size="12" font-weight="700" fill="#047857">TIER 2: API Gateway &amp; Middleware (FastAPI)</text>
+    
+    <g transform="translate(40, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#6ee7b7" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#065f46" text-anchor="middle">JWT Auth &amp; RBAC Guard</text>
+    </g>
+    <g transform="translate(360, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#6ee7b7" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#065f46" text-anchor="middle">Token Bucket Rate Limiter</text>
+    </g>
+    <g transform="translate(680, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#6ee7b7" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#065f46" text-anchor="middle">RFC 7807 Error Interceptor</text>
+    </g>
+  </g>
+  <line x1="600" y1="320" x2="600" y2="360" class="line" stroke-width="2.5" marker-end="url(#arrow)" />
 
-  <rect x="80" y="125" width="260" height="55" class="box" />
-  <text x="210" y="148" class="c-name" font-size="11">Learner Portal</text>
-  <text x="210" y="165" class="subtitle" font-size="9.5">Dashboard, Pickup Code, Inbox</text>
+  <!-- Tier 3: Core Domain &amp; Services -->
+  <g transform="translate(100, 360)">
+    <rect width="1000" height="90" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="2" />
+    <rect width="1000" height="28" rx="8" fill="#f5f3ff" />
+    <text x="20" y="19" font-size="12" font-weight="700" fill="#5b21b6">TIER 3: Application Services &amp; Domain Core</text>
+    
+    <g transform="translate(40, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#c4b5fd" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#5b21b6" text-anchor="middle">Intake &amp; Allocation Services</text>
+    </g>
+    <g transform="translate(360, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#c4b5fd" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#5b21b6" text-anchor="middle">Pickup &amp; Handover Service</text>
+    </g>
+    <g transform="translate(680, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#c4b5fd" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#5b21b6" text-anchor="middle">EventBus &amp; State Machine</text>
+    </g>
+  </g>
+  <line x1="600" y1="450" x2="600" y2="490" class="line" stroke-width="2.5" marker-end="url(#arrow)" />
 
-  <rect x="360" y="125" width="260" height="55" class="box" />
-  <text x="490" y="148" class="c-name" font-size="11">Security Gate Portal</text>
-  <text x="490" y="165" class="subtitle" font-size="9.5">Intake, Shelf Assign, Handover</text>
-
-  <rect x="640" y="125" width="260" height="55" class="box" />
-  <text x="770" y="148" class="c-name" font-size="11">Operations Admin Portal</text>
-  <text x="770" y="165" class="subtitle" font-size="9.5">Live Stats, Users, Shelves, Audit</text>
-
-  <rect x="920" y="125" width="350" height="55" class="box" fill="#f8fafc" />
-  <text x="1095" y="148" class="c-name" font-size="11">API Client Wrapper (api/client.ts)</text>
-  <text x="1095" y="165" class="subtitle" font-size="9.5">Bearer JWT, Idempotency-Key Header, Error Interceptor</text>
-
-  <line x1="675" y1="200" x2="675" y2="240" class="msg-line" stroke="#2563eb" stroke-width="2" />
-  <text x="685" y="225" class="ret-text" fill="#2563eb">RESTful HTTPS JSON /api/v1</text>
-
-  <!-- Layer 2: API & Middleware -->
-  <rect x="50" y="240" width="1250" height="130" class="box" fill="#fdf4ff" stroke="#a855f7" stroke-width="2" />
-  <text x="70" y="265" class="c-name" font-size="13" fill="#7e22ce" text-anchor="start">API &amp; Middleware Tier (FastAPI Framework)</text>
-
-  <rect x="80" y="285" width="300" height="65" class="box" />
-  <text x="230" y="308" class="c-name" font-size="11">Cross-Cutting Middleware</text>
-  <text x="230" y="325" class="attr" font-size="9.5" text-anchor="middle">CORSMiddleware | X-Request-ID</text>
-  <text x="230" y="340" class="attr" font-size="9.5" text-anchor="middle">SlidingWindowRateLimiter (Brute-Force)</text>
-
-  <rect x="400" y="285" width="460" height="65" class="box" />
-  <text x="630" y="308" class="c-name" font-size="11">REST Routers (api/routes/)</text>
-  <text x="630" y="325" class="attr" font-size="9.5" text-anchor="middle">auth | packages | pickups | storage | users | incidents | reports</text>
-  <text x="630" y="340" class="subtitle" font-size="9.5">Pydantic Schemas validate payloads before services are invoked</text>
-
-  <rect x="880" y="285" width="390" height="65" class="box" />
-  <text x="1075" y="308" class="c-name" font-size="11">Auth &amp; RBAC Dependencies</text>
-  <text x="1075" y="325" class="attr" font-size="9.5" text-anchor="middle">require_auth (PyJWT) | require(Permission.X)</text>
-  <text x="1075" y="340" class="subtitle" font-size="9.5">Role Permission Table: LEARNER | SECURITY | ADMIN</text>
-
-  <!-- Layer 3: Application Use Case Services -->
-  <rect x="50" y="390" width="1250" height="130" class="box" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" />
-  <text x="70" y="415" class="c-name" font-size="13" fill="#15803d" text-anchor="start">Application Service Tier (Use Cases &amp; Transaction Boundary)</text>
-
-  <rect x="80" y="435" width="220" height="65" class="box" />
-  <text x="190" y="458" class="c-name" font-size="10.5">PackageIntakeService</text>
-  <text x="190" y="475" class="subtitle" font-size="9">Intake, duplicate detection,</text>
-  <text x="190" y="488" class="subtitle" font-size="9">recipient identification</text>
-
-  <rect x="315" y="435" width="220" height="65" class="box" />
-  <text x="425" y="458" class="c-name" font-size="10.5">StorageAllocationService</text>
-  <text x="425" y="475" class="subtitle" font-size="9">Strategy selection, atomic</text>
-  <text x="425" y="488" class="subtitle" font-size="9">shelf reservation &amp; mark ready</text>
-
-  <rect x="550" y="435" width="220" height="65" class="box" />
-  <text x="660" y="458" class="c-name" font-size="10.5">PickupService</text>
-  <text x="660" y="475" class="subtitle" font-size="9">HMAC token creation, verification</text>
-  <text x="660" y="488" class="subtitle" font-size="9">&amp; atomic double-handover guard</text>
-
-  <rect x="785" y="435" width="220" height="65" class="box" />
-  <text x="895" y="458" class="c-name" font-size="10.5">PackageTransitioner</text>
-  <text x="895" y="475" class="subtitle" font-size="9">Central status machine driver,</text>
-  <text x="895" y="488" class="subtitle" font-size="9">writes status history &amp; audit</text>
-
-  <rect x="1020" y="435" width="250" height="65" class="box" />
-  <text x="1145" y="458" class="c-name" font-size="10.5">Admin &amp; Query Services</text>
-  <text x="1145" y="475" class="subtitle" font-size="9">UserService | IncidentService</text>
-  <text x="1145" y="488" class="subtitle" font-size="9">ReportService | AuditService</text>
-
-  <!-- Layer 4: Pure Domain Layer -->
-  <rect x="50" y="540" width="1250" height="110" class="box" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
-  <text x="70" y="565" class="c-name" font-size="13" fill="#b45309" text-anchor="start">Pure Domain Tier (Zero Third-Party / Database / Framework Dependencies)</text>
-
-  <rect x="80" y="580" width="260" height="50" class="box" />
-  <text x="210" y="602" class="c-name" font-size="10.5">State Machine &amp; Transitions</text>
-  <text x="210" y="618" class="subtitle" font-size="9">Transition Table &amp; Guards</text>
-
-  <rect x="360" y="580" width="260" height="50" class="box" />
-  <text x="490" y="602" class="c-name" font-size="10.5">Allocation Strategies (Strategy)</text>
-  <text x="490" y="618" class="subtitle" font-size="9">SuitableSize &amp; FirstAvailable</text>
-
-  <rect x="640" y="580" width="260" height="50" class="box" />
-  <text x="770" y="602" class="c-name" font-size="10.5">Pickup &amp; Overdue Rules</text>
-  <text x="770" y="618" class="subtitle" font-size="9">HMAC Hashing &amp; Derived Overdue</text>
-
-  <rect x="920" y="580" width="350" height="50" class="box" />
-  <text x="1095" y="602" class="c-name" font-size="10.5">Domain Events &amp; Protocols (Observer)</text>
-  <text x="1095" y="618" class="subtitle" font-size="9">PackageStatusChanged, StorageAllocationStrategy</text>
-
-  <!-- Layer 5: Persistence & Repositories -->
-  <rect x="50" y="670" width="1250" height="110" class="box" fill="#f8fafc" stroke="#475569" stroke-width="2" />
-  <text x="70" y="695" class="c-name" font-size="13" fill="#0f172a" text-anchor="start">Persistence &amp; Infrastructure Tier</text>
-
-  <rect x="80" y="710" width="300" height="50" class="box" />
-  <text x="230" y="730" class="c-name" font-size="10.5">MongoUnitOfWork</text>
-  <text x="230" y="746" class="subtitle" font-size="9">Buffers events &amp; coordinates repos</text>
-
-  <rect x="400" y="710" width="460" height="50" class="box" />
-  <text x="630" y="730" class="c-name" font-size="10.5">Repository Implementations (repositories/mongo_repos.py)</text>
-  <text x="630" y="746" class="subtitle" font-size="9">PackageRepo | StorageRepo | TokenRepo | RecordRepo | UserRepo</text>
-
-  <rect x="880" y="710" width="390" height="50" class="box" />
-  <text x="1075" y="730" class="c-name" font-size="10.5">Notification Channels &amp; Dispatcher</text>
-  <text x="1075" y="746" class="subtitle" font-size="9">InAppChannel | ConsoleEmailChannel | Factory</text>
-
-  <!-- Layer 6: Database Tier -->
-  <rect x="50" y="800" width="1250" height="110" class="box" fill="#0f172a" stroke="#0f172a" />
-  <text x="70" y="828" class="c-name" font-size="13" fill="#38bdf8" text-anchor="start">Database Tier: MongoDB 6+ Engine</text>
-  <text x="70" y="855" class="attr" font-size="11" fill="#e2e8f0">• 10 Collections with Auto-increment sequence IDs: users, storage_locations, packages, history, tokens, records, notifs, incidents, audit, idempotency</text>
-  <text x="70" y="875" class="attr" font-size="11" fill="#e2e8f0">• Concurrency Mechanics: Single-document conditional writes (find_one_and_update) enforce capacity and double-pickup invariants</text>
-  <text x="70" y="895" class="attr" font-size="11" fill="#e2e8f0">• Index Strategy: Unique tracking_id, internal_code, package_id; Compound (status, arrived_at), (user_id, created_at)</text>
+  <!-- Tier 4: Data Layer -->
+  <g transform="translate(100, 490)">
+    <rect width="1000" height="90" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="2" />
+    <rect width="1000" height="28" rx="8" fill="#fff7ed" />
+    <text x="20" y="19" font-size="12" font-weight="700" fill="#c2410c">TIER 4: Persistence &amp; Database Layer (MongoDB 6+)</text>
+    
+    <g transform="translate(40, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#fdba74" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#9a3412" text-anchor="middle">MongoUnitOfWork</text>
+    </g>
+    <g transform="translate(360, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#fdba74" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#9a3412" text-anchor="middle">PyMongo Document Repositories</text>
+    </g>
+    <g transform="translate(680, 38)">
+      <rect width="280" height="40" rx="6" fill="#ffffff" stroke="#fdba74" />
+      <text x="140" y="25" font-size="12" font-weight="600" fill="#9a3412" text-anchor="middle">Compound Unique Indexes &amp; Counters</text>
+    </g>
+  </g>
 
 </svg>

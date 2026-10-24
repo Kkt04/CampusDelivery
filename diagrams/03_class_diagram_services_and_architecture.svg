@@ -1,27 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1450 1050" width="100%" height="100%">
-  <defs><style>
-    .bg { fill: #f8fafc; }
-    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
-    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
-    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
-    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
-    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
-    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
-    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
-    .sep { stroke: #e2e8f0; stroke-width: 1; }
-    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
-    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
-    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
-    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
-    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
-    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
-    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
-    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
-    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
-    .step-badge { fill: #2563eb; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 780" width="100%" height="100%">
+  <defs>
+    <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
+    .subtitle { font-size: 13px; font-weight: 400; fill: #64748b; }
+    .card { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; rx: 8; }
+    .card-header { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1.5; }
+    .header-text { font-size: 14px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
+    .line { stroke: #334155; stroke-width: 2; fill: none; }
+    .line-blue { stroke: #2563eb; stroke-width: 2; fill: none; }
+    .line-green { stroke: #16a34a; stroke-width: 2; fill: none; }
+    .line-red { stroke: #dc2626; stroke-width: 2; fill: none; }
+    .line-dash { stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 5,4; fill: none; }
+    .badge { rx: 12; stroke-width: 1.2; }
+    .badge-text { font-size: 11px; font-weight: 600; text-anchor: middle; }
 </style>
+    
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
     </marker>
     <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
@@ -35,214 +32,120 @@
     <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
     </marker>
-</defs>
-  <rect width="1450" height="1050" class="bg" />
-  <text x="40" y="35" class="title">03. Detailed UML Class Diagram - Services, Interfaces &amp; Layered Architecture</text>
-  <text x="40" y="55" class="subtitle">Clean separation of concerns: Routers, Use Case Services, Protocols/Interfaces, Unit of Work, and Composition Root</text>
 
-  <!-- Presentation Layer / Routers -->
-  <g transform="translate(40, 80)">
-    <rect width="320" height="180" class="box" fill="#eff6ff" stroke="#3b82f6" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#dbeafe" stroke="#3b82f6" />
-    <text x="160" y="20" class="c-name" fill="#1e40af">&lt;&lt;Presentation&gt;&gt; FastAPI Routers</text>
-    <text x="10" y="50" class="attr">+auth_router (/api/v1/auth)</text>
-    <text x="10" y="70" class="attr">+packages_router (/api/v1/packages)</text>
-    <text x="10" y="90" class="attr">+pickups_router (/api/v1/pickups)</text>
-    <text x="10" y="110" class="attr">+storage_router (/api/v1/storage-locations)</text>
-    <text x="10" y="130" class="attr">+users_router (/api/v1/users)</text>
-    <text x="10" y="150" class="attr">+incidents_router, reports_router</text>
-    <text x="10" y="170" class="subtitle" font-size="10" fill="#2563eb">Enforces JWT, RBAC guards &amp; Pydantic validation</text>
+  </defs>
+  <!-- Pure White Background -->
+  <rect width="1300" height="780" fill="#ffffff" />
+  
+  <!-- Header Title -->
+  <text x="50" y="45" class="title">03. Services &amp; Architecture Class Diagram</text>
+  <text x="50" y="70" class="subtitle">Layered modular monolith: presentation routers, application services, domain protocols, and infrastructure</text>
+  
+  <!-- Diagram Content -->
+  
+  <!-- Layer 1: API Routers (Top) -->
+  <g transform="translate(60, 100)">
+    <rect width="1180" height="100" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+    <rect width="1180" height="26" rx="8" fill="#f8fafc" />
+    <text x="20" y="18" font-size="11" font-weight="700" fill="#475569">API PRESENTATION LAYER (FastAPI Routers)</text>
+    
+    <g transform="translate(40, 38)">
+      <rect width="320" height="50" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" />
+      <text x="160" y="24" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="middle">PackagesRouter</text>
+      <text x="160" y="40" class="mono" font-size="10.5" fill="#2563eb" text-anchor="middle">POST /intake | POST /{id}/assign</text>
+    </g>
+    <g transform="translate(430, 38)">
+      <rect width="320" height="50" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" />
+      <text x="160" y="24" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="middle">PickupsRouter</text>
+      <text x="160" y="40" class="mono" font-size="10.5" fill="#2563eb" text-anchor="middle">POST /request-pickup | POST /handover</text>
+    </g>
+    <g transform="translate(820, 38)">
+      <rect width="320" height="50" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5" />
+      <text x="160" y="24" font-size="13" font-weight="700" fill="#1d4ed8" text-anchor="middle">Incidents &amp; Reports Router</text>
+      <text x="160" y="40" class="mono" font-size="10.5" fill="#2563eb" text-anchor="middle">POST /incidents | GET /reports/dashboard</text>
+    </g>
   </g>
 
-  <!-- Composition Root / Container -->
-  <g transform="translate(40, 290)">
-    <rect width="320" height="230" class="box" fill="#fdf4ff" stroke="#a855f7" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#fae8ff" stroke="#a855f7" />
-    <text x="160" y="20" class="c-name" fill="#7e22ce">&lt;&lt;Composition Root&gt;&gt; Container (Singleton)</text>
-    <text x="10" y="50" class="attr">+Settings settings</text>
-    <text x="10" y="68" class="attr">+EventBus event_bus</text>
-    <text x="10" y="86" class="attr">+NotificationDispatcher dispatcher</text>
-    <text x="10" y="104" class="attr">+StorageAllocationStrategy strategy</text>
-    <text x="10" y="122" class="attr">+SlidingWindowRateLimiter limiter</text>
-    <line x1="0" y1="135" x2="320" y2="135" class="sep" />
-    <text x="10" y="155" class="method">+uow(): MongoUnitOfWork</text>
-    <text x="10" y="175" class="method">+build_allocation_strategy(name): Strategy$</text>
-    <text x="10" y="195" class="subtitle" font-size="10" fill="#9333ea">DIP: Wires all concrete classes in ONE place</text>
+  <!-- Downward Arrows to Services -->
+  <line x1="260" y1="200" x2="260" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="650" y1="200" x2="650" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" />
+  <line x1="1040" y1="200" x2="1040" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Layer 2: Application Use Case Services -->
+  <g transform="translate(60, 260)">
+    <rect width="1180" height="150" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+    <rect width="1180" height="26" rx="8" fill="#f8fafc" />
+    <text x="20" y="18" font-size="11" font-weight="700" fill="#475569">APPLICATION SERVICE LAYER (Orchestration &amp; Boundaries)</text>
+
+    <g transform="translate(40, 38)">
+      <rect width="320" height="95" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" />
+      <text x="160" y="24" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle">PackageIntakeService</text>
+      <line x1="10" y1="34" x2="310" y2="34" stroke="#bbf7d0" stroke-width="1" />
+      <text x="16" y="54" class="mono" font-size="11" fill="#166534">+ register(dto) Package</text>
+      <text x="16" y="74" class="mono" font-size="11" fill="#166534">+ triage_recipient(id) User</text>
+    </g>
+    <g transform="translate(430, 38)">
+      <rect width="320" height="95" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" />
+      <text x="160" y="24" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle">StorageAllocationService</text>
+      <line x1="10" y1="34" x2="310" y2="34" stroke="#bbf7d0" stroke-width="1" />
+      <text x="16" y="54" class="mono" font-size="11" fill="#166534">+ allocate_storage(pkg_id) Shelf</text>
+      <text x="16" y="74" class="mono" font-size="11" fill="#166534">- _strategy: StorageAllocationStrategy</text>
+    </g>
+    <g transform="translate(820, 38)">
+      <rect width="320" height="95" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" />
+      <text x="160" y="24" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle">PickupService</text>
+      <line x1="10" y1="34" x2="310" y2="34" stroke="#bbf7d0" stroke-width="1" />
+      <text x="16" y="54" class="mono" font-size="11" fill="#166534">+ generate_pickup_code(pkg_id)</text>
+      <text x="16" y="74" class="mono" font-size="11" fill="#166534">+ verify_and_handover(code, staff)</text>
+    </g>
   </g>
 
-  <!-- Unit of Work -->
-  <g transform="translate(40, 550)">
-    <rect width="320" height="260" class="box" fill="#f8fafc" stroke="#475569" />
-    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#e2e8f0" stroke="#475569" />
-    <text x="160" y="20" class="c-name" fill="#0f172a">&lt;&lt;Pattern&gt;&gt; MongoUnitOfWork</text>
-    <text x="10" y="48" class="attr">+Database db</text>
-    <text x="10" y="66" class="attr">+MongoPackageRepository packages</text>
-    <text x="10" y="84" class="attr">+MongoStorageRepository storage</text>
-    <text x="10" y="102" class="attr">+MongoPickupTokenRepository tokens</text>
-    <text x="10" y="120" class="attr">+MongoPickupRecordRepository pickups</text>
-    <text x="10" y="138" class="attr">+MongoUserRepository users</text>
-    <text x="10" y="156" class="attr">+MongoAuditRepository audit</text>
-    <line x1="0" y1="168" x2="320" y2="168" class="sep" />
-    <text x="10" y="188" class="method">+record_event(event: DomainEvent) void</text>
-    <text x="10" y="206" class="method">+commit() void [Publishes buffered events]</text>
-    <text x="10" y="224" class="method">+rollback() void</text>
+  <!-- Downward Arrows to Domain Protocols -->
+  <line x1="650" y1="410" x2="650" y2="470" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Layer 3: Domain &amp; Protocols (DIP) -->
+  <g transform="translate(60, 470)">
+    <rect width="1180" height="130" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+    <rect width="1180" height="26" rx="8" fill="#f8fafc" />
+    <text x="20" y="18" font-size="11" font-weight="700" fill="#475569">DOMAIN PROTOCOLS &amp; PURE LOGIC (Decoupled Abstractions)</text>
+
+    <g transform="translate(40, 38)">
+      <rect width="320" height="75" rx="6" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5" />
+      <text x="160" y="20" font-size="10" font-weight="600" fill="#9333ea" text-anchor="middle">&lt;&lt;protocol&gt;&gt;</text>
+      <text x="160" y="36" font-size="13" font-weight="700" fill="#7e22ce" text-anchor="middle">IUnitOfWork</text>
+      <text x="16" y="58" class="mono" font-size="11" fill="#6b21a8">+ commit() | rollback()</text>
+    </g>
+    <g transform="translate(430, 38)">
+      <rect width="320" height="75" rx="6" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5" />
+      <text x="160" y="20" font-size="10" font-weight="600" fill="#9333ea" text-anchor="middle">&lt;&lt;protocol / strategy&gt;&gt;</text>
+      <text x="160" y="36" font-size="13" font-weight="700" fill="#7e22ce" text-anchor="middle">StorageAllocationStrategy</text>
+      <text x="16" y="58" class="mono" font-size="11" fill="#6b21a8">+ rank(candidates, size) list[id]</text>
+    </g>
+    <g transform="translate(820, 38)">
+      <rect width="320" height="75" rx="6" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5" />
+      <text x="160" y="20" font-size="10" font-weight="600" fill="#9333ea" text-anchor="middle">&lt;&lt;pure domain&gt;&gt;</text>
+      <text x="160" y="36" font-size="13" font-weight="700" fill="#7e22ce" text-anchor="middle">PackageStateMachine</text>
+      <text x="16" y="58" class="mono" font-size="11" fill="#6b21a8">+ check(curr, target, role, pkg)</text>
+    </g>
   </g>
 
-  <!-- Core Use Case Services -->
-  <!-- PackageIntakeService -->
-  <g transform="translate(400, 80)">
-    <rect width="360" height="150" class="box" stroke="#0284c7" />
-    <path d="M 0 0 L 360 0 L 360 30 L 0 30 Z" fill="#e0f2fe" stroke="#0284c7" />
-    <text x="180" y="20" class="c-name" fill="#0369a1">PackageIntakeService</text>
-    <text x="10" y="48" class="attr">+register(data, staff, idem_key): Package</text>
-    <text x="10" y="68" class="attr">+identify_recipient(pkg_id, inst_id, staff): Package</text>
-    <line x1="0" y1="80" x2="360" y2="80" class="sep" />
-    <text x="10" y="100" class="subtitle" font-size="10.5" fill="#0284c7">SRP: Handles intake, duplicate detection &amp; triage</text>
-    <text x="10" y="118" class="subtitle" font-size="10.5" fill="#475569">Calls: PackageTransitioner, uow.packages, uow.audit</text>
+  <!-- Downward Arrows to Infra -->
+  <line x1="650" y1="600" x2="650" y2="650" stroke="#334155" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Layer 4: Infrastructure &amp; Database -->
+  <g transform="translate(60, 650)">
+    <rect width="1180" height="90" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+    <rect width="1180" height="26" rx="8" fill="#f8fafc" />
+    <text x="20" y="18" font-size="11" font-weight="700" fill="#475569">INFRASTRUCTURE LAYER (Persistence &amp; External Adapters)</text>
+
+    <g transform="translate(140, 35)">
+      <rect width="400" height="45" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" />
+      <text x="200" y="28" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle">MongoUnitOfWork &amp; PyMongo Repositories</text>
+    </g>
+    <g transform="translate(640, 35)">
+      <rect width="400" height="45" rx="6" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5" />
+      <text x="200" y="28" font-size="13" font-weight="700" fill="#0e7490" text-anchor="middle">EventBus &amp; Notification Dispatcher</text>
+    </g>
   </g>
 
-  <!-- StorageAllocationService -->
-  <g transform="translate(400, 260)">
-    <rect width="360" height="170" class="box" stroke="#0284c7" />
-    <path d="M 0 0 L 360 0 L 360 30 L 0 30 Z" fill="#e0f2fe" stroke="#0284c7" />
-    <text x="180" y="20" class="c-name" fill="#0369a1">StorageAllocationService</text>
-    <text x="10" y="48" class="attr">-StorageAllocationStrategy _strategy [DIP]</text>
-    <line x1="0" y1="60" x2="360" y2="60" class="sep" />
-    <text x="10" y="80" class="method">+assign(pkg_id, staff, loc_id?, mark_ready): Package</text>
-    <text x="10" y="100" class="method">+auto_allocate(pkg: Package): StorageLocation</text>
-    <line x1="0" y1="115" x2="360" y2="115" class="sep" />
-    <text x="10" y="135" class="subtitle" font-size="10.5" fill="#0284c7">Strategy Pattern: Ranks candidates; executes atomic reserve</text>
-  </g>
-
-  <!-- PickupService -->
-  <g transform="translate(400, 460)">
-    <rect width="360" height="200" class="box" stroke="#0284c7" />
-    <path d="M 0 0 L 360 0 L 360 30 L 0 30 Z" fill="#e0f2fe" stroke="#0284c7" />
-    <text x="180" y="20" class="c-name" fill="#0369a1">PickupService</text>
-    <text x="10" y="48" class="attr">+request_pickup(pkg_id, learner): PickupTokenOut</text>
-    <text x="10" y="68" class="attr">+verify(pkg_code, learner_id, code): TokenState</text>
-    <text x="10" y="88" class="attr">+complete(code, learner_id, code, staff, idem): Record</text>
-    <line x1="0" y1="105" x2="360" y2="105" class="sep" />
-    <text x="10" y="125" class="subtitle" font-size="10.5" fill="#0284c7">Concurrency Barrier &amp; Proof of Handover</text>
-    <text x="10" y="145" class="subtitle" font-size="10" fill="#475569">Atomic token consumption + status compare_and_set</text>
-  </g>
-
-  <!-- PackageTransitioner -->
-  <g transform="translate(400, 690)">
-    <rect width="360" height="150" class="box" stroke="#059669" />
-    <path d="M 0 0 L 360 0 L 360 30 L 0 30 Z" fill="#d1fae5" stroke="#059669" />
-    <text x="180" y="20" class="c-name" fill="#065f46">PackageTransitioner</text>
-    <text x="10" y="48" class="attr">-PackageStateMachine _sm</text>
-    <line x1="0" y1="60" x2="360" y2="60" class="sep" />
-    <text x="10" y="80" class="method">+apply(pkg, target_status, actor, reason?): Package</text>
-    <text x="10" y="100" class="subtitle" font-size="10.5" fill="#059669">Encapsulates state change + status history + audit logging</text>
-  </g>
-
-  <!-- Strategy Pattern Component -->
-  <g transform="translate(800, 80)">
-    <rect width="300" height="90" class="box" stroke="#10b981" />
-    <path d="M 0 0 L 300 0 L 300 28 L 0 28 Z" fill="#ecfdf5" stroke="#10b981" />
-    <text x="150" y="18" class="c-stereo">&lt;&lt;Protocol / Strategy Pattern&gt;&gt;</text>
-    <text x="150" y="32" class="c-name" fill="#065f46">StorageAllocationStrategy</text>
-    <text x="10" y="55" class="attr">+str name*</text>
-    <text x="10" y="75" class="method">+rank(candidates, size)* list[Candidate]</text>
-  </g>
-
-  <g transform="translate(800, 200)">
-    <rect width="300" height="75" class="box" stroke="#10b981" />
-    <path d="M 0 0 L 300 0 L 300 24 L 0 24 Z" fill="#f0fdf4" stroke="#10b981" />
-    <text x="150" y="16" class="c-name" fill="#047857">SuitableSizeStrategy</text>
-    <text x="10" y="45" class="attr">+name = "suitable_size"</text>
-    <text x="10" y="62" class="method">+rank(...) [Tightest size, max free slots]</text>
-  </g>
-
-  <g transform="translate(800, 295)">
-    <rect width="300" height="75" class="box" stroke="#10b981" />
-    <path d="M 0 0 L 300 0 L 300 24 L 0 24 Z" fill="#f0fdf4" stroke="#10b981" />
-    <text x="150" y="16" class="c-name" fill="#047857">FirstAvailableStrategy</text>
-    <text x="10" y="45" class="attr">+name = "first_available"</text>
-    <text x="10" y="62" class="method">+rank(...) [Alphabetical shelf code]</text>
-  </g>
-
-  <!-- Observer Pattern Component -->
-  <g transform="translate(800, 410)">
-    <rect width="300" height="110" class="box" stroke="#8b5cf6" />
-    <path d="M 0 0 L 300 0 L 300 28 L 0 28 Z" fill="#f5f3ff" stroke="#8b5cf6" />
-    <text x="150" y="18" class="c-stereo">&lt;&lt;Observer Pattern: Publisher&gt;&gt;</text>
-    <text x="150" y="32" class="c-name" fill="#6d28d9">EventBus</text>
-    <text x="10" y="55" class="attr">-dict _handlers</text>
-    <text x="10" y="75" class="method">+subscribe(event_type, handler) void</text>
-    <text x="10" y="95" class="method">+publish(event: DomainEvent) void</text>
-  </g>
-
-  <g transform="translate(800, 545)">
-    <rect width="300" height="110" class="box" stroke="#8b5cf6" />
-    <path d="M 0 0 L 300 0 L 300 28 L 0 28 Z" fill="#f5f3ff" stroke="#8b5cf6" />
-    <text x="150" y="18" class="c-stereo">&lt;&lt;Observer Pattern: Subscriber&gt;&gt;</text>
-    <text x="150" y="32" class="c-name" fill="#6d28d9">NotificationDispatcher</text>
-    <text x="10" y="55" class="attr">-list[NotificationChannel] _channels</text>
-    <text x="10" y="75" class="method">+handle(PackageStatusChanged e) void</text>
-    <text x="10" y="95" class="method">+retry_failed(limit: int) int</text>
-  </g>
-
-  <!-- Notification Channel Protocols -->
-  <g transform="translate(800, 680)">
-    <rect width="300" height="85" class="box" stroke="#8b5cf6" />
-    <path d="M 0 0 L 300 0 L 300 24 L 0 24 Z" fill="#f5f3ff" stroke="#8b5cf6" />
-    <text x="150" y="16" class="c-stereo">&lt;&lt;Protocol / Channel Strategy&gt;&gt;</text>
-    <text x="150" y="30" class="c-name" fill="#6d28d9">NotificationChannel</text>
-    <text x="10" y="50" class="attr">+channel_type: NotificationChannelType</text>
-    <text x="10" y="70" class="method">+send(recipient, title, message)* void</text>
-  </g>
-
-  <g transform="translate(800, 785)">
-    <rect width="145" height="60" class="box" stroke="#8b5cf6" />
-    <text x="72" y="25" class="c-name" font-size="11">InAppChannel</text>
-    <text x="10" y="45" class="attr" font-size="9.5">+send(): DB inbox</text>
-  </g>
-
-  <g transform="translate(955, 785)">
-    <rect width="145" height="60" class="box" stroke="#8b5cf6" />
-    <text x="72" y="25" class="c-name" font-size="11">ConsoleEmailChannel</text>
-    <text x="10" y="45" class="attr" font-size="9.5">+send(): Dev stdout</text>
-  </g>
-
-  <!-- State Machine Component -->
-  <g transform="translate(1130, 80)">
-    <rect width="280" height="150" class="box" stroke="#f59e0b" />
-    <path d="M 0 0 L 280 0 L 280 28 L 0 28 Z" fill="#fef3c7" stroke="#f59e0b" />
-    <text x="140" y="18" class="c-stereo">&lt;&lt;State Pattern: Table Driven&gt;&gt;</text>
-    <text x="140" y="32" class="c-name" fill="#b45309">PackageStateMachine</text>
-    <text x="10" y="55" class="attr">-list[Transition] _transitions</text>
-    <line x1="0" y1="65" x2="280" y2="65" class="sep" />
-    <text x="10" y="85" class="method">+check(src, tgt, role, ctx)</text>
-    <text x="10" y="105" class="method">+available(src, role, ctx)</text>
-    <text x="10" y="125" class="subtitle" font-size="10" fill="#92400e">Zero if/else spaghetti; pure table</text>
-  </g>
-
-  <!-- SOLID & OOP Badges -->
-  <g transform="translate(1130, 260)">
-    <rect width="280" height="230" class="box" fill="#ffffff" stroke="#cbd5e1" />
-    <text x="20" y="25" class="c-name" text-anchor="start">SOLID Principles Mapping</text>
-    <text x="10" y="50" class="attr" font-weight="600" fill="#2563eb">[S] Single Responsibility</text>
-    <text x="20" y="65" class="subtitle" font-size="10.5">1 use case = 1 service class</text>
-    <text x="10" y="85" class="attr" font-weight="600" fill="#059669">[O] Open / Closed</text>
-    <text x="20" y="100" class="subtitle" font-size="10.5">Plug new Strategy or Channel</text>
-    <text x="10" y="120" class="attr" font-weight="600" fill="#d97706">[L] Liskov Substitution</text>
-    <text x="20" y="135" class="subtitle" font-size="10.5">All strategies honor identical contract</text>
-    <text x="10" y="155" class="attr" font-weight="600" fill="#7c3aed">[I] Interface Segregation</text>
-    <text x="20" y="170" class="subtitle" font-size="10.5">1-method focused Protocols</text>
-    <text x="10" y="190" class="attr" font-weight="600" fill="#db2777">[D] Dependency Inversion</text>
-    <text x="20" y="205" class="subtitle" font-size="10.5">Services depend on abstractions</text>
-  </g>
-
-  <!-- Connectors -->
-  <line x1="360" y1="130" x2="400" y2="130" class="msg-line" />
-  <line x1="360" y1="310" x2="400" y2="310" class="msg-line" />
-  <line x1="360" y1="510" x2="400" y2="510" class="msg-line" />
-  <line x1="760" y1="310" x2="800" y2="120" stroke="#10b981" stroke-width="1.5" stroke-dasharray="3,3" />
-  <line x1="760" y1="740" x2="1130" y2="150" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,3" />
-  <line x1="360" y1="650" x2="400" y2="650" class="msg-line" />
-  <line x1="950" y1="520" x2="950" y2="545" class="msg-line" />
-  <line x1="950" y1="655" x2="950" y2="680" class="msg-line" />
 </svg>

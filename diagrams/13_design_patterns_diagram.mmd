@@ -1,96 +1,20 @@
-classDiagram
-  direction TB
+flowchart TB
+    subgraph PatternsMap ["Design Patterns in Campus Delivery Management System"]
+        direction TB
 
-  %% Pattern 1: Strategy Pattern
-  class StorageAllocationStrategy {
-    <<interface / Behavioral: Strategy>>
-    +rank(candidates, size)* list~StorageCandidate~
-  }
-  class SuitableSizeStrategy {
-    +rank(candidates, size) list~StorageCandidate~
-  }
-  class FirstAvailableStrategy {
-    +rank(candidates, size) list~StorageCandidate~
-  }
-  StorageAllocationStrategy <|.. SuitableSizeStrategy : implements
-  StorageAllocationStrategy <|.. FirstAvailableStrategy : implements
+        subgraph Creational ["Creational Patterns"]
+            P1["🏭 Factory Method<br/>NotificationChannelFactory<br/>build_channel('in_app')"]
+            P2["🏛️ Singleton<br/>container.py & get_settings()<br/>Thread-safe App Container"]
+        end
 
-  %% Pattern 2: Observer Pattern
-  class EventBus {
-    <<Behavioral: Observer (Publisher)>>
-    -dict handlers
-    +subscribe(event_type, handler)
-    +publish(event)
-  }
-  class NotificationDispatcher {
-    <<Behavioral: Observer (Subscriber)>>
-    +handle(PackageStatusChanged event)
-  }
-  EventBus --> NotificationDispatcher : PackageStatusChanged
+        subgraph Structural ["Structural Patterns"]
+            P3["🎨 Decorator / Interceptor<br/>FastAPI Middleware<br/>RequestID & RFC 7807 AppError"]
+        end
 
-  %% Pattern 3: State Pattern
-  class PackageStateMachine {
-    <<Behavioral: State Pattern>>
-    -list~Transition~ transitions
-    +check(src, tgt, role, ctx) Transition
-    +available(src, role, ctx) list
-  }
-  class Transition {
-    +PackageStatus source
-    +PackageStatus target
-    +frozenset roles
-    +Guard? guard
-  }
-  PackageStateMachine *-- Transition : table-driven edges
-
-  %% Pattern 4: Factory Pattern
-  class NotificationChannelFactory {
-    <<Creational: Factory Method / Registry>>
-    -dict _registry
-    +register(name, builder)
-    +create(name) NotificationChannel
-    +create_many(names) list
-  }
-  class NotificationChannel {
-    <<interface>>
-    +send(recipient, title, msg)*
-  }
-  class InAppChannel
-  class ConsoleEmailChannel
-  NotificationChannelFactory ..> NotificationChannel : instantiates
-  NotificationChannel <|.. InAppChannel
-  NotificationChannel <|.. ConsoleEmailChannel
-
-  %% Pattern 5: Unit of Work & Repository
-  class UnitOfWork {
-    <<Architectural: Unit of Work>>
-    +packages: MongoPackageRepo
-    +storage: MongoStorageRepo
-    +tokens: MongoPickupTokenRepo
-    +record_event(DomainEvent)
-    +commit()
-    +rollback()
-  }
-
-  %% Pattern 6: Singleton Pattern
-  class Container {
-    <<Creational: Singleton Composition Root>>
-    +container$ Container
-    +settings: Settings
-    +event_bus: EventBus
-    +dispatcher: NotificationDispatcher
-    +uow() UnitOfWork
-  }
-
-  %% Pattern 7: Decorator / Middleware Pattern
-  class HTTPMiddleware {
-    <<Structural: Decorator / Chain of Responsibility>>
-    +CORSMiddleware
-    +RequestIDMiddleware
-    +SlidingWindowRateLimiter
-  }
-
-  Container --> EventBus : owns singleton
-  Container --> NotificationChannelFactory : uses factory
-  Container --> UnitOfWork : constructs per request
-  UnitOfWork --> EventBus : triggers on commit
+        subgraph Behavioral ["Behavioral & Architectural Patterns"]
+            P4["🎯 Strategy Pattern<br/>StorageAllocationStrategy<br/>SuitableSize vs FirstAvailable"]
+            P5["📢 Observer Pattern<br/>EventBus -> PackageStatusChanged<br/>Decoupled Notification Dispatch"]
+            P6["🔄 State Pattern<br/>PackageStateMachine<br/>12 statuses, Transition Table, Guards"]
+            P7["💼 Unit of Work & Repository<br/>MongoUnitOfWork + PyMongo Repos<br/>Cross-collection transaction boundary"]
+        end
+    end

@@ -1,62 +1,49 @@
-flowchart TB
-  %% Actors
-  subgraph Actors["System Actors"]
-    L["👤 Learner<br/>(Student/Recipient)"]
-    S["👮 Security Staff<br/>(Gate No. 2 Officer)"]
-    A["⚙️ Operations Admin<br/>(Campus Logistics Manager)"]
-    SYS["⏱️ System Clock / Dispatcher<br/>(Background Event Bus)"]
-  end
+flowchart LR
+    %% Actors
+    Learner["🧑‍🎓 Learner<br/>(Student Recipient)"]
+    Staff["👮 Security Staff<br/>(Gate No. 2 Officer)"]
+    Admin["👨‍💼 Ops Admin<br/>(Logistics Supervisor)"]
 
-  %% System Boundary
-  subgraph CDMS["Campus Delivery Management System (CDMS) Boundary"]
-    subgraph AuthArea["Authentication & Profile"]
-      UC1(["UC-01: Sign In / Sign Out (JWT, RBAC)"])
-      UC_ME(["UC-02: View My Profile / Role"])
+    subgraph CDMS ["📦 System Boundary: Campus Delivery Platform"]
+        direction TB
+        subgraph LearnerUC ["Learner Use Cases"]
+            UC1(["Track Own Packages"])
+            UC2(["View In-App Notifications"])
+            UC3(["Generate 6-Digit Pickup Code"])
+            UC4(["View Handover History"])
+        end
+
+        subgraph StaffUC ["Security Staff Use Cases"]
+            UC5(["Scan & Ingest Package"])
+            UC6(["Triage & Match Student"])
+            UC7(["Assign Storage Shelf"])
+            UC8(["Verify Code & Handover"])
+        end
+
+        subgraph AdminUC ["Operations Admin Use Cases"]
+            UC9(["Monitor Live Dashboard"])
+            UC10(["Manage Storage Shelves"])
+            UC11(["Resolve Disputes / Incidents"])
+            UC12(["Inspect Security Audit Trail"])
+        end
     end
 
-    subgraph LearnerArea["Learner Operations"]
-      UC2(["UC-03: View Own Packages & Shelf Status"])
-      UC3(["UC-04: View & Mark In-App Notifications"])
-      UC4(["UC-05: Request 6-Digit Pickup Token"])
-      UC5(["UC-06: View Collection History"])
-      UC6(["UC-07: Report Package Issue / Incident"])
-    end
+    %% Actor Relationships
+    Learner --> UC1
+    Learner --> UC2
+    Learner --> UC3
+    Learner --> UC4
 
-    subgraph SecurityArea["Gate No. 2 Intake & Handover"]
-      UC7(["UC-08: Register Incoming Package"])
-      UC8(["UC-09: Search Active Learner Directory"])
-      UC9(["UC-10: Identify Unknown Package Recipient"])
-      UC10(["UC-11: Assign / Re-assign Shelf Storage"])
-      UC11(["UC-12: Mark Package Ready for Pickup"])
-      UC12(["UC-13: Verify Pickup Code & ID Match"])
-      UC13(["UC-14: Complete Handover (Atomic Release)"])
-      UC14(["UC-15: Record Incident (Damage / Hold)"])
-      UC15(["UC-16: Return Package to Courier"])
-    end
+    Staff --> UC5
+    Staff --> UC6
+    Staff --> UC7
+    Staff --> UC8
 
-    subgraph AdminArea["Operations & Administration"]
-      UC16(["UC-17: View Live Dashboard & Metrics"])
-      UC17(["UC-18: Search, Filter & Export Packages"])
-      UC18(["UC-19: Review Overdue / Unidentified Queues"])
-      UC19(["UC-20: Manage Storage Locations & Capacity"])
-      UC20(["UC-21: Manage User Accounts & Permissions"])
-      UC21(["UC-22: Review & Resolve Incidents"])
-      UC22(["UC-23: Mark Package Lost / Escalated"])
-      UC23(["UC-24: Inspect Tamper-Evident Audit Logs"])
-      UC24(["UC-25: Retry Failed Notifications"])
-      UC25(["UC-26: Generate Daily Received vs Collected Report"])
-    end
-  end
+    Admin --> UC9
+    Admin --> UC10
+    Admin --> UC11
+    Admin --> UC12
 
-  %% Actor Connections
-  L --> UC1 & UC_ME & UC2 & UC3 & UC4 & UC5 & UC6
-  S --> UC1 & UC_ME & UC7 & UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14 & UC15 & UC17
-  A --> UC1 & UC_ME & UC16 & UC17 & UC18 & UC19 & UC20 & UC21 & UC22 & UC23 & UC24 & UC25 & UC10 & UC9
-
-  %% Includes and Extends
-  UC13 -. "<<include>>" .-> UC12
-  UC7 -. "<<include>>" .-> UC8
-  UC9 -. "<<include>>" .-> UC8
-  UC7 -. "<<extend>>" .-> UC14
-  UC11 -. "<<trigger>>" .-> SYS
-  UC13 -. "<<trigger>>" .-> SYS
+    %% Includes
+    UC5 -.->|<<include>>| UC6
+    UC8 -.->|<<include>>| UC3

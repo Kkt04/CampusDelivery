@@ -1,29 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%">
   <defs>
     <style>
-    .bg { fill: #f8fafc; }
-    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
-    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
-    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
-    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
-    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
-    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
-    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
-    .sep { stroke: #e2e8f0; stroke-width: 1; }
-    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
-    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
-    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
-    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
-    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
-    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
-    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
-    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
-    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
-    .step-badge { fill: #2563eb; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
+    .subtitle { font-size: 13px; font-weight: 400; fill: #64748b; }
+    .card { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; rx: 8; }
+    .card-header { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1.5; }
+    .header-text { font-size: 14px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
+    .line { stroke: #334155; stroke-width: 2; fill: none; }
+    .line-blue { stroke: #2563eb; stroke-width: 2; fill: none; }
+    .line-green { stroke: #16a34a; stroke-width: 2; fill: none; }
+    .line-red { stroke: #dc2626; stroke-width: 2; fill: none; }
+    .line-dash { stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 5,4; fill: none; }
+    .badge { rx: 12; stroke-width: 1.2; }
+    .badge-text { font-size: 11px; font-weight: 600; text-anchor: middle; }
 </style>
     
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
     </marker>
     <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
@@ -39,109 +34,85 @@
     </marker>
 
   </defs>
-  <rect width="1200" height="800" class="bg" />
-
-  <text x="40" y="35" class="title">04. Sequence Diagram - Package Intake &amp; Registration Workflow</text>
-  <text x="40" y="55" class="subtitle">Gate No. 2 physical intake: duplicate detection, triage (Verified/Unidentified/Damaged), and atomic commit</text>
-
-  <!-- Participants -->
-  <g transform="translate(50, 80)">
-    <rect width="120" height="40" class="actor-box" />
-    <text x="60" y="24" class="c-name" font-size="12">👮 Security Staff</text>
-    <line x1="60" y1="40" x2="60" y2="720" class="life-line" />
+  <!-- Pure White Background -->
+  <rect width="1200" height="680" fill="#ffffff" />
+  
+  <!-- Header Title -->
+  <text x="50" y="45" class="title">04. Sequence Diagram - Package Intake &amp; Triage</text>
+  <text x="50" y="70" class="subtitle">End-to-end flow from Gate No. 2 barcode scan to learner identification and event publishing</text>
+  
+  <!-- Diagram Content -->
+  
+  <!-- Lifelines -->
+  <!-- 1. Security Staff -->
+  <g transform="translate(120, 110)">
+    <rect width="140" height="36" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.8" />
+    <text x="70" y="22" font-size="12" font-weight="700" fill="#b45309" text-anchor="middle">Security Staff</text>
+    <line x1="70" y1="36" x2="70" y2="580" class="line-dash" />
   </g>
-  <g transform="translate(240, 80)">
-    <rect width="140" height="40" class="part-box" />
-    <text x="70" y="24" class="c-name" font-size="12">FastAPI Route</text>
-    <line x1="70" y1="40" x2="70" y2="720" class="life-line" />
+  <!-- 2. PackagesRouter -->
+  <g transform="translate(400, 110)">
+    <rect width="140" height="36" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8" />
+    <text x="70" y="22" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">PackagesRouter</text>
+    <line x1="70" y1="36" x2="70" y2="580" class="line-dash" />
   </g>
-  <g transform="translate(450, 80)">
-    <rect width="160" height="40" class="part-box" />
-    <text x="80" y="24" class="c-name" font-size="12">PackageIntakeService</text>
-    <line x1="80" y1="40" x2="80" y2="720" class="life-line" />
+  <!-- 3. IntakeService -->
+  <g transform="translate(680, 110)">
+    <rect width="150" height="36" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8" />
+    <text x="75" y="22" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle">PackageIntakeService</text>
+    <line x1="75" y1="36" x2="75" y2="580" class="line-dash" />
   </g>
-  <g transform="translate(680, 80)">
-    <rect width="140" height="40" class="part-box" />
-    <text x="70" y="24" class="c-name" font-size="12">MongoUnitOfWork</text>
-    <line x1="70" y1="40" x2="70" y2="720" class="life-line" />
-  </g>
-  <g transform="translate(890, 80)">
-    <rect width="130" height="40" class="part-box" />
-    <text x="65" y="24" class="c-name" font-size="12">MongoDB</text>
-    <line x1="65" y1="40" x2="65" y2="720" class="life-line" />
-  </g>
-  <g transform="translate(1060, 80)">
-    <rect width="110" height="40" class="part-box" />
-    <text x="55" y="24" class="c-name" font-size="12">EventBus</text>
-    <line x1="55" y1="40" x2="55" y2="720" class="life-line" />
+  <!-- 4. MongoDB -->
+  <g transform="translate(980, 110)">
+    <rect width="140" height="36" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8" />
+    <text x="70" y="22" font-size="12" font-weight="700" fill="#c2410c" text-anchor="middle">MongoDB (PyMongo)</text>
+    <line x1="70" y1="36" x2="70" y2="580" class="line-dash" />
   </g>
 
-  <!-- Step 1 -->
-  <line x1="110" y1="150" x2="310" y2="150" class="msg-line" />
-  <circle cx="210" cy="140" r="10" fill="#2563eb" />
-  <text x="210" y="140" class="step-badge">1</text>
-  <text x="210" y="130" class="msg-text" text-anchor="middle">POST /api/v1/packages {courier, tracking_id, recipient_id, size, condition}</text>
+  <!-- Step 1: POST /intake -->
+  <line x1="190" y1="180" x2="470" y2="180" class="line" marker-end="url(#arrow)" />
+  <rect x="220" y="162" width="220" height="18" fill="#ffffff" />
+  <text x="330" y="175" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">1. POST /packages/intake (barcode, learner)</text>
 
-  <!-- Step 2 -->
-  <line x1="310" y1="180" x2="530" y2="180" class="msg-line" />
-  <circle cx="420" cy="170" r="10" fill="#2563eb" />
-  <text x="420" y="170" class="step-badge">2</text>
-  <text x="420" y="165" class="msg-text" text-anchor="middle">register(data, staff, idempotency_key)</text>
+  <!-- Step 2: Validate &amp; Dispatch -->
+  <line x1="470" y1="220" x2="755" y2="220" class="line" marker-end="url(#arrow)" />
+  <rect x="500" y="202" width="220" height="18" fill="#ffffff" />
+  <text x="610" y="215" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">2. register(dto, staff_user)</text>
 
-  <!-- Step 3: Duplicate Check -->
-  <line x1="530" y1="210" x2="750" y2="210" class="msg-line" />
-  <text x="640" y="200" class="msg-text" text-anchor="middle">packages.find_by_tracking_id(norm_id)</text>
-  <line x1="750" y1="230" x2="955" y2="230" class="msg-line" />
-  <text x="850" y="222" class="msg-text" text-anchor="middle">find_one({tracking_id})</text>
+  <!-- Step 3: Check duplicate tracking -->
+  <line x1="755" y1="260" x2="1050" y2="260" class="line" marker-end="url(#arrow)" />
+  <rect x="800" y="242" width="200" height="18" fill="#ffffff" />
+  <text x="900" y="255" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">3. find_one(tracking_id)</text>
 
-  <!-- Duplicate Alt Box -->
-  <rect x="180" y="250" width="850" height="110" fill="#fff1f2" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4,4" rx="4" />
-  <text x="200" y="270" font-family="sans-serif" font-weight="700" font-size="11" fill="#e11d48">[ALT: Duplicate Tracking ID Exists]</text>
-  <line x1="530" y1="290" x2="750" y2="290" class="msg-line" stroke="#e11d48" />
-  <text x="640" y="282" class="msg-text" fill="#e11d48" text-anchor="middle">audit.add("package.duplicate_rejected", details) &amp; commit()</text>
-  <line x1="530" y1="330" x2="310" y2="330" class="ret-line" stroke="#e11d48" />
-  <text x="420" y="322" class="ret-text" fill="#e11d48" text-anchor="middle">Raise DuplicateTrackingIdError(existing_code)</text>
-  <line x1="310" y1="350" x2="110" y2="350" class="ret-line" stroke="#e11d48" />
-  <text x="210" y="345" class="ret-text" fill="#e11d48" text-anchor="middle">409 Conflict: DUPLICATE_TRACKING_ID</text>
+  <!-- Step 4: Return null (no duplicate) -->
+  <line x1="1050" y1="300" x2="755" y2="300" class="line-dash" marker-end="url(#arrow-gray)" />
+  <rect x="830" y="285" width="140" height="16" fill="#ffffff" />
+  <text x="900" y="297" font-size="10.5" fill="#64748b" text-anchor="middle">null (unique confirmed)</text>
 
-  <!-- Step 4: Happy Path Triage -->
-  <text x="200" y="380" font-family="sans-serif" font-weight="700" font-size="11" fill="#047857">[ALT: Unique Tracking ID (Intake Continues)]</text>
-  <line x1="530" y1="400" x2="750" y2="400" class="msg-line" />
-  <circle cx="640" cy="390" r="10" fill="#2563eb" />
-  <text x="640" y="390" class="step-badge">3</text>
-  <text x="640" y="385" class="msg-text" text-anchor="middle">users.get_by_institutional_id(inst_id)</text>
+  <!-- Step 5: Triage Recipient -->
+  <path d="M 755 330 C 810 330, 810 355, 755 355" class="line" marker-end="url(#arrow)" />
+  <rect x="765" y="335" width="180" height="16" fill="#ffffff" />
+  <text x="850" y="347" font-size="11" font-weight="600" fill="#059669">4. Match student -> SORTED</text>
 
-  <!-- Note: Condition & Recipient rules -->
-  <rect x="460" y="430" width="300" height="60" class="note-box" />
-  <text x="470" y="448" class="note-text">Status Decision Logic:</text>
-  <text x="470" y="463" class="note-text">• Recipient not found -&gt; UNIDENTIFIED + Incident</text>
-  <text x="470" y="478" class="note-text">• Condition DAMAGED -&gt; DAMAGED + Incident</text>
+  <!-- Step 6: Atomic Insert Package -->
+  <line x1="755" y1="390" x2="1050" y2="390" class="line" marker-end="url(#arrow)" />
+  <rect x="790" y="372" width="220" height="18" fill="#ffffff" />
+  <text x="900" y="385" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">5. insert_one(package, status=SORTED)</text>
 
-  <!-- Step 5: Save & Commit -->
-  <line x1="530" y1="510" x2="750" y2="510" class="msg-line" />
-  <circle cx="640" cy="500" r="10" fill="#2563eb" />
-  <text x="640" y="500" class="step-badge">4</text>
-  <text x="640" y="495" class="msg-text" text-anchor="middle">packages.create(doc), history.add(), audit.add()</text>
-  <line x1="750" y1="530" x2="955" y2="530" class="msg-line" />
-  <text x="850" y="522" class="msg-text" text-anchor="middle">insert_one(package, history, audit)</text>
+  <!-- Step 7: DB Success -->
+  <line x1="1050" y1="430" x2="755" y2="430" class="line-dash" marker-end="url(#arrow-gray)" />
+  <rect x="850" y="415" width="100" height="16" fill="#ffffff" />
+  <text x="900" y="427" font-size="10.5" fill="#64748b" text-anchor="middle">{id: 1042, ok: 1}</text>
 
-  <line x1="530" y1="560" x2="750" y2="560" class="msg-line" />
-  <circle cx="640" cy="550" r="10" fill="#2563eb" />
-  <text x="640" y="550" class="step-badge">5</text>
-  <text x="640" y="545" class="msg-text" text-anchor="middle">commit()</text>
+  <!-- Step 8: Publish Event -->
+  <path d="M 755 460 C 810 460, 810 485, 755 485" class="line-blue" marker-end="url(#arrow-blue)" />
+  <rect x="765" y="465" width="220" height="16" fill="#ffffff" />
+  <text x="870" y="477" font-size="11" font-weight="600" fill="#2563eb">6. EventBus.publish(PackageRegistered)</text>
 
-  <!-- Step 6: Event Bus Publication -->
-  <line x1="750" y1="590" x2="1115" y2="590" class="msg-line" stroke="#7c3aed" />
-  <circle cx="930" cy="580" r="10" fill="#7c3aed" />
-  <text x="930" y="580" class="step-badge">6</text>
-  <text x="930" y="575" class="msg-text" fill="#7c3aed" text-anchor="middle">publish(PackageStatusChanged: VERIFIED)</text>
-
-  <!-- Return 201 -->
-  <line x1="530" y1="630" x2="310" y2="630" class="ret-line" stroke="#16a34a" />
-  <text x="420" y="622" class="ret-text" fill="#16a34a" text-anchor="middle">Return package entity with internal_code</text>
-  <line x1="310" y1="660" x2="110" y2="660" class="ret-line" stroke="#16a34a" />
-  <circle cx="210" cy="650" r="10" fill="#16a34a" />
-  <text x="210" y="650" class="step-badge">7</text>
-  <text x="210" y="645" class="ret-text" fill="#16a34a" text-anchor="middle">201 Created {internal_code: "PKG-261024-ABCDE", status: "VERIFIED"}</text>
+  <!-- Step 9: Return HTTP 201 Created -->
+  <line x1="755" y1="520" x2="470" y2="520" class="line-dash" marker-end="url(#arrow-gray)" />
+  <line x1="470" y1="530" x2="190" y2="530" class="line-green" marker-end="url(#arrow-green)" />
+  <rect x="230" y="518" width="200" height="18" fill="#ffffff" />
+  <text x="330" y="531" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">7. 201 Created (internal_code: "PKG-042")</text>
 
 </svg>

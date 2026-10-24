@@ -1,145 +1,64 @@
 classDiagram
-  direction TB
+    direction TB
+    namespace PresentationLayer {
+        class PackagesRouter {
+            +intake(dto)
+            +assign_storage(id)
+        }
+        class PickupsRouter {
+            +request_pickup(id)
+            +verify_handover(dto)
+        }
+    }
 
-  class FastAPIRoutes {
-    <<layer: Presentation / API>>
-    +auth_router
-    +packages_router
-    +pickups_router
-    +storage_router
-    +users_router
-    +incidents_router
-    +reports_router
-  }
+    namespace ApplicationLayer {
+        class PackageIntakeService {
+            +register(dto)
+            +triage_recipient(id)
+        }
+        class StorageAllocationService {
+            -StorageAllocationStrategy strategy
+            +allocate_storage(pkg_id)
+        }
+        class PickupService {
+            +generate_pickup_code(pkg_id)
+            +verify_and_handover(code, staff)
+        }
+    }
 
-  class Container {
-    <<composition root>>
-    +Settings settings
-    +EventBus event_bus
-    +NotificationDispatcher dispatcher
-    +StorageAllocationStrategy allocation_strategy
-    +SlidingWindowRateLimiter login_limiter
-    +uow() UnitOfWork
-  }
+    namespace DomainLayer {
+        class IUnitOfWork {
+            <<protocol>>
+            +commit()
+            +rollback()
+        }
+        class StorageAllocationStrategy {
+            <<protocol>>
+            +rank(candidates, size) list
+        }
+        class PackageStateMachine {
+            <<pure domain>>
+            +check(curr, target, role, pkg)
+        }
+    }
 
-  class UnitOfWork {
-    <<pattern: Unit of Work>>
-    +Database db
-    +MongoPackageRepository packages
-    +MongoStorageRepository storage
-    +MongoPickupTokenRepository tokens
-    +MongoPickupRecordRepository pickups
-    +MongoUserRepository users
-    +MongoIncidentRepository incidents
-    +MongoNotificationRepository notifications
-    +MongoAuditRepository audit
-    +MongoIdempotencyRepository idempotency
-    +record_event(DomainEvent e)
-    +commit()
-    +rollback()
-  }
+    namespace InfrastructureLayer {
+        class MongoUnitOfWork {
+            +commit()
+            +rollback()
+        }
+        class SuitableSizeStrategy {
+            +rank(candidates, size) list
+        }
+    }
 
-  class PackageIntakeService {
-    <<use case service>>
-    +register(PackageCreateIn data, User staff, str? idem_key) Package
-    +identify_recipient(int pkg_id, str inst_id, User staff) Package
-  }
+    PackagesRouter --> PackageIntakeService
+    PackagesRouter --> StorageAllocationService
+    PickupsRouter --> PickupService
 
-  class StorageAllocationService {
-    <<use case service>>
-    -StorageAllocationStrategy _strategy
-    +assign(int pkg_id, User staff, int? location_id, bool mark_ready) Package
-    +auto_allocate(Package pkg) StorageLocation
-  }
+    PackageIntakeService --> IUnitOfWork
+    StorageAllocationService --> StorageAllocationStrategy
+    PickupService --> PackageStateMachine
 
-  class PickupService {
-    <<use case service>>
-    +request_pickup(int pkg_id, User learner) PickupTokenOut
-    +verify(str pkg_code, str learner_id, str code) TokenState
-    +complete(str pkg_code, str learner_id, str code, User staff, str? idem) PickupRecord
-  }
-
-  class PackageTransitioner {
-    <<domain service>>
-    -PackageStateMachine _sm
-    +apply(Package pkg, PackageStatus target, User actor, str? reason) Package
-  }
-
-  class StorageAllocationStrategy {
-    <<interface / protocol>>
-    +str name*
-    +rank(Sequence~StorageCandidate~ cands, PackageSize size)* list~StorageCandidate~
-  }
-
-  class FirstAvailableStrategy {
-    +str name = "first_available"
-    +rank(Sequence~StorageCandidate~ cands, PackageSize size) list~StorageCandidate~
-  }
-
-  class SuitableSizeStrategy {
-    +str name = "suitable_size"
-    +rank(Sequence~StorageCandidate~ cands, PackageSize size) list~StorageCandidate~
-  }
-
-  class NotificationChannel {
-    <<interface / protocol>>
-    +NotificationChannelType channel_type*
-    +send(NotificationRecipient recipient, str title, str msg)* void
-  }
-
-  class InAppChannel {
-    +channel_type = IN_APP
-    +send(recipient, title, msg) void
-  }
-
-  class ConsoleEmailChannel {
-    +channel_type = CONSOLE_EMAIL
-    +send(recipient, title, msg) void
-  }
-
-  class NotificationDispatcher {
-    <<subscriber / observer>>
-    -list~NotificationChannel~ _channels
-    +handle(PackageStatusChanged event) void
-    +retry_failed(int limit) int
-  }
-
-  class EventBus {
-    <<observer pattern>>
-    -dict handlers
-    +subscribe(type, handler) void
-    +publish(DomainEvent event) void
-  }
-
-  class PackageStateMachine {
-    <<state pattern>>
-    -list~Transition~ _transitions
-    +check(PackageStatus src, PackageStatus tgt, Role role, PackageContext ctx) Transition
-    +available(PackageStatus src, Role role, PackageContext ctx) list~Transition~
-  }
-
-  FastAPIRoutes --> Container : dependency injection
-  Container --> UnitOfWork : creates per request
-  Container --> StorageAllocationStrategy : injects strategy
-  Container --> NotificationDispatcher : wires subscribers
-  Container --> EventBus : holds singleton bus
-
-  PackageIntakeService --> UnitOfWork : coordinates repositories
-  PackageIntakeService --> PackageTransitioner : delegates transitions
-  StorageAllocationService --> UnitOfWork : coordinates storage
-  StorageAllocationService --> StorageAllocationStrategy : ranks candidates
-  StorageAllocationService --> PackageTransitioner : sets STORED / READY
-  PickupService --> UnitOfWork : checks tokens & collects
-  PickupService --> PackageTransitioner : sets COLLECTED
-
-  PackageTransitioner --> PackageStateMachine : validates transition & guards
-  PackageTransitioner --> UnitOfWork : records status history & audit
-
-  UnitOfWork --> EventBus : publishes events on commit
-  EventBus --> NotificationDispatcher : notifies on PackageStatusChanged
-  NotificationDispatcher --> NotificationChannel : dispatches to channels
-
-  StorageAllocationStrategy <|.. FirstAvailableStrategy : implements
-  StorageAllocationStrategy <|.. SuitableSizeStrategy : implements
-  NotificationChannel <|.. InAppChannel : implements
-  NotificationChannel <|.. ConsoleEmailChannel : implements
+    IUnitOfWork <|.. MongoUnitOfWork
+    StorageAllocationStrategy <|.. SuitableSizeStrategy

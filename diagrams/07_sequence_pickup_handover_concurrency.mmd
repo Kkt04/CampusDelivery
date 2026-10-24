@@ -1,43 +1,25 @@
 sequenceDiagram
-  autonumber
-  actor GuardA as 👮 Security Staff A
-  actor GuardB as 👮 Security Staff B (Concurrent Race)
-  participant Route as FastAPI Route<br/>(POST /pickups/complete)
-  participant Service as PickupService
-  participant UoW as MongoUnitOfWork
-  participant TokenRepo as MongoPickupTokenRepository
-  participant StoreRepo as MongoStorageRepository
-  participant PkgRepo as MongoPackageRepository
-  participant Bus as EventBus
+    autonumber
+    actor GuardA as Security Guard A
+    actor GuardB as Security Guard B (Concurrent Racer)
+    participant Service as PickupService
+    participant DB as MongoDB (Atomic Engine)
 
-  Note over GuardA, GuardB: Both staff attempt to hand over the SAME package simultaneously with the valid code
-  par Concurrent Handover Request
-    GuardA->>Route: POST /pickups/complete {pkg_code, learner_id: "LRN-1001", code: "482913"}
-    Route->>Service: complete(pkg_code, learner_id, code, GuardA)
-  and
-    GuardB->>Route: POST /pickups/complete {pkg_code, learner_id: "LRN-1001", code: "482913"}
-    Route->>Service: complete(pkg_code, learner_id, code, GuardB)
-  end
+    Note over GuardA, GuardB: Both guards submit the exact same pickup code at Gate No. 2
+    par Concurrent Requests
+        GuardA->>Service: verify_and_handover(code="849201")
+        GuardB->>Service: verify_and_handover(code="849201")
+    end
 
-  Service->>UoW: packages.get_by_internal_code(pkg_code)
-  Service->>TokenRepo: get_latest_token(pkg.id)
-  Service->>Service: Constant-time HMAC comparison (hmac.compare_digest)
+    Note over Service, DB: Atomic CAS Token Invalidation
+    Service->>DB: find_one_and_update({id: 301, used_at: null}, {$set: {used_at: now}})
+    Note over DB: Guard A arrives first -> Matches token
+    DB-->>Service: Token Document (Guard A WINS race)
 
-  critical Guard A executes atomic token consumption
-    Service->>TokenRepo: mark_used(token.id)
-    Note over TokenRepo: find_one_and_update({_id: token.id, used_at: null, revoked_at: null}, {$set: {used_at: now}})
-    TokenRepo-->>Service: SUCCESS (1 document modified)
-    Service->>PkgRepo: compare_and_set_status(pkg.id, expected=PICKUP_REQUESTED, target=COLLECTED)
-    PkgRepo-->>Service: SUCCESS (1 document modified)
-    Service->>StoreRepo: release(pkg.storage_location_id) -> {$inc: {occupied_count: -1}}
-    Service->>UoW: pickup_records.create(package_id, token_id, learner_id, GuardA.id, shelf_code)
-    Service->>UoW: commit()
-    Service->>Bus: publish PackageStatusChanged(COLLECTED)
-    Route-->>GuardA: 201 Created {status: "COLLECTED", collected_at: now}
-  option Guard B arrives milliseconds later
-    Service->>TokenRepo: mark_used(token.id)
-    Note over TokenRepo: find_one_and_update({_id: token.id, used_at: null, revoked_at: null})
-    TokenRepo-->>Service: NONE (Token already used by Guard A!)
-    Service-->>Route: 409 Conflict (PICKUP_CODE_USED / ALREADY_COLLECTED)
-    Route-->>GuardB: 409 Conflict ("Package has already been collected")
-  end
+    Service->>DB: find_one_and_update({id: 301, used_at: null}, {$set: {used_at: now}})
+    Note over DB: Guard B arrives -> used_at is already set!
+    DB-->>Service: null (Guard B FAILS race)
+
+    Service->>DB: insert_one(pickup_records), update(package, status=COLLECTED)
+    Service-->>GuardA: 200 OK (Handover Completed Successfully)
+    Service-->>GuardB: 409 Conflict (Token Already Used / ALREADY_COLLECTED)

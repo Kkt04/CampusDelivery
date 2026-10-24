@@ -1,36 +1,18 @@
 sequenceDiagram
-  autonumber
-  actor Guard as 👮 Security Staff
-  participant Route as FastAPI Route<br/>(POST /packages)
-  participant Intake as PackageIntakeService
-  participant UoW as MongoUnitOfWork
-  participant PkgRepo as MongoPackageRepository
-  participant IncRepo as MongoIncidentRepository
-  participant Trans as PackageTransitioner
-  participant Bus as EventBus
-  participant Notif as NotificationDispatcher
+    autonumber
+    actor Staff as Security Staff (Gate 2)
+    participant Router as PackagesRouter (FastAPI)
+    participant Service as PackageIntakeService
+    participant DB as MongoDB (PyMongo)
 
-  Guard->>Route: POST /api/v1/packages {courier, tracking_id, recipient_id, size, condition}
-  Route->>Route: Validate payload (Pydantic: no future arrival, damage notes if damaged)
-  Route->>Intake: register(data, staff, idempotency_key)
-  Intake->>UoW: packages.find_by_tracking_id(normalised_tracking_id)
-  alt Duplicate Tracking ID Exists
-    Intake->>UoW: audit.add("package.duplicate_rejected", details)
-    Intake->>UoW: commit()
-    Route-->>Guard: 409 Conflict (DUPLICATE_TRACKING_ID, returns existing package code)
-  else Unique Tracking ID
-    Intake->>UoW: users.get_by_institutional_id(recipient_id)
-    alt Learner Not Found & Hint Provided
-      Intake->>Intake: Set status = UNIDENTIFIED, create auto INCIDENT
-    else Damaged On Arrival
-      Intake->>Intake: Set status = DAMAGED, create auto INCIDENT
-    else Recipient Active & Good Condition
-      Intake->>Intake: Set status = VERIFIED
-    end
-    Intake->>PkgRepo: create(package_doc) -> generates internal_code PKG-yymmdd-XXXXX
-    Intake->>Trans: record initial history & audit log
-    Intake->>UoW: commit() (atomic write of package, history, incident, audit)
-    UoW->>Bus: publish PackageStatusChanged (VERIFIED / DAMAGED)
-    Bus->>Notif: handle(event) -> queue in-app notification for learner
-    Route-->>Guard: 201 Created {package details, internal_code, status}
-  end
+    Staff->>Router: POST /packages/intake (courier, tracking_id, recipient)
+    Router->>Service: register(dto, staff_user)
+    Service->>DB: find_one({tracking_id: "AMZN-123"})
+    DB-->>Service: null (unique confirmed)
+    Note over Service: Triage student match -> status = SORTED
+    Service->>DB: insert_one(package document)
+    DB-->>Service: {id: 1042, ok: 1}
+    Service->>Service: EventBus.publish(PackageRegistered)
+    Note over Service: NotificationDispatcher alerts learner
+    Service-->>Router: PackageEntity(internal_code="PKG-042")
+    Router-->>Staff: 201 Created (PKG-042, status=SORTED)
