@@ -26,7 +26,7 @@ flowchart LR
     Container -.wires.-> Bus
   end
 
-  Repos --> DB[("PostgreSQL")]
+  Repos --> DB[("MongoDB 6+ Database")]
   Dispatcher --> DB
 ```
 
@@ -61,46 +61,49 @@ business rules; it asks a service. The service asks the domain (`state_machine.c
 - **Team and timeline.** One student, one deployment, one codebase to debug.
 - **We still keep the benefits of modularity**: clear layers, services per use case, protocols at the seams, and a composition root. Those seams are exactly where a module could be extracted later (section 2.10).
 
-## 2.5 Why PostgreSQL
+## 2.5 Why MongoDB and Document Model Architecture
 
-- Real row-level locks (`SELECT … FOR UPDATE`) and correct transaction isolation, which the handover depends on.
-- Constraints enforced by the database: foreign keys, `UNIQUE`, `CHECK (occupied_count <= capacity)`.
-- Mature, free, widely hosted; excellent support in SQLAlchemy and Alembic.
-- Timezone-aware `timestamptz`, JSON columns for audit details, partial and composite indexes when we need them.
-- A document store would make multi-table atomic updates and referential integrity harder; SQLite lacks concurrent writers and row locks (we only use it for development and tests, and compensate with `BEGIN IMMEDIATE`).
+- **Document flexibility with schema validation**: Package intake data contains rich nested and optional operational metadata (condition notes, recipient hints, incident links, token hashes). MongoDB documents naturally represent these entities while BSON models (`Document` base class in `infrastructure/models.py`) provide typed serialization.
+- **Conditional atomic single-document updates**: Standalone MongoDB provides atomic document-level operations via `find_one_and_update`. Concurrency safety is achieved by placing preconditions directly in the write filter (e.g. `used_at: null`, `occupied_count < capacity`, `status: PICKUP_REQUESTED`).
+- **Compound & Unique indexing**: Strict integrity guarantees via database indexes:
+  - Unique: `users.institutional_id`, `users.email`, `packages.internal_code`, `packages.tracking_id` (partial filter on string), `pickup_records.package_id`, `pickup_records.token_id`, `idempotency_keys(user_id, scope, key)`.
+  - Compound: `packages(status, arrived_at)` for overdue queues; `notifications(user_id, created_at)` for learner inboxes.
+- **Auto-increment Integer IDs**: Managed via an atomic `counters` collection (`app.infrastructure.database.next_id`), ensuring clean REST URLs (`/packages/12`) without exposing raw ObjectIDs.
+- **Operational simplicity**: Zero migration friction; indexes are bootstrapped automatically at application startup (`init_db()`).
 
 ## 2.6 How double pickup is prevented
 
-Four independent layers in `services/pickup.py` and the schema; any one alone would stop the second collection.
+Four independent layers in `services/pickup.py` and the schema guarantee that double collection is structurally impossible:
 
 | Layer | Mechanism | Where |
 |---|---|---|
-| 1. Serialise | `SELECT … FROM packages WHERE internal_code = ? FOR UPDATE`. A second handover for the same package waits until the first commits, then sees status `COLLECTED` and gets `409 ALREADY_COLLECTED`. | `SqlPackageRepository.get_by_code_for_update` |
-| 2. Consume the code once | `UPDATE pickup_tokens SET used_at = now WHERE id = ? AND used_at IS NULL AND revoked_at IS NULL`, and the service requires exactly 1 affected row. | `SqlPickupTokenRepository.mark_used` |
-| 3. Change status only from the expected state | `UPDATE packages SET status = 'COLLECTED' … WHERE id = ? AND status = 'PICKUP_REQUESTED'`, requiring 1 row. | `SqlPackageRepository.compare_and_set_status` via `PackageTransitioner` |
-| 4. Database guarantee | `pickup_records.package_id` and `pickup_records.token_id` are `UNIQUE`. A second insert fails and the transaction rolls back. | migration `0001`, model `PickupRecord` |
+| 1. Idempotency Guard | Replays previously completed handover if the same `Idempotency-Key` is retried. | `MongoIdempotencyRepository.find` |
+| 2. Consume code once | `find_one_and_update({"_id": token_id, "used_at": None, "revoked_at": None}, {"$set": {"used_at": now}})`. Exactly 1 thread can update the document; racing requests return None. | `MongoPickupTokenRepository.mark_used` |
+| 3. Status Compare-and-Set | `find_one_and_update({"_id": pkg_id, "status": "PICKUP_REQUESTED"}, {"$set": {"status": "COLLECTED", "closed_at": now}})`. Requires status to match `PICKUP_REQUESTED`. | `MongoPackageRepository.compare_and_set_status` |
+| 4. Database constraint | Unique index on `pickup_records.package_id` and `pickup_records.token_id`. Any racing duplicate insert is rejected by MongoDB. | `init_db()` unique index |
 
-Verified by `test_concurrent_handover_results_in_exactly_one_collection` (two threads, two staff, same code, on both PostgreSQL and SQLite).
+Verified by `test_concurrent_handover_results_in_exactly_one_collection` (two threads, two staff members, same code).
 
 ## 2.7 How storage capacity is protected against concurrent allocations
 
-A slot is reserved with one atomic statement:
+A slot is reserved with one atomic conditional statement:
 
-```sql
-UPDATE storage_locations
-SET occupied_count = occupied_count + 1
-WHERE id = :id AND is_active AND occupied_count < capacity
+```python
+db["storage_locations"].find_one_and_update(
+    {"_id": location_id, "is_active": True, "occupied_count": {"$lt": capacity}},
+    {"$inc": {"occupied_count": 1}},
+    return_document=ReturnDocument.AFTER,
+)
 ```
 
-If two requests race for the last slot, the database evaluates the `WHERE` condition for each
-update in turn; the second finds `occupied_count = capacity` and updates 0 rows, so the service raises
-`409 STORAGE_FULL` (or, for automatic allocation, tries the next candidate the strategy ranked). A
-`CHECK (occupied_count <= capacity)` constraint makes over-allocation impossible even if code were wrong.
-Releasing a slot (collection, return, lost, or moving shelves) is the mirror `- 1 WHERE occupied_count > 0`.
+If multiple requests race for the last available slot, MongoDB serializes document-level updates:
+1. The first request finds `occupied_count < capacity`, increments the counter, and succeeds.
+2. The second request evaluates the filter, finds `occupied_count == capacity`, modifies 0 documents, and returns `None`.
+3. The service raises `409 STORAGE_FULL` (or for automatic allocation, tries the next candidate ranked by `StorageAllocationStrategy`).
+Releasing a slot upon package handover, return, or shelf relocation executes `{"$inc": {"occupied_count": -1}}` with filter `occupied_count: {"$gt": 0}`.
 
-Invariant: `occupied_count` equals the number of packages whose `storage_location_id` points at the
-location. It is a deliberate denormalisation so that the check-and-reserve is one statement.
-Verified by `test_concurrent_allocation_never_exceeds_capacity` (three threads, capacity 1).
+Invariant: `occupied_count` equals the count of active packages whose `storage_location_id` points to the shelf.
+Verified by `test_concurrent_allocation_never_exceeds_capacity`.
 
 ## 2.8 How duplicate requests are handled
 

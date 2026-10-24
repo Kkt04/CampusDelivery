@@ -1,0 +1,42 @@
+sequenceDiagram
+  autonumber
+  actor Staff as 👮 Security / Admin
+  participant Route as FastAPI Route<br/>(POST /packages/{id}/storage)
+  participant Alloc as StorageAllocationService
+  participant Strat as StorageAllocationStrategy<br/>(SuitableSize / FirstAvailable)
+  participant UoW as MongoUnitOfWork
+  participant StoreRepo as MongoStorageRepository
+  participant Trans as PackageTransitioner
+  participant Bus as EventBus
+
+  Staff->>Route: POST /api/v1/packages/{id}/storage {location_id: null, mark_ready: true}
+  Route->>Alloc: assign(package_id, staff, location_id, mark_ready)
+  Alloc->>UoW: packages.get_by_id(package_id)
+  alt Auto Allocation (location_id is null)
+    Alloc->>StoreRepo: get_candidates() -> returns active locations
+    Alloc->>Strat: rank(candidates, package.size)
+    Strat-->>Alloc: ordered candidates (tightest fit, most free slots)
+    loop Try candidates in order of preference
+      Alloc->>StoreRepo: try_reserve(candidate.id)
+      Note over StoreRepo: find_one_and_update({_id: id, is_active: true, occupied_count: {$lt: capacity}}, {$inc: {occupied_count: 1}})
+      alt Slot Reserved Successfully
+        StoreRepo-->>Alloc: True (Reservation confirmed)
+      else Race condition (shelf became full)
+        StoreRepo-->>Alloc: False (Try next candidate)
+      end
+    end
+  else Manual Allocation (location_id provided)
+    Alloc->>StoreRepo: try_reserve(location_id)
+  end
+
+  Alloc->>Trans: apply(package, STORED, staff)
+  Trans->>Trans: check state machine guard: needs_storage (OK)
+  Trans->>UoW: record PackageStatusHistory & AuditLog
+  opt mark_ready is True
+    Alloc->>Trans: apply(package, READY_FOR_PICKUP, staff)
+    Trans->>Trans: check guard: needs_recipient_and_storage (OK)
+    Trans->>UoW: record history & audit
+  end
+  Alloc->>UoW: commit()
+  UoW->>Bus: publish PackageStatusChanged(READY_FOR_PICKUP)
+  Route-->>Staff: 200 OK {package details, storage_location: "G2-A1", status: "READY_FOR_PICKUP"}

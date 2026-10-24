@@ -157,43 +157,38 @@ Normalisation: each fact is stored once. Two deliberate exceptions, both documen
 
 ## 4.3 Constraints and deletion policy
 
-- All foreign keys are `ON DELETE RESTRICT`. Packages, users and records are never hard-deleted: deactivate users instead (`is_active = false`). This preserves history, pickup proof and audit integrity.
-- Unique: `users.institutional_id`, `users.email`, `packages.internal_code`, `packages.tracking_id` (NULLs allowed, many), `storage_locations.code`, `pickup_records.package_id`, `pickup_records.token_id`, `idempotency_keys(user_id, scope, key)`.
-- Check: `capacity > 0`, `occupied_count >= 0`, `occupied_count <= capacity`.
-- Enumerations are stored as constrained-length `VARCHAR` (SQLAlchemy `Enum(native_enum=False)`) and validated by the application, which keeps migrations portable and adding a status a code-only change.
-- Constraint names follow a naming convention (`uq_…`, `fk_…`, `ck_…`, `ix_…`) so Alembic can alter them later.
+- **No hard deletes**: Packages, users, and audit records are never deleted from MongoDB. Soft deactivation (`is_active = false`) preserves history, pickup proof, and audit integrity.
+- **Unique Indexes (enforced by MongoDB)**:
+  - `users`: `institutional_id`, `email`
+  - `packages`: `internal_code`, `tracking_id` (partial filter where `tracking_id` is a string, allowing multiple null tracking IDs)
+  - `storage_locations`: `code`
+  - `pickup_records`: `package_id`, `token_id`
+  - `idempotency_keys`: `(user_id, scope, key)` compound unique index
+- **Guarded Counters**: `storage_locations.occupied_count` is maintained via conditional updates (`occupied_count < capacity`), mathematically preventing overfilling.
+- **Enumerations**: Domain enums (`PackageStatus`, `Role`, `PackageSize`, `PackageCondition`, `IncidentStatus`) are validated in Pydantic schemas and serialized as string values in BSON documents.
 
-## 4.4 Indexes (frequent searches)
+## 4.4 Indexes (created by `app.infrastructure.database.init_db`)
 
-| Index | Serves |
-|---|---|
-| `uq_packages_tracking_id` | Duplicate detection, search by tracking ID |
-| `ix_packages_recipient_id` | "My packages" for learners |
-| `ix_packages_status`, `ix_packages_status_arrived_at` | Queues by status; overdue query (`status IN (…) AND arrived_at < cutoff`) |
-| `ix_packages_arrived_at` | Date-range filters, daily report |
-| `ix_packages_storage_location_id` | Packages on a shelf |
-| `ix_users_institutional_id`, `ix_users_email` (unique) | Login and learner search |
-| `ix_notifications_user_created` | A learner's inbox, newest first |
-| `ix_audit_logs_created_at`, `ix_audit_logs_entity`, `ix_audit_logs_action`, `ix_audit_logs_actor_id` | Audit filters |
-| `ix_pickup_records_collected_at`, `ix_pickup_records_learner_id` | Daily report, pickup history |
-| `ix_incidents_status`, `ix_incidents_package_id`, `ix_incidents_created_at` | Open-incident queue |
+| Collection | Index Keys | Serves |
+|---|---|---|
+| `packages` | `tracking_id` (Unique, partial) | Duplicate parcel detection at intake |
+| `packages` | `internal_code` (Unique) | Package identification and handover verification |
+| `packages` | `(status, arrived_at)` (Compound) | Status filter queues & overdue query |
+| `packages` | `recipient_id` | "My Packages" query for learner dashboard |
+| `users` | `institutional_id` (Unique), `email` (Unique) | Login authentication and learner search |
+| `pickup_records` | `package_id` (Unique), `token_id` (Unique) | Structural prevention of double collection |
+| `notifications` | `(user_id, created_at)` (Compound) | Learner in-app inbox sorted newest first |
+| `idempotency_keys` | `(user_id, scope, key)` (Compound Unique) | Safe retry for registration and handover |
 
 ## 4.5 Timestamps
 
-Every timestamp column is `TIMESTAMP WITH TIME ZONE`, written through a `UTCDateTime` type
-decorator (`infrastructure/database.py`) that converts values to UTC on write and guarantees
-aware UTC values on read (SQLite drops timezone information, so this keeps both databases consistent).
-The frontend formats them in the viewer's local time.
+Every timestamp is stored as a timezone-aware UTC datetime (`app.core.time.utcnow`, `ensure_utc`). The API formats timestamps in ISO 8601 UTC, and the React frontend formats them in the viewer's local campus timezone.
 
-## 4.6 Transaction boundaries
+## 4.6 Concurrency and Transaction Boundaries
 
-| Use case | One transaction contains |
-|---|---|
-| Package intake | package row, RECEIVED history, auto transition (VERIFIED / UNIDENTIFIED / DAMAGED) + history, automatic incident, audit, idempotency key |
-| Storage allocation | slot reservation, release of previous slot, package location, VERIFIED→STORED and optional →READY transitions + history, audit |
-| Pickup request | status change, revocation of older tokens, new token, audit |
-| Pickup completion | token consumption, status change, slot release, pickup record, history, audit, idempotency key |
-| Failed code verification | failed-attempt counter + audit (committed before the error is returned, so attempts are counted) |
-| Notification dispatch | separate transactions after the business commit (section 2.9) |
+In standalone MongoDB without multi-document distributed transactions, atomic integrity is guaranteed through:
+1. **Atomic single-document writes with preconditions** (`find_one_and_update` with guard criteria).
+2. **Database-level unique indexes** rejecting duplicate retries or duplicate collection.
+3. **Sequential Unit of Work coordinator** (`MongoUnitOfWork`) that records domain events and publishes them only after operations succeed.
 
-The migration is in `backend/alembic/versions/0001_initial_schema.py` and is tested to upgrade and downgrade on a fresh database.
+Index initialization is automated at startup via `app.infrastructure.database.init_db()`. Safe to call idempotently on fresh or existing databases.

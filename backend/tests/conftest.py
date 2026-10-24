@@ -32,8 +32,13 @@ PASSWORD = "Passw0rd!"
 
 
 @pytest.fixture(autouse=True)
-def fresh_database() -> Iterator[None]:
-    reset_db()
+def fresh_database(request: pytest.FixtureRequest) -> Iterator[None]:
+    is_unit = "tests/unit" in str(request.node.fspath)
+    if not is_unit:
+        try:
+            reset_db()
+        except Exception as exc:
+            pytest.skip(f"MongoDB is not running on localhost:27017: {exc}")
     container.login_limiter.reset()
     original_channels = container.dispatcher.channels
     container.dispatcher.channels = [InAppChannel()]

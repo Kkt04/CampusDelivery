@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 750" width="100%" height="100%">
+  <defs>
+    <style>
+    .bg { fill: #f8fafc; }
+    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
+    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
+    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
+    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
+    .sep { stroke: #e2e8f0; stroke-width: 1; }
+    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
+    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
+    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
+    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
+    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
+    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
+    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
+    .card { font-family: sans-serif; font-size: 11px; fill: #475569; font-weight: 600; }
+</style>
+    
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+
+  </defs>
+  <rect width="1350" height="750" class="bg" />
+  
+  <text x="40" y="35" class="title">12. Database Schema Diagram - MongoDB Collections, Keys &amp; Indexes</text>
+  <text x="40" y="55" class="subtitle">Complete document schema: Primary IDs (_id), Foreign Keys, Unique Indexes, Compound Indexes, and Relationships</text>
+
+  <!-- Collection 1: users -->
+  <g transform="translate(40, 80)">
+    <rect width="280" height="230" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 280 0 L 280 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="140" y="20" class="c-name" fill="#1e40af">users</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="65" class="attr">institutional_id: str [UK, IDX]</text>
+    <text x="10" y="82" class="attr">full_name: str</text>
+    <text x="10" y="99" class="attr">email: str [UK, IDX]</text>
+    <text x="10" y="116" class="attr">phone: str? (nullable)</text>
+    <text x="10" y="133" class="attr">role: str (LEARNER|SEC|ADM)</text>
+    <text x="10" y="150" class="attr">password_hash: str (bcrypt)</text>
+    <text x="10" y="167" class="attr">is_active: bool [IDX]</text>
+    <text x="10" y="184" class="attr">created_at, updated_at: datetime</text>
+    <line x1="0" y1="195" x2="280" y2="195" class="sep" />
+    <text x="10" y="215" class="subtitle" font-size="9.5" fill="#2563eb">Indexed: institutional_id, email</text>
+  </g>
+
+  <!-- Collection 2: packages -->
+  <g transform="translate(360, 80)">
+    <rect width="320" height="360" class="box" stroke="#2563eb" stroke-width="2" />
+    <path d="M 0 0 L 320 0 L 320 32 L 0 32 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+    <text x="160" y="21" class="c-name" fill="#1e40af">packages (Core Collection)</text>
+    <text x="10" y="50" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="68" class="attr">internal_code: str [UK, IDX]</text>
+    <text x="10" y="86" class="attr">courier_name: str</text>
+    <text x="10" y="104" class="attr">tracking_id: str? [UK, Partial IDX]</text>
+    <text x="10" y="122" class="attr">recipient_id: int? [FK -&gt; users]</text>
+    <text x="10" y="140" class="attr">recipient_hint: str?</text>
+    <text x="10" y="158" class="attr">size: str (SMALL..OVERSIZED)</text>
+    <text x="10" y="176" class="attr">condition: str (GOOD|DAMAGED)</text>
+    <text x="10" y="194" class="attr">condition_notes: str?</text>
+    <text x="10" y="212" class="attr">status: str (12 state machine states)</text>
+    <text x="10" y="230" class="attr">storage_location_id: int? [FK]</text>
+    <text x="10" y="248" class="attr">arrived_at: datetime [IDX]</text>
+    <text x="10" y="266" class="attr">received_by_id: int [FK -&gt; users]</text>
+    <text x="10" y="284" class="attr">ready_at, closed_at: datetime?</text>
+    <text x="10" y="302" class="attr">notes: str?, version: int</text>
+    <line x1="0" y1="315" x2="320" y2="315" class="sep" />
+    <text x="10" y="335" class="subtitle" font-size="9.5" fill="#2563eb">Compound: (status, arrived_at)</text>
+    <text x="10" y="350" class="subtitle" font-size="9.5" fill="#2563eb">Partial Unique: tracking_id ($type: string)</text>
+  </g>
+
+  <!-- Collection 3: storage_locations -->
+  <g transform="translate(360, 470)">
+    <rect width="320" height="210" class="box" stroke="#059669" />
+    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#d1fae5" stroke="#059669" />
+    <text x="160" y="20" class="c-name" fill="#065f46">storage_locations</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">code: str [UK, IDX] (e.g. G2-A1)</text>
+    <text x="10" y="84" class="attr">description: str?</text>
+    <text x="10" y="102" class="attr">capacity: int (CHECK &gt; 0)</text>
+    <text x="10" y="120" class="attr">occupied_count: int [Atomic counter]</text>
+    <text x="10" y="138" class="attr">max_package_size: str</text>
+    <text x="10" y="156" class="attr">is_active: bool</text>
+    <text x="10" y="174" class="attr">created_at, updated_at: datetime</text>
+    <line x1="0" y1="184" x2="320" y2="184" class="sep" />
+    <text x="10" y="202" class="subtitle" font-size="9.5" fill="#047857">Guarded counter: 0 &lt;= occupied &lt;= capacity</text>
+  </g>
+
+  <!-- Collection 4: pickup_tokens -->
+  <g transform="translate(720, 80)">
+    <rect width="280" height="200" class="box" stroke="#7c3aed" />
+    <path d="M 0 0 L 280 0 L 280 30 L 0 30 Z" fill="#ede9fe" stroke="#7c3aed" />
+    <text x="140" y="20" class="c-name" fill="#5b21b6">pickup_tokens</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">package_id: int [FK, IDX]</text>
+    <text x="10" y="84" class="attr">learner_id: int [FK -&gt; users]</text>
+    <text x="10" y="102" class="attr">code_hash: str (HMAC-SHA256)</text>
+    <text x="10" y="120" class="attr">salt: str</text>
+    <text x="10" y="138" class="attr">expires_at: datetime (30 min)</text>
+    <text x="10" y="156" class="attr">used_at, revoked_at: datetime?</text>
+    <text x="10" y="174" class="attr">failed_attempts: int (limit 5)</text>
+  </g>
+
+  <!-- Collection 5: pickup_records -->
+  <g transform="translate(720, 310)">
+    <rect width="280" height="180" class="box" stroke="#7c3aed" />
+    <path d="M 0 0 L 280 0 L 280 30 L 0 30 Z" fill="#ede9fe" stroke="#7c3aed" />
+    <text x="140" y="20" class="c-name" fill="#5b21b6">pickup_records</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">package_id: int [FK, UK, IDX]</text>
+    <text x="10" y="84" class="attr">token_id: int [FK, UK, IDX]</text>
+    <text x="10" y="102" class="attr">learner_id: int [FK -&gt; users]</text>
+    <text x="10" y="120" class="attr">handed_over_by_id: int [FK]</text>
+    <text x="10" y="138" class="attr">storage_location_code: str (snapshot)</text>
+    <text x="10" y="156" class="attr">collected_at: datetime [IDX]</text>
+    <line x1="0" y1="164" x2="280" y2="164" class="sep" />
+    <text x="10" y="175" class="subtitle" font-size="9" fill="#6d28d9">Double collection impossible via UK(package_id)</text>
+  </g>
+
+  <!-- Collection 6: package_status_history -->
+  <g transform="translate(720, 520)">
+    <rect width="280" height="160" class="box" stroke="#475569" />
+    <path d="M 0 0 L 280 0 L 280 30 L 0 30 Z" fill="#e2e8f0" stroke="#475569" />
+    <text x="140" y="20" class="c-name" fill="#0f172a">package_status_history</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">package_id: int [FK, IDX]</text>
+    <text x="10" y="84" class="attr">from_status: str?</text>
+    <text x="10" y="102" class="attr">to_status: str</text>
+    <text x="10" y="120" class="attr">changed_by_id: int [FK -&gt; users]</text>
+    <text x="10" y="138" class="attr">reason: str?, created_at: datetime</text>
+  </g>
+
+  <!-- Collection 7: notifications -->
+  <g transform="translate(1040, 80)">
+    <rect width="270" height="200" class="box" stroke="#f59e0b" />
+    <path d="M 0 0 L 270 0 L 270 30 L 0 30 Z" fill="#fef3c7" stroke="#f59e0b" />
+    <text x="135" y="20" class="c-name" fill="#b45309">notifications</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">user_id: int [FK, Compound IDX]</text>
+    <text x="10" y="84" class="attr">package_id: int? [FK]</text>
+    <text x="10" y="102" class="attr">channel: str (IN_APP|EMAIL)</text>
+    <text x="10" y="120" class="attr">title, message: str</text>
+    <text x="10" y="138" class="attr">delivery_status: str (PEND|SENT|FAIL)</text>
+    <text x="10" y="156" class="attr">attempts: int, last_error: str?</text>
+    <text x="10" y="174" class="attr">sent_at, read_at, created_at: dt</text>
+    <line x1="0" y1="184" x2="270" y2="184" class="sep" />
+    <text x="10" y="195" class="subtitle" font-size="9" fill="#b45309">Compound: (user_id, created_at)</text>
+  </g>
+
+  <!-- Collection 8: incidents -->
+  <g transform="translate(1040, 310)">
+    <rect width="270" height="180" class="box" stroke="#dc2626" />
+    <path d="M 0 0 L 270 0 L 270 30 L 0 30 Z" fill="#fee2e2" stroke="#dc2626" />
+    <text x="135" y="20" class="c-name" fill="#b91c1c">incidents</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">package_id: int? [FK, IDX]</text>
+    <text x="10" y="84" class="attr">type: str (DAM|UNID|MISS|DISP)</text>
+    <text x="10" y="102" class="attr">status: str [IDX] (OPEN|RESOLVED)</text>
+    <text x="10" y="120" class="attr">description: str</text>
+    <text x="10" y="138" class="attr">reported_by_id: int [FK]</text>
+    <text x="10" y="156" class="attr">resolved_by_id: int?, note: str?</text>
+    <text x="10" y="174" class="attr">created_at, resolved_at: datetime</text>
+  </g>
+
+  <!-- Collection 9: audit_logs -->
+  <g transform="translate(1040, 520)">
+    <rect width="270" height="170" class="box" stroke="#475569" />
+    <path d="M 0 0 L 270 0 L 270 30 L 0 30 Z" fill="#e2e8f0" stroke="#475569" />
+    <text x="135" y="20" class="c-name" fill="#0f172a">audit_logs</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">actor_id: int? [FK, IDX]</text>
+    <text x="10" y="84" class="attr">action: str [IDX] (e.g. pickup.done)</text>
+    <text x="10" y="102" class="attr">entity_type: str, entity_id: str</text>
+    <text x="10" y="120" class="attr">details: object (BSON document)</text>
+    <text x="10" y="138" class="attr">created_at: datetime [IDX]</text>
+    <line x1="0" y1="150" x2="270" y2="150" class="sep" />
+    <text x="10" y="164" class="subtitle" font-size="9" fill="#334155">Immutable tamper-evident record</text>
+  </g>
+
+  <!-- Collection 10: idempotency_keys -->
+  <g transform="translate(40, 340)">
+    <rect width="280" height="160" class="box" stroke="#64748b" />
+    <path d="M 0 0 L 280 0 L 280 30 L 0 30 Z" fill="#f1f5f9" stroke="#64748b" />
+    <text x="140" y="20" class="c-name" fill="#1e293b">idempotency_keys</text>
+    <text x="10" y="48" class="attr" font-weight="700">_id: int [PK]</text>
+    <text x="10" y="66" class="attr">user_id: int [FK, Compound UK]</text>
+    <text x="10" y="84" class="attr">scope: str [Compound UK]</text>
+    <text x="10" y="102" class="attr">key: str [Compound UK]</text>
+    <text x="10" y="120" class="attr">request_hash: str (SHA256)</text>
+    <text x="10" y="138" class="attr">resource_id: int?, created_at: dt</text>
+    <line x1="0" y1="146" x2="280" y2="146" class="sep" />
+    <text x="10" y="156" class="subtitle" font-size="9" fill="#475569">UK: (user_id, scope, key)</text>
+  </g>
+
+  <!-- Connectors -->
+  <line x1="320" y1="150" x2="360" y2="150" class="msg-line" />
+  <text x="325" y="142" class="card">1:N</text>
+
+  <line x1="520" y1="440" x2="520" y2="470" class="msg-line" />
+  <text x="528" y="455" class="card">1:N</text>
+
+  <line x1="680" y1="180" x2="720" y2="180" class="msg-line" />
+  <text x="685" y="172" class="card">1:N</text>
+
+  <line x1="680" y1="360" x2="720" y2="360" class="msg-line" />
+  <text x="685" y="352" class="card">1:1</text>
+
+</svg>

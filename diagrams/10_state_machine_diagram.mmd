@@ -1,0 +1,52 @@
+stateDiagram-v2
+  [*] --> RECEIVED : Security staff registers package
+
+  state "Intake Holds & Triage" as Triage {
+    RECEIVED --> VERIFIED : Active Learner matched (Staff)
+    RECEIVED --> UNIDENTIFIED : No recipient match (Staff)
+    RECEIVED --> DAMAGED : Damaged condition reported (Staff)
+    UNIDENTIFIED --> VERIFIED : Recipient identified (Staff)
+    DAMAGED --> VERIFIED : Hold released (Staff)
+  }
+
+  state "Active Campus Storage" as Storage {
+    VERIFIED --> STORED : Assign shelf location (Staff)
+    UNIDENTIFIED --> STORED : Recipient identified (with shelf)
+    DAMAGED --> STORED : Hold released (with shelf)
+    STORED --> READY_FOR_PICKUP : Mark ready & notify (Staff)
+  }
+
+  state "Pickup Handover Flow" as PickupFlow {
+    READY_FOR_PICKUP --> PICKUP_REQUESTED : Learner requests 6-digit code
+    PICKUP_REQUESTED --> PICKUP_REQUESTED : Re-request code (Revokes previous)
+    PICKUP_REQUESTED --> COLLECTED : Code verified & parcel handed over (Security)
+  }
+
+  state "Exception & Resolution" as Exceptions {
+    VERIFIED --> UNDER_INVESTIGATION : Incident escalated (Staff)
+    STORED --> UNDER_INVESTIGATION : Incident escalated (Staff)
+    READY_FOR_PICKUP --> UNDER_INVESTIGATION : Incident escalated (Staff)
+    PICKUP_REQUESTED --> UNDER_INVESTIGATION : Incident escalated (Staff)
+    UNIDENTIFIED --> UNDER_INVESTIGATION : Incident escalated (Staff)
+    DAMAGED --> UNDER_INVESTIGATION : Incident escalated (Staff)
+
+    UNDER_INVESTIGATION --> VERIFIED : Dispute resolved (Admin)
+    UNDER_INVESTIGATION --> STORED : Dispute resolved (Admin)
+    UNDER_INVESTIGATION --> UNIDENTIFIED : Recipient still unknown (Admin)
+    UNDER_INVESTIGATION --> LOST : Parcel unrecoverable (Admin)
+
+    STORED --> RETURN_REQUESTED : Overdue > 5 days (Admin)
+    READY_FOR_PICKUP --> RETURN_REQUESTED : Overdue > 5 days (Admin)
+    PICKUP_REQUESTED --> RETURN_REQUESTED : Overdue > 5 days (Admin)
+    UNIDENTIFIED --> RETURN_REQUESTED : Unclaimed (Admin)
+    DAMAGED --> RETURN_REQUESTED : Rejected by learner (Staff)
+    UNDER_INVESTIGATION --> RETURN_REQUESTED : Return decided (Admin)
+
+    RETURN_REQUESTED --> RETURNED : Handed back to courier (Staff)
+  }
+
+  state "Terminal States (No Outgoing Transitions)" as Terminal {
+    COLLECTED --> [*]
+    RETURNED --> [*]
+    LOST --> [*]
+  }

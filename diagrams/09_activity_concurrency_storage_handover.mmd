@@ -1,0 +1,24 @@
+flowchart TD
+  subgraph StorageConcurrency["1. Concurrency Control in Storage Allocation"]
+    S_REQ([Incoming Shelf Allocation Request]) --> S_FETCH[Query candidate locations matching package size]
+    S_FETCH --> S_RANK[StorageAllocationStrategy ranks candidate shelves]
+    S_RANK --> S_LOOP{Candidate available?}
+    S_LOOP -- No --> S_ERR[Raise 409 STORAGE_FULL]
+    S_LOOP -- Yes --> S_UPDATE[Execute atomic find_one_and_update:<br/>filter: {_id: cand.id, is_active: true, occupied_count: {$lt: capacity}}<br/>update: {$inc: {occupied_count: 1}}]
+    S_UPDATE --> S_CHECK{Was document modified?}
+    S_CHECK -- No (Lost Race) --> S_NEXT[Try next candidate in ranking] --> S_LOOP
+    S_CHECK -- Yes (Won Race) --> S_ASSIGN[Assign shelf to package & commit] --> S_DONE([Storage Reserved Successfully])
+  end
+
+  subgraph HandoverConcurrency["2. Concurrency Control in Pickup Handover"]
+    H_REQ([Concurrent Handover Submissions from 2 Security Guards]) --> H_IDEM{Idempotency-Key present?}
+    H_IDEM -- Yes & Replayed --> H_REPLAY[Return previously committed PickupRecord with 200 OK]
+    H_IDEM -- New Request --> H_VERIFY[Verify HMAC digest in constant time]
+    H_VERIFY --> H_CRITICAL[Execute atomic token consumption:<br/>filter: {_id: token_id, used_at: null, revoked_at: null}<br/>update: {$set: {used_at: now}}]
+    H_CRITICAL --> H_RACE{Token updated?}
+    H_RACE -- 0 rows (Already consumed) --> H_REJECT[Reject with 409 ALREADY_COLLECTED]
+    H_RACE -- 1 row (First winner) --> H_TRANS[Execute conditional package update:<br/>filter: {_id: pkg_id, status: PICKUP_REQUESTED}<br/>update: {$set: {status: COLLECTED, closed_at: now}}]
+    H_TRANS --> H_REL[Decrement shelf occupancy: {$inc: {occupied_count: -1}}]
+    H_REL --> H_REC[Insert unique PickupRecord: UNIQUE(package_id)]
+    H_REC --> H_COMMIT[Commit Unit of Work & Dispatch Notification] --> H_SUCCESS([Handover Complete])
+  end

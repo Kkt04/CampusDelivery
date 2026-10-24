@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1250 800" width="100%" height="100%">
+  <defs>
+    <style>
+    .bg { fill: #f8fafc; }
+    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
+    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
+    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
+    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
+    .sep { stroke: #e2e8f0; stroke-width: 1; }
+    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
+    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
+    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
+    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
+    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
+    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
+    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
+    .step-badge { fill: #2563eb; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+</style>
+    
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+
+  </defs>
+  <rect width="1250" height="800" class="bg" />
+
+  <text x="40" y="35" class="title">07. Sequence Diagram - Verification, Handover &amp; Double-Collection Concurrency Barrier</text>
+  <text x="40" y="55" class="subtitle">Four-layer defense against double-handover: Idempotency, constant-time compare, atomic token update, status CAS</text>
+
+  <g transform="translate(40, 80)">
+    <rect width="130" height="40" class="actor-box" fill="#fef3c7" stroke="#b45309" />
+    <text x="65" y="24" class="c-name" font-size="11" fill="#b45309">👮 Guard A</text>
+    <line x1="65" y1="40" x2="65" y2="720" class="life-line" />
+  </g>
+  <g transform="translate(190, 80)">
+    <rect width="130" height="40" class="actor-box" fill="#fee2e2" stroke="#dc2626" />
+    <text x="65" y="24" class="c-name" font-size="11" fill="#dc2626">👮 Guard B (Racer)</text>
+    <line x1="65" y1="40" x2="65" y2="720" class="life-line" />
+  </g>
+  <g transform="translate(350, 80)">
+    <rect width="120" height="40" class="part-box" />
+    <text x="60" y="24" class="c-name" font-size="11">FastAPI Route</text>
+    <line x1="60" y1="40" x2="60" y2="720" class="life-line" />
+  </g>
+  <g transform="translate(500, 80)">
+    <rect width="130" height="40" class="part-box" />
+    <text x="65" y="24" class="c-name" font-size="11">PickupService</text>
+    <line x1="65" y1="40" x2="65" y2="720" class="life-line" />
+  </g>
+  <g transform="translate(670, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="11">PickupTokenRepo</text>
+    <line x1="70" y1="40" x2="70" y2="720" class="life-line" />
+  </g>
+  <g transform="translate(840, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="11">PackageRepo</text>
+    <line x1="70" y1="40" x2="70" y2="720" class="life-line" />
+  </g>
+  <g transform="translate(1010, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="11">StorageRepo</text>
+    <line x1="70" y1="40" x2="70" y2="720" class="life-line" />
+  </g>
+
+  <!-- Parallel Request -->
+  <line x1="105" y1="140" x2="410" y2="140" class="msg-line" />
+  <text x="250" y="132" class="msg-text" text-anchor="middle">POST /pickups/complete [Guard A]</text>
+  <line x1="255" y1="160" x2="410" y2="160" class="msg-line" stroke="#dc2626" />
+  <text x="330" y="152" class="msg-text" fill="#dc2626" text-anchor="middle">POST /pickups/complete [Guard B: Same pkg &amp; code]</text>
+
+  <!-- Step 2: Idempotency & Code Verification -->
+  <line x1="410" y1="190" x2="565" y2="190" class="msg-line" />
+  <text x="485" y="182" class="msg-text" text-anchor="middle">complete(pkg_code, learner_id, code)</text>
+
+  <!-- Guard A: Consumes Token -->
+  <rect x="470" y="220" width="720" height="180" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="4" />
+  <text x="490" y="240" font-family="sans-serif" font-weight="700" font-size="11" fill="#15803d">[CRITICAL SECTION: Guard A Wins Atomic Race]</text>
+
+  <line x1="565" y1="260" x2="740" y2="260" class="msg-line" />
+  <text x="650" y="252" class="msg-text" text-anchor="middle">mark_used(token_id) find_one_and_update({used_at: null})</text>
+  <line x1="740" y1="280" x2="565" y2="280" class="ret-line" stroke="#16a34a" />
+  <text x="650" y="272" class="ret-text" fill="#16a34a" text-anchor="middle">SUCCESS (1 doc modified)</text>
+
+  <line x1="565" y1="310" x2="910" y2="310" class="msg-line" />
+  <text x="735" y="302" class="msg-text" text-anchor="middle">compare_and_set_status(id, from=REQUESTED, to=COLLECTED)</text>
+  <line x1="910" y1="330" x2="565" y2="330" class="ret-line" stroke="#16a34a" />
+  <text x="735" y="322" class="ret-text" fill="#16a34a" text-anchor="middle">SUCCESS (1 doc modified)</text>
+
+  <line x1="565" y1="355" x2="1080" y2="355" class="msg-line" />
+  <text x="820" y="347" class="msg-text" text-anchor="middle">release(storage_location_id) [occupied_count - 1]</text>
+  <text x="580" y="385" class="subtitle" font-size="10.5" fill="#047857">Inserts PickupRecord [UNIQUE(package_id)], commits &amp; publishes event</text>
+
+  <!-- Guard A Success Return -->
+  <line x1="565" y1="420" x2="105" y2="420" class="ret-line" stroke="#16a34a" stroke-width="2" />
+  <text x="330" y="412" class="ret-text" fill="#16a34a" font-weight="700" text-anchor="middle">201 Created {status: "COLLECTED", collected_at: now}</text>
+
+  <!-- Guard B: Concurrently Enters -->
+  <rect x="470" y="460" width="720" height="150" fill="#fff1f2" stroke="#f43f5e" stroke-width="1.5" rx="4" />
+  <text x="490" y="480" font-family="sans-serif" font-weight="700" font-size="11" fill="#be123c">[CONCURRENT RACE: Guard B Executes Milliseconds Later]</text>
+
+  <line x1="565" y1="510" x2="740" y2="510" class="msg-line" stroke="#dc2626" />
+  <text x="650" y="502" class="msg-text" fill="#dc2626" text-anchor="middle">mark_used(token_id) find_one_and_update({used_at: null})</text>
+  <line x1="740" y1="535" x2="565" y2="535" class="ret-line" stroke="#dc2626" />
+  <text x="650" y="527" class="ret-text" fill="#dc2626" text-anchor="middle">NONE (0 docs modified: token used_at is already set!)</text>
+
+  <line x1="565" y1="570" x2="565" y2="590" class="msg-line" stroke="#dc2626" />
+  <text x="580" y="585" class="msg-text" fill="#dc2626">Raise AlreadyCollectedError / PickupCodeUsedError</text>
+
+  <!-- Guard B Error Return -->
+  <line x1="565" y1="630" x2="255" y2="630" class="ret-line" stroke="#dc2626" stroke-width="2" />
+  <text x="410" y="622" class="ret-text" fill="#dc2626" font-weight="700" text-anchor="middle">409 Conflict: ALREADY_COLLECTED ("Package already collected")</text>
+
+  <!-- Concurrency Guarantee Box -->
+  <rect x="40" y="670" width="1170" height="65" fill="#f8fafc" stroke="#cbd5e1" rx="4" />
+  <text x="60" y="692" font-family="sans-serif" font-weight="700" font-size="12" fill="#0f172a">Faculty Defense Proof:</text>
+  <text x="60" y="710" font-family="sans-serif" font-size="11" fill="#334155">1. Conditional find_one_and_update ensures exactly one thread can consume a token. 2. Status CAS ensures status moves only from PICKUP_REQUESTED.</text>
+  <text x="60" y="726" font-family="sans-serif" font-size="11" fill="#334155">3. Unique index on pickup_records.package_id makes physical double-handover structurally impossible.</text>
+
+</svg>

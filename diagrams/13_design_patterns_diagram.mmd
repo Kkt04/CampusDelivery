@@ -1,0 +1,96 @@
+classDiagram
+  direction TB
+
+  %% Pattern 1: Strategy Pattern
+  class StorageAllocationStrategy {
+    <<interface / Behavioral: Strategy>>
+    +rank(candidates, size)* list~StorageCandidate~
+  }
+  class SuitableSizeStrategy {
+    +rank(candidates, size) list~StorageCandidate~
+  }
+  class FirstAvailableStrategy {
+    +rank(candidates, size) list~StorageCandidate~
+  }
+  StorageAllocationStrategy <|.. SuitableSizeStrategy : implements
+  StorageAllocationStrategy <|.. FirstAvailableStrategy : implements
+
+  %% Pattern 2: Observer Pattern
+  class EventBus {
+    <<Behavioral: Observer (Publisher)>>
+    -dict handlers
+    +subscribe(event_type, handler)
+    +publish(event)
+  }
+  class NotificationDispatcher {
+    <<Behavioral: Observer (Subscriber)>>
+    +handle(PackageStatusChanged event)
+  }
+  EventBus --> NotificationDispatcher : PackageStatusChanged
+
+  %% Pattern 3: State Pattern
+  class PackageStateMachine {
+    <<Behavioral: State Pattern>>
+    -list~Transition~ transitions
+    +check(src, tgt, role, ctx) Transition
+    +available(src, role, ctx) list
+  }
+  class Transition {
+    +PackageStatus source
+    +PackageStatus target
+    +frozenset roles
+    +Guard? guard
+  }
+  PackageStateMachine *-- Transition : table-driven edges
+
+  %% Pattern 4: Factory Pattern
+  class NotificationChannelFactory {
+    <<Creational: Factory Method / Registry>>
+    -dict _registry
+    +register(name, builder)
+    +create(name) NotificationChannel
+    +create_many(names) list
+  }
+  class NotificationChannel {
+    <<interface>>
+    +send(recipient, title, msg)*
+  }
+  class InAppChannel
+  class ConsoleEmailChannel
+  NotificationChannelFactory ..> NotificationChannel : instantiates
+  NotificationChannel <|.. InAppChannel
+  NotificationChannel <|.. ConsoleEmailChannel
+
+  %% Pattern 5: Unit of Work & Repository
+  class UnitOfWork {
+    <<Architectural: Unit of Work>>
+    +packages: MongoPackageRepo
+    +storage: MongoStorageRepo
+    +tokens: MongoPickupTokenRepo
+    +record_event(DomainEvent)
+    +commit()
+    +rollback()
+  }
+
+  %% Pattern 6: Singleton Pattern
+  class Container {
+    <<Creational: Singleton Composition Root>>
+    +container$ Container
+    +settings: Settings
+    +event_bus: EventBus
+    +dispatcher: NotificationDispatcher
+    +uow() UnitOfWork
+  }
+
+  %% Pattern 7: Decorator / Middleware Pattern
+  class HTTPMiddleware {
+    <<Structural: Decorator / Chain of Responsibility>>
+    +CORSMiddleware
+    +RequestIDMiddleware
+    +SlidingWindowRateLimiter
+  }
+
+  Container --> EventBus : owns singleton
+  Container --> NotificationChannelFactory : uses factory
+  Container --> UnitOfWork : constructs per request
+  UnitOfWork --> EventBus : triggers on commit

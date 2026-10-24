@@ -1,0 +1,258 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1450 1050" width="100%" height="100%">
+  <defs>
+    <style>
+    .bg { fill: #f8fafc; }
+    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
+    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
+    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
+    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
+    .sep { stroke: #e2e8f0; stroke-width: 1; }
+    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
+    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
+    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
+    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
+    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
+    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
+    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
+    .card { font-family: sans-serif; font-size: 11px; fill: #475569; font-weight: 600; }
+</style>
+    
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+
+  </defs>
+  <rect width="1450" height="1050" class="bg" />
+  
+  <text x="40" y="35" class="title">02. Detailed UML Class Diagram - Domain Entities &amp; Document Models</text>
+  <text x="40" y="55" class="subtitle">Complete object model: Base Document mapper, MongoDB entities, Value Objects, exact types, and multiplicities</text>
+
+  <!-- Abstract Base: Document -->
+  <g transform="translate(40, 80)">
+    <rect width="260" height="140" class="box" fill="#ffffff" stroke="#8b5cf6" />
+    <path d="M 0 0 L 260 0 L 260 38 L 0 38 Z" fill="#f5f3ff" stroke="#8b5cf6" />
+    <text x="130" y="16" class="c-stereo">&lt;&lt;abstract base class&gt;&gt;</text>
+    <text x="130" y="32" class="c-name" fill="#6d28d9">Document</text>
+    <text x="10" y="55" class="attr">+int? id</text>
+    <text x="10" y="70" class="attr">+str COLLECTION*</text>
+    <text x="10" y="85" class="attr">+tuple RELATIONS*</text>
+    <line x1="0" y1="95" x2="260" y2="95" class="sep" />
+    <text x="10" y="112" class="method">+to_doc() dict</text>
+    <text x="10" y="127" class="method">+from_doc(doc: dict)$ Document</text>
+  </g>
+
+  <!-- Entity 1: User -->
+  <g transform="translate(40, 260)">
+    <rect width="260" height="195" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 260 0 L 260 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="130" y="20" class="c-name">User</text>
+    <text x="10" y="48" class="attr">+str institutional_id [UK]</text>
+    <text x="10" y="63" class="attr">+str full_name</text>
+    <text x="10" y="78" class="attr">+str email [UK]</text>
+    <text x="10" y="93" class="attr">+str? phone</text>
+    <text x="10" y="108" class="attr">+Role role (LEARNER|SEC|ADM)</text>
+    <text x="10" y="123" class="attr">+str password_hash (bcrypt)</text>
+    <text x="10" y="138" class="attr">+bool is_active</text>
+    <text x="10" y="153" class="attr">+datetime created_at</text>
+    <line x1="0" y1="163" x2="260" y2="163" class="sep" />
+    <text x="10" y="180" class="method">+has_permission(perm: Permission) bool</text>
+  </g>
+
+  <!-- Entity 2: Package (Centerpiece) -->
+  <g transform="translate(360, 160)">
+    <rect width="320" height="340" class="box" stroke="#2563eb" stroke-width="2" />
+    <path d="M 0 0 L 320 0 L 320 32 L 0 32 Z" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+    <text x="160" y="21" class="c-name" font-size="14" fill="#1e40af">Package</text>
+    <text x="10" y="50" class="attr">+str internal_code [UK] (PKG-yymmdd-X)</text>
+    <text x="10" y="65" class="attr">+str courier_name</text>
+    <text x="10" y="80" class="attr">+str? tracking_id [UK]</text>
+    <text x="10" y="95" class="attr">+int? recipient_id [FK -&gt; users]</text>
+    <text x="10" y="110" class="attr">+str? recipient_hint</text>
+    <text x="10" y="125" class="attr">+PackageSize size (S|M|L|XL)</text>
+    <text x="10" y="140" class="attr">+PackageCondition condition (GOOD|DAM)</text>
+    <text x="10" y="155" class="attr">+str? condition_notes</text>
+    <text x="10" y="170" class="attr">+PackageStatus status (12 states)</text>
+    <text x="10" y="185" class="attr">+int? storage_location_id [FK]</text>
+    <text x="10" y="200" class="attr">+datetime arrived_at</text>
+    <text x="10" y="215" class="attr">+int received_by_id [FK -&gt; users]</text>
+    <text x="10" y="230" class="attr">+datetime? ready_at</text>
+    <text x="10" y="245" class="attr">+datetime? closed_at</text>
+    <text x="10" y="260" class="attr">+str? notes</text>
+    <text x="10" y="275" class="attr">+int version (optimistic lock)</text>
+    <line x1="0" y1="285" x2="320" y2="285" class="sep" />
+    <text x="10" y="303" class="method">+is_overdue(deadline_days: int) bool</text>
+    <text x="10" y="320" class="method">+is_ready_for_pickup() bool</text>
+  </g>
+
+  <!-- Entity 3: StorageLocation -->
+  <g transform="translate(360, 540)">
+    <rect width="320" height="190" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="160" y="20" class="c-name">StorageLocation</text>
+    <text x="10" y="48" class="attr">+str code [UK] (e.g. G2-A1)</text>
+    <text x="10" y="63" class="attr">+str? description</text>
+    <text x="10" y="78" class="attr">+int capacity (CHECK &gt; 0)</text>
+    <text x="10" y="93" class="attr">+int occupied_count (0 &lt;= occ &lt;= cap)</text>
+    <text x="10" y="108" class="attr">+PackageSize max_package_size</text>
+    <text x="10" y="123" class="attr">+bool is_active</text>
+    <text x="10" y="138" class="attr">+datetime created_at, updated_at</text>
+    <line x1="0" y1="148" x2="320" y2="148" class="sep" />
+    <text x="10" y="165" class="method">+free_slots() int</text>
+    <text x="10" y="180" class="method">+accepts(size: PackageSize) bool</text>
+  </g>
+
+  <!-- Entity 4: PickupToken -->
+  <g transform="translate(740, 160)">
+    <rect width="290" height="205" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 290 0 L 290 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="145" y="20" class="c-name">PickupToken</text>
+    <text x="10" y="48" class="attr">+int package_id [FK]</text>
+    <text x="10" y="63" class="attr">+int learner_id [FK]</text>
+    <text x="10" y="78" class="attr">+str code_hash (HMAC-SHA256)</text>
+    <text x="10" y="93" class="attr">+str salt</text>
+    <text x="10" y="108" class="attr">+datetime expires_at (30 min window)</text>
+    <text x="10" y="123" class="attr">+datetime? used_at</text>
+    <text x="10" y="138" class="attr">+datetime? revoked_at</text>
+    <text x="10" y="153" class="attr">+int failed_attempts (lock at 5)</text>
+    <line x1="0" y1="163" x2="290" y2="163" class="sep" />
+    <text x="10" y="180" class="method">+is_usable() bool</text>
+    <text x="10" y="195" class="method">+verify(raw_code: str) bool</text>
+  </g>
+
+  <!-- Entity 5: PickupRecord -->
+  <g transform="translate(740, 420)">
+    <rect width="290" height="155" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 290 0 L 290 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="145" y="20" class="c-name">PickupRecord</text>
+    <text x="10" y="48" class="attr">+int package_id [FK, UK]</text>
+    <text x="10" y="63" class="attr">+int token_id [FK, UK]</text>
+    <text x="10" y="78" class="attr">+int learner_id [FK]</text>
+    <text x="10" y="93" class="attr">+int handed_over_by_id [FK]</text>
+    <text x="10" y="108" class="attr">+str storage_location_code</text>
+    <text x="10" y="123" class="attr">+datetime collected_at [IDX]</text>
+    <line x1="0" y1="133" x2="290" y2="133" class="sep" />
+    <text x="10" y="148" class="method">+to_audit_dict() dict</text>
+  </g>
+
+  <!-- Entity 6: PackageStatusHistory -->
+  <g transform="translate(740, 620)">
+    <rect width="290" height="145" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 290 0 L 290 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="145" y="20" class="c-name">PackageStatusHistory</text>
+    <text x="10" y="48" class="attr">+int package_id [FK, IDX]</text>
+    <text x="10" y="63" class="attr">+PackageStatus? from_status</text>
+    <text x="10" y="78" class="attr">+PackageStatus to_status</text>
+    <text x="10" y="93" class="attr">+int changed_by_id [FK]</text>
+    <text x="10" y="108" class="attr">+str? reason</text>
+    <text x="10" y="123" class="attr">+datetime created_at</text>
+  </g>
+
+  <!-- Entity 7: Notification -->
+  <g transform="translate(1080, 160)">
+    <rect width="320" height="185" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="160" y="20" class="c-name">Notification</text>
+    <text x="10" y="48" class="attr">+int user_id [FK, IDX]</text>
+    <text x="10" y="63" class="attr">+int? package_id [FK]</text>
+    <text x="10" y="78" class="attr">+NotificationChannelType channel</text>
+    <text x="10" y="93" class="attr">+str title, message</text>
+    <text x="10" y="108" class="attr">+NotificationStatus delivery_status</text>
+    <text x="10" y="123" class="attr">+int attempts</text>
+    <text x="10" y="138" class="attr">+datetime? sent_at, read_at</text>
+    <line x1="0" y1="148" x2="320" y2="148" class="sep" />
+    <text x="10" y="165" class="method">+mark_read() void</text>
+    <text x="10" y="180" class="method">+can_retry() bool</text>
+  </g>
+
+  <!-- Entity 8: Incident -->
+  <g transform="translate(1080, 380)">
+    <rect width="320" height="185" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="160" y="20" class="c-name">Incident</text>
+    <text x="10" y="48" class="attr">+int? package_id [FK, IDX]</text>
+    <text x="10" y="63" class="attr">+IncidentType type (DAM|UNID|MISS|DISP)</text>
+    <text x="10" y="78" class="attr">+IncidentStatus status (OPEN|RESOLVED)</text>
+    <text x="10" y="93" class="attr">+str description</text>
+    <text x="10" y="108" class="attr">+int reported_by_id, resolved_by_id?</text>
+    <text x="10" y="123" class="attr">+str? resolution_note</text>
+    <text x="10" y="138" class="attr">+datetime created_at, resolved_at?</text>
+    <line x1="0" y1="148" x2="320" y2="148" class="sep" />
+    <text x="10" y="165" class="method">+resolve(admin_id: int, note: str) void</text>
+  </g>
+
+  <!-- Entity 9: AuditLog & IdempotencyKey -->
+  <g transform="translate(1080, 600)">
+    <rect width="320" height="165" class="box" stroke="#3b82f6" />
+    <path d="M 0 0 L 320 0 L 320 30 L 0 30 Z" fill="#eff6ff" stroke="#3b82f6" />
+    <text x="160" y="20" class="c-name">AuditLog</text>
+    <text x="10" y="48" class="attr">+int? actor_id [FK, IDX]</text>
+    <text x="10" y="63" class="attr">+str action (e.g. pickup.completed)</text>
+    <text x="10" y="78" class="attr">+str entity_type, entity_id</text>
+    <text x="10" y="93" class="attr">+dict details (JSON payload)</text>
+    <text x="10" y="108" class="attr">+datetime created_at [IDX]</text>
+    <line x1="0" y1="118" x2="320" y2="118" class="sep" />
+    <text x="10" y="135" class="method">+format_audit_row() str</text>
+  </g>
+
+  <!-- Value Objects Box -->
+  <g transform="translate(40, 800)">
+    <rect width="400" height="180" class="box" fill="#ffffff" stroke="#10b981" />
+    <path d="M 0 0 L 400 0 L 400 30 L 0 30 Z" fill="#ecfdf5" stroke="#10b981" />
+    <text x="200" y="20" class="c-name" fill="#065f46">&lt;&lt;Value Object&gt;&gt; StorageCandidate</text>
+    <text x="10" y="50" class="attr">+int id, str code, int capacity, int occupied</text>
+    <text x="10" y="68" class="attr">+PackageSize max_package_size, bool is_active</text>
+    <line x1="0" y1="80" x2="400" y2="80" class="sep" />
+    <text x="10" y="100" class="method">+free_slots: int (capacity - occupied)</text>
+    <text x="10" y="120" class="method">+accepts(PackageSize size): bool</text>
+    <text x="10" y="140" class="subtitle" font-size="11" fill="#047857">Encapsulates shelf capacity &amp; size compatibility rules</text>
+  </g>
+
+  <g transform="translate(480, 800)">
+    <rect width="400" height="180" class="box" fill="#ffffff" stroke="#10b981" />
+    <path d="M 0 0 L 400 0 L 400 30 L 0 30 Z" fill="#ecfdf5" stroke="#10b981" />
+    <text x="200" y="20" class="c-name" fill="#065f46">&lt;&lt;Value Object&gt;&gt; Transition</text>
+    <text x="10" y="50" class="attr">+PackageStatus source, target</text>
+    <text x="10" y="68" class="attr">+frozenset[Role] roles</text>
+    <text x="10" y="86" class="attr">+str action, label</text>
+    <text x="10" y="104" class="attr">+Guard? guard (Callable[[PackageContext], str?])</text>
+    <text x="10" y="122" class="attr">+bool requires_dedicated_endpoint</text>
+    <text x="10" y="145" class="subtitle" font-size="11" fill="#047857">Defines valid state machine edges with precondition guards</text>
+  </g>
+
+  <!-- Association / Composition lines -->
+  <line x1="300" y1="310" x2="360" y2="310" class="msg-line" />
+  <text x="305" y="302" class="card">1</text>
+  <text x="340" y="302" class="card">0..*</text>
+  <text x="312" y="325" font-size="9" fill="#64748b">receives</text>
+
+  <line x1="520" y1="500" x2="520" y2="540" class="msg-line" />
+  <text x="525" y="515" class="card">0..1</text>
+  <text x="525" y="535" class="card">1</text>
+  <text x="470" y="525" font-size="9" fill="#64748b">stored on</text>
+
+  <line x1="680" y1="260" x2="740" y2="260" class="msg-line" />
+  <text x="702" y="253" class="card">1</text>
+  <text x="720" y="253" class="card">0..*</text>
+
+  <line x1="680" y1="440" x2="740" y2="440" class="msg-line" />
+  <text x="685" y="433" class="card">1</text>
+  <text x="720" y="433" class="card">0..1</text>
+
+</svg>

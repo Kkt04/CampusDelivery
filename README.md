@@ -19,10 +19,34 @@ Architecture: a **layered modular monolith** (see `docs/02-architecture.md`).
 
 ---
 
+## Capstone Evaluation & LLD Defense
+
+> [!IMPORTANT]
+> **Final Year Capstone Project Evaluation (November 2026)**: All 10 Low-Level Design (LLD) evaluation components, architectural defense points, and viva preparations are documented in:
+> - **Master Evaluation Guide**: [`docs/00-capstone-evaluation-guide.md`](docs/00-capstone-evaluation-guide.md)
+> - **Interactive Diagram Viewer**: [`diagrams/index.html`](diagrams/index.html) *(Open in any browser for interactive SVGs, Mermaid source, and pan/zoom)*
+> - **Diagrams Directory**: [`diagrams/`](diagrams/) *(13 publication-grade vector SVGs + Mermaid sources)*
+
+| # | Evaluation Component | Primary Code Reference | Dedicated Diagram |
+|---|---|---|---|
+| 1 | **Requirement Analysis** | [`docs/01-requirements.md`](docs/01-requirements.md) | [`01_use_case_diagram.svg`](diagrams/01_use_case_diagram.svg) |
+| 2 | **Class Diagram** | [`backend/app/infrastructure/models.py`](backend/app/infrastructure/models.py) | [`02_class_diagram_domain_entities.svg`](diagrams/02_class_diagram_domain_entities.svg) |
+| 3 | **Object-Oriented Design** | [`backend/app/domain/`](backend/app/domain/) | [`03_class_diagram_services_and_architecture.svg`](diagrams/03_class_diagram_services_and_architecture.svg) |
+| 4 | **SOLID Principles** | [`docs/07-solid-and-patterns.md`](docs/07-solid-and-patterns.md) | [`13_design_patterns_diagram.svg`](diagrams/13_design_patterns_diagram.svg) |
+| 5 | **Design Patterns** | [`backend/app/domain/allocation.py`](backend/app/domain/allocation.py), `events.py` | [`13_design_patterns_diagram.svg`](diagrams/13_design_patterns_diagram.svg), [`10_state_machine_diagram.svg`](diagrams/10_state_machine_diagram.svg) |
+| 6 | **Sequence & Activity** | [`backend/app/services/`](backend/app/services/) | [`04_sequence_package_intake.svg`](diagrams/04_sequence_package_intake.svg) to [`09_activity_concurrency_storage_handover.svg`](diagrams/09_activity_concurrency_storage_handover.svg) |
+| 7 | **API / Interface Design** | [`backend/app/api/routes/`](backend/app/api/routes/), [`docs/06-api.md`](docs/06-api.md) | [`11_component_architecture_diagram.svg`](diagrams/11_component_architecture_diagram.svg) |
+| 8 | **Database Schema** | [`backend/app/infrastructure/database.py`](backend/app/infrastructure/database.py) | [`12_database_er_schema_diagram.svg`](diagrams/12_database_er_schema_diagram.svg) |
+| 9 | **Error & Concurrency** | [`docs/08-edge-cases.md`](docs/08-edge-cases.md), `pickup.py` | [`07_sequence_pickup_handover_concurrency.svg`](diagrams/07_sequence_pickup_handover_concurrency.svg), [`09_activity_concurrency_storage_handover.svg`](diagrams/09_activity_concurrency_storage_handover.svg) |
+| 10 | **Working Implementation** | [`backend/tests/`](backend/tests/) (`pytest tests/unit -v`) | 29 unit tests passing, end-to-end API suite |
+
+---
+
 ## 1. Repository layout
 
 ```
 campus-delivery/
+├── diagrams/                    # 13 SVG vector diagrams, 13 Mermaid source files, index.html viewer
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI app, error handlers, routers
@@ -198,6 +222,8 @@ Latest recorded results are in `docs/09-testing.md`.
 
 | # | Document |
 |---|---|
+| **0** | **[`docs/00-capstone-evaluation-guide.md`](docs/00-capstone-evaluation-guide.md): Master Capstone Evaluation & Defense Guide (All 10 LLD Components, Viva Prep, 5-Min Demo Script, Contribution Matrix)** |
+| — | **[`diagrams/index.html`](diagrams/index.html): Interactive Diagram Viewer (13 SVG diagrams with zoom and Mermaid source)** |
 | 1 | `docs/01-requirements.md`: problem statement, objectives, scope, assumptions, functional and non-functional requirements |
 | 2 | `docs/02-architecture.md`: component diagram, layers, request flow and the architecture questions (monolith, PostgreSQL, double pickup, capacity, retries, notification failure, scaling) |
 | 3 | `docs/03-uml.md`: use-case diagram, class diagram, pickup sequence diagram |
@@ -212,5 +238,3 @@ Latest recorded results are in `docs/09-testing.md`.
 | 12 | `docs/12-viva-guide.md`: likely faculty questions with answers |
 | 13 | `docs/13-live-coding-tasks.md`: five realistic live-coding tasks with guidance |
 | 14 | `docs/14-build-log.md`: phase-by-phase log of what was built and verified |
-# CampusDelivery
-# CampusDelivery

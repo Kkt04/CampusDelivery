@@ -1,0 +1,29 @@
+sequenceDiagram
+  autonumber
+  actor Learner as 👤 Learner
+  participant Route as FastAPI Route<br/>(POST /packages/{id}/pickup-request)
+  participant Service as PickupService
+  participant Rules as domain.pickup_rules
+  participant UoW as MongoUnitOfWork
+  participant TokenRepo as MongoPickupTokenRepository
+  participant Trans as PackageTransitioner
+
+  Learner->>Route: POST /api/v1/packages/{id}/pickup-request
+  Route->>Route: Authenticate JWT (Must be role: LEARNER, user: LRN-1001)
+  Route->>Service: request_pickup(package_id, learner)
+  Service->>UoW: packages.get_by_id(package_id)
+  alt Package not owned by learner
+    Service-->>Route: 404 Not Found (prevents package enumeration)
+  else Package status is NOT READY_FOR_PICKUP or PICKUP_REQUESTED
+    Service-->>Route: 409 Conflict (INVALID_STATUS_TRANSITION)
+  else Package ready for pickup
+    Service->>TokenRepo: revoke_active_tokens_for_package(package_id)
+    Service->>Rules: generate_pickup_code() -> returns (raw_code="482913", salt, code_hash=HMAC_SHA256)
+    Service->>TokenRepo: create(package_id, learner_id, code_hash, salt, expires_in=30min)
+    alt Current status is READY_FOR_PICKUP
+      Service->>Trans: apply(package, PICKUP_REQUESTED, learner)
+      Trans->>UoW: record status history & audit log
+    end
+    Service->>UoW: commit() (atomic write: revoke old tokens, insert new token, update status)
+    Route-->>Learner: 201 Created {raw_code: "482913", expires_at: "2026-10-24T15:45:00Z"}<br/>⚠️ Plaintext 6-digit code shown ONLY ONCE
+  end

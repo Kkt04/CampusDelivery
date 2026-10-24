@@ -1,0 +1,87 @@
+flowchart TB
+  subgraph ClientTier["Client Tier (Presentation Layer)"]
+    ViteReact["React 18 + TypeScript SPA (Vite)"]
+    subgraph UIComponents["UI Modules"]
+      LPages["Learner Portal<br/>(Dashboard, Packages, PickupCode, History)"]
+      SPages["Security Portal<br/>(Intake, Shelf Assign, Handover Verify)"]
+      APages["Operations Admin Portal<br/>(Metrics, Storage, Users, Incidents, Audit)"]
+    end
+    APIClient["Axios/Fetch HTTP Client<br/>(JWT Bearer, Idempotency-Key, Error Interceptor)"]
+    ViteReact --> UIComponents --> APIClient
+  end
+
+  APIClient -- "HTTPS REST API (JSON)" --> APITier
+
+  subgraph APITier["FastAPI Modular Monolith Application"]
+    subgraph MiddlewareLayer["Cross-Cutting Middleware"]
+      CORSMW["CORSMiddleware"]
+      ReqIDMW["X-Request-ID Tracking Middleware"]
+      RateLimiter["SlidingWindowRateLimiter (Login Brute-Force)"]
+    end
+
+    subgraph RouteLayer["API Controllers / Routers (/api/v1)"]
+      R_Auth["auth.py"]
+      R_Pkg["packages.py"]
+      R_Pick["pickups.py"]
+      R_Store["storage.py"]
+      R_User["users.py"]
+      R_Inc["incidents.py"]
+      R_Rep["reports.py"]
+    end
+
+    subgraph SecurityAuth["Security & RBAC Dependencies"]
+      JWTAuth["JWT Authenticator (PyJWT + bcrypt)"]
+      RBACGuard["RolePermission Guard (Learner / Security / Admin)"]
+    end
+
+    subgraph ServiceLayer["Application Use Case Services"]
+      S_Intake["PackageIntakeService"]
+      S_Alloc["StorageAllocationService"]
+      S_Pickup["PickupService"]
+      S_Trans["PackageTransitioner"]
+      S_Life["PackageLifecycleService"]
+      S_User["AuthService & UserService"]
+      S_Store["StorageLocationService"]
+      S_Inc["IncidentService"]
+      S_Rep["ReportService"]
+      S_Audit["AuditService"]
+    end
+
+    subgraph DomainLayer["Pure Domain Layer (Zero Framework Dependencies)"]
+      SM["PackageStateMachine & Transitions"]
+      Rules["PickupRules (HMAC, Expiry, Lockout)"]
+      Overdue["OverduePolicy (Derived 5-day deadline)"]
+      Perms["Role Permissions Matrix"]
+      DomainEvents["Domain Events (PackageStatusChanged)"]
+      Strategies["Allocation Strategies (SuitableSize, FirstAvailable)"]
+    end
+
+    subgraph PersistenceLayer["Persistence & Repository Layer"]
+      UoW["MongoUnitOfWork"]
+      Repos["Repositories: MongoPackageRepo, MongoStorageRepo,<br/>MongoTokenRepo, MongoRecordRepo, MongoAuditRepo, ..."]
+      DocMapper["Document Data Mapper (BSON <-> Model Dataclasses)"]
+    end
+
+    subgraph EventNotification["Event & Notification Subsystem"]
+      EBus["EventBus (Observer Pattern)"]
+      NDispatch["NotificationDispatcher"]
+      NChannels["Notification Channels: InAppChannel, ConsoleEmailChannel"]
+    end
+
+    Container["Container (Composition Root / DI Wiring)"]
+  end
+
+  subgraph DatabaseTier["Database Tier"]
+    MongoDB[("MongoDB 6+ Database<br/>(10 Collections, Compound Indexes, Atomic Writes)")]
+  end
+
+  %% Wiring
+  MiddlewareLayer --> RouteLayer
+  RouteLayer --> SecurityAuth
+  RouteLayer --> ServiceLayer
+  ServiceLayer --> DomainLayer
+  ServiceLayer --> PersistenceLayer
+  PersistenceLayer --> DocMapper --> MongoDB
+  UoW -- "publish after commit" --> EBus
+  EBus --> NDispatch --> NChannels
+  Container -. "wires dependencies" .-> ServiceLayer

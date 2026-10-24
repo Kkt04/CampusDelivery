@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1350 800" width="100%" height="100%">
+  <defs>
+    <style>
+    .bg { fill: #f8fafc; }
+    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
+    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
+    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
+    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
+    .sep { stroke: #e2e8f0; stroke-width: 1; }
+    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
+    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
+    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
+    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
+    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
+    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
+    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
+    .card { font-family: sans-serif; font-size: 11px; fill: #475569; font-weight: 600; }
+</style>
+    
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+
+  </defs>
+  <rect width="1350" height="800" class="bg" />
+  
+  <text x="40" y="35" class="title">13. Design Patterns Map - Creational, Structural &amp; Behavioral Architectures</text>
+  <text x="40" y="55" class="subtitle">Complete catalog of 7 design patterns: Structure, Implementation Files, and Academic Justification for Viva</text>
+
+  <!-- Pattern 1: Strategy Pattern -->
+  <g transform="translate(40, 80)">
+    <rect width="390" height="230" class="box" stroke="#10b981" stroke-width="1.5" />
+    <path d="M 0 0 L 390 0 L 390 32 L 0 32 Z" fill="#ecfdf5" stroke="#10b981" />
+    <text x="195" y="21" class="c-name" fill="#065f46">1. Strategy Pattern (Behavioral)</text>
+    <text x="10" y="52" class="attr" font-weight="700">Protocol: StorageAllocationStrategy (rank())</text>
+    <text x="10" y="70" class="attr">• SuitableSizeStrategy (Best-fit size class)</text>
+    <text x="10" y="88" class="attr">• FirstAvailableStrategy (Code alphabetical)</text>
+    <line x1="0" y1="100" x2="390" y2="100" class="sep" />
+    <text x="10" y="118" class="subtitle" font-weight="600" fill="#047857">Code: domain/allocation.py, container.py</text>
+    <text x="10" y="136" class="subtitle" font-size="10.5">Why Chosen:</text>
+    <text x="10" y="152" class="subtitle" font-size="10">Allows campus administrators to change shelf allocation policy</text>
+    <text x="10" y="168" class="subtitle" font-size="10">via environment configuration without altering service logic.</text>
+    <text x="10" y="186" class="subtitle" font-size="10" fill="#047857">Trade-off: Strategies rank only; reservation remains atomic.</text>
+  </g>
+
+  <!-- Pattern 2: Observer Pattern -->
+  <g transform="translate(470, 80)">
+    <rect width="390" height="230" class="box" stroke="#8b5cf6" stroke-width="1.5" />
+    <path d="M 0 0 L 390 0 L 390 32 L 0 32 Z" fill="#f5f3ff" stroke="#8b5cf6" />
+    <text x="195" y="21" class="c-name" fill="#6d28d9">2. Observer Pattern (Behavioral)</text>
+    <text x="10" y="52" class="attr" font-weight="700">Publisher: EventBus.publish(DomainEvent)</text>
+    <text x="10" y="70" class="attr">Subscriber: NotificationDispatcher.handle()</text>
+    <text x="10" y="88" class="attr">Event: PackageStatusChanged (occurred_at)</text>
+    <line x1="0" y1="100" x2="390" y2="100" class="sep" />
+    <text x="10" y="118" class="subtitle" font-weight="600" fill="#6d28d9">Code: domain/events.py, services/notifications.py</text>
+    <text x="10" y="136" class="subtitle" font-size="10.5">Why Chosen:</text>
+    <text x="10" y="152" class="subtitle" font-size="10">Decouples core package workflows from notification delivery.</text>
+    <text x="10" y="168" class="subtitle" font-size="10">A failing notification provider NEVER undoes a committed update.</text>
+    <text x="10" y="186" class="subtitle" font-size="10" fill="#6d28d9">Trade-off: In-process events dispatched post-transaction.</text>
+  </g>
+
+  <!-- Pattern 3: State Pattern -->
+  <g transform="translate(900, 80)">
+    <rect width="400" height="230" class="box" stroke="#f59e0b" stroke-width="1.5" />
+    <path d="M 0 0 L 400 0 L 400 32 L 0 32 Z" fill="#fef3c7" stroke="#f59e0b" />
+    <text x="200" y="21" class="c-name" fill="#b45309">3. State Pattern (Table-Driven Form)</text>
+    <text x="10" y="52" class="attr" font-weight="700">Context: PackageStateMachine (check, available)</text>
+    <text x="10" y="70" class="attr">State Transition: Transition(src, tgt, roles, guard)</text>
+    <text x="10" y="88" class="attr">Driver: PackageTransitioner.apply()</text>
+    <line x1="0" y1="100" x2="400" y2="100" class="sep" />
+    <text x="10" y="118" class="subtitle" font-weight="600" fill="#b45309">Code: domain/state_machine.py, transitions.py</text>
+    <text x="10" y="136" class="subtitle" font-size="10.5">Why Chosen:</text>
+    <text x="10" y="152" class="subtitle" font-size="10">Eliminates nested if/else statements across 12 states.</text>
+    <text x="10" y="168" class="subtitle" font-size="10">Allows faculty to verify the state graph against code line by line.</text>
+    <text x="10" y="186" class="subtitle" font-size="10" fill="#b45309">Trade-off: Table form preferred over 12 separate empty classes.</text>
+  </g>
+
+  <!-- Pattern 4: Factory Method & Registry -->
+  <g transform="translate(40, 340)">
+    <rect width="390" height="230" class="box" stroke="#ec4899" stroke-width="1.5" />
+    <path d="M 0 0 L 390 0 L 390 32 L 0 32 Z" fill="#fdf2f8" stroke="#ec4899" />
+    <text x="195" y="21" class="c-name" fill="#be185d">4. Factory Method / Registry (Creational)</text>
+    <text x="10" y="52" class="attr" font-weight="700">Factory: NotificationChannelFactory (register, create)</text>
+    <text x="10" y="70" class="attr">Strategy Factory: build_allocation_strategy(name)</text>
+    <text x="10" y="88" class="attr">Product: InAppChannel, ConsoleEmailChannel</text>
+    <line x1="0" y1="100" x2="390" y2="100" class="sep" />
+    <text x="10" y="118" class="subtitle" font-weight="600" fill="#be185d">Code: infrastructure/notifications.py, container.py</text>
+    <text x="10" y="136" class="subtitle" font-size="10.5">Why Chosen:</text>
+    <text x="10" y="152" class="subtitle" font-size="10">Implements the Open/Closed Principle. Adding an SMS or WhatsApp</text>
+    <text x="10" y="168" class="subtitle" font-size="10">channel requires zero modifications to dispatching workflows.</text>
+    <text x="10" y="186" class="subtitle" font-size="10" fill="#be185d">Trade-off: Small registry dictionary; simple and maintainable.</text>
+  </g>
+
+  <!-- Pattern 5: Unit of Work & Repository -->
+  <g transform="translate(470, 340)">
+    <rect width="390" height="230" class="box" stroke="#0284c7" stroke-width="1.5" />
+    <path d="M 0 0 L 390 0 L 390 32 L 0 32 Z" fill="#e0f2fe" stroke="#0284c7" />
+    <text x="195" y="21" class="c-name" fill="#0369a1">5. Unit of Work &amp; Repository (Architectural)</text>
+    <text x="10" y="52" class="attr" font-weight="700">Coordinator: MongoUnitOfWork (commit, rollback)</text>
+    <text x="10" y="70" class="attr">Repositories: MongoPackageRepo, MongoStorageRepo,</text>
+    <text x="10" y="88" class="attr">MongoTokenRepo, MongoRecordRepo, MongoAuditRepo</text>
+    <line x1="0" y1="100" x2="390" y2="100" class="sep" />
+    <text x="10" y="118" class="subtitle" font-weight="600" fill="#0284c7">Code: repositories/unit_of_work.py, mongo_repos.py</text>
+    <text x="10" y="136" class="subtitle" font-size="10.5">Why Chosen:</text>
+    <text x="10" y="152" class="subtitle" font-size="10">Decouples query dialects from business logic. Ensures each use case</text>
+    <text x="10" y="168" class="subtitle" font-size="10">executes in a single atomic transaction and buffers domain events.</text>
+    <text x="10" y="186" class="subtitle" font-size="10" fill="#0284c7">Trade-off: Dedicated repository files; cleanly isolated queries.</text>
+  </g>
+
+  <!-- Pattern 6: Singleton Pattern -->
+  <g transform="translate(900, 340)">
+    <rect width="400" height="230" class="box" stroke="#6366f1" stroke-width="1.5" />
+    <path d="M 0 0 L 400 0 L 400 32 L 0 32 Z" fill="#eef2ff" stroke="#6366f1" />
+    <text x="200" y="21" class="c-name" fill="#4338ca">6. Singleton Pattern (Creational)</text>
+    <text x="10" y="52" class="attr" font-weight="700">Singleton Instance: container = Container(settings)</text>
+    <text x="10" y="70" class="attr">Shared Resources: event_bus, rate_limiter, client</text>
+    <text x="10" y="88" class="attr">Module-level shared singletons in Python</text>
+    <line x1="0" y1="100" x2="400" y2="100" class="sep" />
+    <text x="10" y="118" class="subtitle" font-weight="600" fill="#4338ca">Code: app/container.py, app/infrastructure/database.py</text>
+    <text x="10" y="136" class="subtitle" font-size="10.5">Why Chosen:</text>
+    <text x="10" y="152" class="subtitle" font-size="10">Guarantees a single composition root and single connection pool.</text>
+    <text x="10" y="168" class="subtitle" font-size="10">Ensures rate limiters and event subscriber tables are shared across routes.</text>
+    <text x="10" y="186" class="subtitle" font-size="10" fill="#4338ca">Trade-off: Easily overridden in test fixtures for isolation.</text>
+  </g>
+
+  <!-- Pattern 7: Decorator & Middleware -->
+  <g transform="translate(40, 600)">
+    <rect width="1260" height="150" class="box" stroke="#475569" stroke-width="1.5" />
+    <path d="M 0 0 L 1260 0 L 1260 32 L 0 32 Z" fill="#f1f5f9" stroke="#475569" />
+    <text x="630" y="21" class="c-name" fill="#0f172a">7. Decorator / Middleware &amp; Presenter (Structural)</text>
+    <text x="20" y="55" class="attr" font-weight="700">HTTP Middleware: @app.middleware("http") (app/main.py)</text>
+    <text x="30" y="75" class="subtitle" font-size="10.5">• RequestIDMiddleware: Injects and echoes X-Request-ID header for distributed trace correlation.</text>
+    <text x="30" y="92" class="subtitle" font-size="10.5">• Exception Handler Decorators: Polymorphic exception translation converting AppError subclasses to uniform JSON.</text>
+    <text x="20" y="115" class="attr" font-weight="700">Presenter / DTO Pattern: (app/api/presenters.py)</text>
+    <text x="30" y="133" class="subtitle" font-size="10.5">• PackagePresenter: Produces role-aware JSON responses (e.g. hides staff names, internal codes, and damage notes from learner views).</text>
+  </g>
+
+</svg>

@@ -174,40 +174,42 @@ exception hierarchy (`AppError → ConflictError → StorageFullError`), and `Ti
 
 ## 3.3 Sequence diagram: request code and complete handover
 
+> [!TIP]
+> Comprehensive, high-resolution vector SVGs and editable Mermaid source files for this sequence and 12 other LLD diagrams are available in the dedicated [`diagrams/`](file:///Users/kalashkumarithakur/Desktop/campus-delivery/diagrams) folder and can be explored interactively via [`diagrams/index.html`](file:///Users/kalashkumarithakur/Desktop/campus-delivery/diagrams/index.html).
+
 ```mermaid
 sequenceDiagram
   actor L as Learner
   actor S as Security
   participant API as FastAPI route
   participant PS as PickupService
-  participant DB as PostgreSQL
+  participant DB as MongoDB 6+
   participant Bus as EventBus
   participant N as NotificationDispatcher
 
   L->>API: POST /packages/{id}/pickup-request
   API->>PS: request_pickup(id, learner)
-  PS->>DB: SELECT package FOR UPDATE (must be learner's, READY_FOR_PICKUP)
-  PS->>DB: UPDATE status READY→PICKUP_REQUESTED (conditional), revoke old tokens
-  PS->>DB: INSERT pickup_token(hash(salt+code), expires_at), audit
-  PS->>DB: COMMIT
-  API-->>L: 201 {code: "482913", expires_at}  (shown once)
+  PS->>DB: find_one({_id: id}) (must be learner's, READY_FOR_PICKUP)
+  PS->>DB: find_one_and_update status READY→PICKUP_REQUESTED, revoke old tokens
+  PS->>DB: insert_one pickup_token(HMAC-SHA256, expires_at 30m), audit
+  PS->>DB: commit UnitOfWork
+  API-->>L: 201 {code: "482913", expires_at} (shown once)
 
   S->>API: POST /pickups/complete {package_code, learner_id, code} + Idempotency-Key
   API->>PS: complete(...)
-  PS->>DB: SELECT package FOR UPDATE
-  PS->>DB: idempotency key already used? (replay if so)
-  PS->>PS: ensure_token_usable + learner ID match + constant-time hash compare
+  PS->>DB: find_one idempotency key (replay if already completed)
+  PS->>PS: ensure_token_usable + learner ID match + constant-time HMAC compare
   alt wrong / expired / locked
-    PS->>DB: failed_attempts+1, audit, COMMIT
+    PS->>DB: update failed_attempts + 1, audit log, commit
     API-->>S: 400 PICKUP_CODE_*
-  else valid
-    PS->>DB: UPDATE token SET used_at WHERE used_at IS NULL (1 row)
-    PS->>DB: UPDATE package status→COLLECTED WHERE status=PICKUP_REQUESTED (1 row)
-    PS->>DB: release storage slot, INSERT pickup_record (UNIQUE package_id), history, audit, idempotency
-    PS->>DB: COMMIT
+  else valid code
+    PS->>DB: find_one_and_update token {used_at: null} -> set used_at=now (Atomic Winner)
+    PS->>DB: find_one_and_update package {status: PICKUP_REQUESTED} -> set COLLECTED
+    PS->>DB: release storage slot ($inc: -1), insert pickup_record (UNIQUE package_id), history, audit, idempotency
+    PS->>DB: commit UnitOfWork
     PS->>Bus: publish PackageStatusChanged(COLLECTED)
     Bus->>N: handle(event)
-    N->>DB: INSERT notification PENDING, COMMIT, send, mark SENT/FAILED
+    N->>DB: insert notification PENDING, send to in-app inbox, mark SENT/FAILED
     API-->>S: 201 pickup record
   end
 ```

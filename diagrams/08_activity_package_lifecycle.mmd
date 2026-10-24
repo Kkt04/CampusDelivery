@@ -1,0 +1,47 @@
+flowchart TD
+  START([● Courier Arrives at Gate No. 2]) --> INTAKE[Security inspects parcel & inputs details]
+
+  INTAKE --> CHK_DUP{Tracking ID exists?}
+  CHK_DUP -- Yes --> REJ_DUP[Reject Registration & Log Audit Record] --> END_REJ([● Rejection Terminus])
+  CHK_DUP -- No --> CHK_COND{Package condition?}
+
+  CHK_COND -- Damaged --> DAM_HOLD[Set status = DAMAGED<br/>Open Incident Ticket]
+  CHK_COND -- Good --> CHK_RECIP{Recipient found in active directory?}
+
+  CHK_RECIP -- No / Unknown --> UNID_HOLD[Set status = UNIDENTIFIED<br/>Open Incident Ticket]
+  CHK_RECIP -- Yes --> VERIFIED[Set status = VERIFIED<br/>Notify Learner: Package Arrived]
+
+  UNID_HOLD --> IDENT[Staff searches & identifies Learner] --> VERIFIED
+  DAM_HOLD --> REL_DAM[Staff inspects & releases Damage Hold] --> VERIFIED
+
+  VERIFIED --> STORE_ASSIGN[Assign Shelf Storage<br/>FirstAvailable / SuitableSize Strategy]
+  STORE_ASSIGN --> STORED[Set status = STORED]
+
+  STORED --> MARK_READY[Mark Package Ready for Pickup]
+  MARK_READY --> READY[Set status = READY_FOR_PICKUP<br/>Notify Learner: Ready to Collect]
+
+  READY --> REQ_PICKUP[Learner requests Pickup Code]
+  REQ_PICKUP --> CODE_GEN[Generate HMAC-SHA256 Token<br/>Show 6-Digit Code valid for 30m]
+  CODE_GEN --> PICKUP_REQ[Set status = PICKUP_REQUESTED]
+
+  PICKUP_REQ --> GATE_VERIFY[Learner visits Gate No. 2<br/>Presents ID card & 6-digit code]
+  GATE_VERIFY --> CHK_CODE{Code valid, unexpired & learner matches?}
+
+  CHK_CODE -- No --> INC_FAIL[Increment failed attempts count]
+  INC_FAIL --> CHK_LOCK{Failed attempts >= 5?}
+  CHK_LOCK -- Yes --> LOCK_CODE[Lock Token: PICKUP_CODE_LOCKED] --> PICKUP_REQ
+  CHK_LOCK -- No --> RETRY[Staff re-enters code] --> GATE_VERIFY
+
+  CHK_CODE -- Yes --> ATOMIC_HANDOVER[Atomic Handover:<br/>1. Mark token used_at<br/>2. Transition status -> COLLECTED<br/>3. Decrement shelf occupancy -1<br/>4. Insert immutable PickupRecord]
+  ATOMIC_HANDOVER --> COLLECTED[Status = COLLECTED] --> NOTIF_COLLECT[Notify Learner: Handover Complete]
+  NOTIF_COLLECT --> END_SUCCESS([● Terminal State: Handed Over])
+
+  %% Exception branches
+  READY & STORED & PICKUP_REQ --> ESCALATE{Incident / Dispute?}
+  ESCALATE -- Yes --> INVESTIGATION[Set status = UNDER_INVESTIGATION]
+  INVESTIGATION --> RESOLVE_INVEST[Admin Resolves Dispute] --> STORED
+  INVESTIGATION --> MARK_LOST[Admin Marks Parcel Lost] --> LOST[Status = LOST<br/>Release shelf] --> END_LOST([● Terminal State: Lost])
+
+  STORED & READY & PICKUP_REQ --> OVERDUE_CHK{Uncollected > 5 days?}
+  OVERDUE_CHK -- Yes --> RETURN_COURIER[Admin Requests Return] --> RET_REQ[Status = RETURN_REQUESTED]
+  RET_REQ --> HAND_COURIER[Security Hands Back to Courier] --> RETURNED[Status = RETURNED<br/>Release shelf] --> END_RET([● Terminal State: Returned])

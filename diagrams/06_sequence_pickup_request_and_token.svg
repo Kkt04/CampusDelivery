@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1150 750" width="100%" height="100%">
+  <defs>
+    <style>
+    .bg { fill: #f8fafc; }
+    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
+    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
+    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
+    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
+    .sep { stroke: #e2e8f0; stroke-width: 1; }
+    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
+    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
+    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
+    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
+    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
+    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
+    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
+    .step-badge { fill: #2563eb; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+</style>
+    
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+
+  </defs>
+  <rect width="1150" height="750" class="bg" />
+
+  <text x="40" y="35" class="title">06. Sequence Diagram - Learner Pickup Request &amp; Token Generation</text>
+  <text x="40" y="55" class="subtitle">Cryptographic token generation: 6-digit plaintext code (shown once), salt, HMAC-SHA256, and 30-min window</text>
+
+  <g transform="translate(50, 80)">
+    <rect width="110" height="40" class="actor-box" fill="#e0f2fe" stroke="#0284c7" />
+    <text x="55" y="24" class="c-name" font-size="12" fill="#0369a1">👤 Learner</text>
+    <line x1="55" y1="40" x2="55" y2="620" class="life-line" />
+  </g>
+  <g transform="translate(230, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="12">FastAPI Route</text>
+    <line x1="70" y1="40" x2="70" y2="620" class="life-line" />
+  </g>
+  <g transform="translate(440, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="12">PickupService</text>
+    <line x1="70" y1="40" x2="70" y2="620" class="life-line" />
+  </g>
+  <g transform="translate(650, 80)">
+    <rect width="160" height="40" class="part-box" stroke="#10b981" />
+    <text x="80" y="24" class="c-name" font-size="12" fill="#047857">domain.pickup_rules</text>
+    <line x1="80" y1="40" x2="80" y2="620" class="life-line" />
+  </g>
+  <g transform="translate(880, 80)">
+    <rect width="160" height="40" class="part-box" />
+    <text x="80" y="24" class="c-name" font-size="12">MongoPickupTokenRepo</text>
+    <line x1="80" y1="40" x2="80" y2="620" class="life-line" />
+  </g>
+
+  <!-- Step 1 -->
+  <line x1="105" y1="150" x2="300" y2="150" class="msg-line" />
+  <circle cx="200" cy="140" r="10" fill="#2563eb" />
+  <text x="200" y="140" class="step-badge">1</text>
+  <text x="200" y="130" class="msg-text" text-anchor="middle">POST /api/v1/packages/12/pickup-request [Bearer JWT: LRN-1001]</text>
+
+  <!-- Step 2 -->
+  <line x1="300" y1="180" x2="510" y2="180" class="msg-line" />
+  <circle cx="405" cy="170" r="10" fill="#2563eb" />
+  <text x="405" y="170" class="step-badge">2</text>
+  <text x="405" y="165" class="msg-text" text-anchor="middle">request_pickup(package_id=12, learner)</text>
+
+  <!-- Security Check -->
+  <rect x="420" y="210" width="550" height="60" class="note-box" />
+  <text x="430" y="228" class="note-text">Precondition &amp; Ownership Verification:</text>
+  <text x="430" y="245" class="note-text">• Must match recipient_id == learner.id (else 404 to avoid ID probing)</text>
+  <text x="430" y="260" class="note-text">• Status must be READY_FOR_PICKUP or PICKUP_REQUESTED (else 409)</text>
+
+  <!-- Step 3: Revoke prior tokens -->
+  <line x1="510" y1="290" x2="960" y2="290" class="msg-line" />
+  <circle cx="735" cy="280" r="10" fill="#2563eb" />
+  <text x="735" y="280" class="step-badge">3</text>
+  <text x="735" y="275" class="msg-text" text-anchor="middle">revoke_active_tokens(package_id) [Supersedes older tokens]</text>
+
+  <!-- Step 4: Generate Code & Hash -->
+  <line x1="510" y1="330" x2="730" y2="330" class="msg-line" stroke="#10b981" />
+  <circle cx="620" cy="320" r="10" fill="#10b981" />
+  <text x="620" y="320" class="step-badge">4</text>
+  <text x="620" y="315" class="msg-text" fill="#047857" text-anchor="middle">generate_pickup_code()</text>
+  <line x1="730" y1="360" x2="510" y2="360" class="ret-line" stroke="#10b981" />
+  <text x="620" y="352" class="ret-text" fill="#047857" text-anchor="middle">Returns (raw_code="482913", salt, code_hash=HMAC_SHA256)</text>
+
+  <!-- Step 5: Save new token -->
+  <line x1="510" y1="390" x2="960" y2="390" class="msg-line" />
+  <circle cx="735" cy="380" r="10" fill="#2563eb" />
+  <text x="735" y="380" class="step-badge">5</text>
+  <text x="735" y="375" class="msg-text" text-anchor="middle">tokens.create(pkg_id, learner_id, code_hash, salt, expires_in=30m)</text>
+
+  <!-- Step 6: Status update -->
+  <line x1="510" y1="430" x2="510" y2="470" class="msg-line" />
+  <text x="525" y="450" class="msg-text">Transition package: READY_FOR_PICKUP -&gt; PICKUP_REQUESTED</text>
+
+  <!-- Return -->
+  <line x1="510" y1="500" x2="300" y2="500" class="ret-line" stroke="#16a34a" />
+  <text x="405" y="492" class="ret-text" fill="#16a34a" text-anchor="middle">Return PickupTokenOut(raw_code, expires_at)</text>
+  <line x1="300" y1="530" x2="105" y2="530" class="ret-line" stroke="#16a34a" />
+  <circle cx="200" cy="520" r="10" fill="#16a34a" />
+  <text x="200" y="520" class="step-badge">6</text>
+  <text x="200" y="515" class="ret-text" fill="#16a34a" text-anchor="middle">201 Created {code: "482913", expires_at: "2026-10-24T15:45:00Z"}</text>
+  <text x="200" y="555" class="subtitle" font-size="10.5" fill="#dc2626">⚠️ Plaintext 6-digit code is never persisted and returned ONLY ONCE</text>
+
+</svg>

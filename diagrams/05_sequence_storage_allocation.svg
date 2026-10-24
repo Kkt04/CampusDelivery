@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <defs>
+    <style>
+    .bg { fill: #f8fafc; }
+    .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 6; }
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #0f172a; font-size: 20px; }
+    .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 500; fill: #475569; font-size: 13px; }
+    .c-name { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: 13px; fill: #0f172a; text-anchor: middle; }
+    .c-stereo { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; font-style: italic; }
+    .attr { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #1e293b; }
+    .method { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 11px; fill: #0369a1; font-weight: 500; }
+    .sep { stroke: #e2e8f0; stroke-width: 1; }
+    .actor-box { fill: #eff6ff; stroke: #3b82f6; stroke-width: 1.5; rx: 4; }
+    .part-box { fill: #f1f5f9; stroke: #64748b; stroke-width: 1.5; rx: 4; }
+    .life-line { stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 4,4; }
+    .msg-line { stroke: #0f172a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    .ret-line { stroke: #64748b; stroke-width: 1.5; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrow-gray); }
+    .msg-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #0f172a; font-weight: 500; }
+    .ret-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #475569; font-style: italic; }
+    .note-box { fill: #fef3c7; stroke: #f59e0b; stroke-width: 1; rx: 4; }
+    .note-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 10.5px; fill: #92400e; font-weight: 500; }
+    .step-badge { fill: #2563eb; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+</style>
+    
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0f172a" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+
+  </defs>
+  <rect width="1200" height="800" class="bg" />
+
+  <text x="40" y="35" class="title">05. Sequence Diagram - Shelf Storage Allocation Workflow</text>
+  <text x="40" y="55" class="subtitle">Strategy-ranked candidate selection and atomic single-document conditional reservation</text>
+
+  <g transform="translate(50, 80)">
+    <rect width="120" height="40" class="actor-box" />
+    <text x="60" y="24" class="c-name" font-size="12">👮 Security / Admin</text>
+    <line x1="60" y1="40" x2="60" y2="670" class="life-line" />
+  </g>
+  <g transform="translate(240, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="12">FastAPI Route</text>
+    <line x1="70" y1="40" x2="70" y2="670" class="life-line" />
+  </g>
+  <g transform="translate(440, 80)">
+    <rect width="180" height="40" class="part-box" />
+    <text x="90" y="24" class="c-name" font-size="12">StorageAllocationService</text>
+    <line x1="90" y1="40" x2="90" y2="670" class="life-line" />
+  </g>
+  <g transform="translate(680, 80)">
+    <rect width="170" height="40" class="part-box" stroke="#10b981" />
+    <text x="85" y="24" class="c-name" font-size="12" fill="#047857">&lt;&lt;Strategy&gt;&gt; Allocation</text>
+    <line x1="85" y1="40" x2="85" y2="670" class="life-line" />
+  </g>
+  <g transform="translate(910, 80)">
+    <rect width="140" height="40" class="part-box" />
+    <text x="70" y="24" class="c-name" font-size="12">MongoStorageRepo</text>
+    <line x1="70" y1="40" x2="70" y2="670" class="life-line" />
+  </g>
+  <g transform="translate(1080, 80)">
+    <rect width="90" height="40" class="part-box" />
+    <text x="45" y="24" class="c-name" font-size="12">MongoDB</text>
+    <line x1="45" y1="40" x2="45" y2="670" class="life-line" />
+  </g>
+
+  <!-- Step 1 -->
+  <line x1="110" y1="150" x2="310" y2="150" class="msg-line" />
+  <circle cx="210" cy="140" r="10" fill="#2563eb" />
+  <text x="210" y="140" class="step-badge">1</text>
+  <text x="210" y="130" class="msg-text" text-anchor="middle">POST /api/v1/packages/12/storage {location_id: null, mark_ready: true}</text>
+
+  <!-- Step 2 -->
+  <line x1="310" y1="180" x2="530" y2="180" class="msg-line" />
+  <circle cx="420" cy="170" r="10" fill="#2563eb" />
+  <text x="420" y="170" class="step-badge">2</text>
+  <text x="420" y="165" class="msg-text" text-anchor="middle">assign(pkg_id=12, staff, mark_ready=True)</text>
+
+  <!-- Step 3: Candidate Fetch & Rank -->
+  <line x1="530" y1="210" x2="980" y2="210" class="msg-line" />
+  <text x="750" y="200" class="msg-text" text-anchor="middle">storage.get_candidates()</text>
+  <line x1="980" y1="230" x2="530" y2="230" class="ret-line" />
+  <text x="750" y="222" class="ret-text" text-anchor="middle">Returns active shelves list[StorageCandidate]</text>
+
+  <line x1="530" y1="260" x2="765" y2="260" class="msg-line" stroke="#10b981" />
+  <circle cx="650" cy="250" r="10" fill="#10b981" />
+  <text x="650" y="250" class="step-badge">3</text>
+  <text x="650" y="245" class="msg-text" fill="#047857" text-anchor="middle">strategy.rank(candidates, package.size)</text>
+  <line x1="765" y1="280" x2="530" y2="280" class="ret-line" stroke="#10b981" />
+  <text x="650" y="272" class="ret-text" fill="#047857" text-anchor="middle">Sorted candidates (tightest fit, most free slots)</text>
+
+  <!-- Step 4: Atomic Reservation Loop -->
+  <rect x="480" y="310" width="670" height="170" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,4" rx="4" />
+  <text x="500" y="330" font-family="sans-serif" font-weight="700" font-size="11" fill="#15803d">[LOOP: Try Candidates in Order]</text>
+
+  <line x1="530" y1="360" x2="980" y2="360" class="msg-line" />
+  <circle cx="750" cy="350" r="10" fill="#2563eb" />
+  <text x="750" y="350" class="step-badge">4</text>
+  <text x="750" y="345" class="msg-text" text-anchor="middle">storage.try_reserve(candidate.id)</text>
+
+  <line x1="980" y1="390" x2="1125" y2="390" class="msg-line" />
+  <text x="1050" y="380" class="msg-text" text-anchor="middle">find_one_and_update()</text>
+
+  <rect x="750" y="405" width="370" height="40" class="note-box" />
+  <text x="760" y="420" class="note-text">Atomic condition: occupied_count &lt; capacity</text>
+  <text x="760" y="435" class="note-text">Update: $inc: {occupied_count: 1}</text>
+
+  <line x1="980" y1="460" x2="530" y2="460" class="ret-line" stroke="#16a34a" />
+  <text x="750" y="452" class="ret-text" fill="#16a34a" text-anchor="middle">Success: 1 row modified (Slot reserved!)</text>
+
+  <!-- Step 5: Transition & Ready -->
+  <line x1="530" y1="510" x2="530" y2="550" class="msg-line" />
+  <text x="545" y="530" class="msg-text">Transition status: VERIFIED -&gt; STORED -&gt; READY_FOR_PICKUP</text>
+
+  <!-- Return Response -->
+  <line x1="530" y1="580" x2="310" y2="580" class="ret-line" stroke="#16a34a" />
+  <text x="420" y="572" class="ret-text" fill="#16a34a" text-anchor="middle">Return updated package details</text>
+  <line x1="310" y1="610" x2="110" y2="610" class="ret-line" stroke="#16a34a" />
+  <circle cx="210" cy="600" r="10" fill="#16a34a" />
+  <text x="210" y="600" class="step-badge">5</text>
+  <text x="210" y="595" class="ret-text" fill="#16a34a" text-anchor="middle">200 OK {storage_location: "G2-A1", status: "READY_FOR_PICKUP"}</text>
+
+</svg>
