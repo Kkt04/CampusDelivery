@@ -38,7 +38,7 @@ export function SecurityDashboard() {
           <div className="flex items-center gap-3">
             <Link
               to="/security/register"
-              className="rounded-lg bg-primary-700 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-800 transition active:scale-95"
+              className="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-strong transition active:scale-95"
             >
               + {t("navRegisterPackage")}
             </Link>

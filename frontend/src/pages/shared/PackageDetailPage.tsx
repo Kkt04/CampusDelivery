@@ -161,7 +161,7 @@ function LearnerPanel({ pkg, onUpdated }: { pkg: Package; onUpdated: (p: Package
             </p>
             <Link
               to={`/learner/packages/${pkg.id}/pickup`}
-              className="inline-flex rounded-lg bg-primary-700 px-4 py-2 font-semibold text-white shadow-sm hover:bg-primary-800 transition"
+              className="inline-flex rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-bold text-black shadow-sm hover:bg-gray-50 hover:border-gray-400 transition active:scale-95"
             >
               {pkg.status === "PICKUP_REQUESTED" ? t("pkgNewCodeBtn") : t("pkgGetCodeBtn")}
             </Link>

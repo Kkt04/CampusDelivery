@@ -189,7 +189,7 @@ function ReadyCard({ pkg }: { pkg: Package }) {
       <div className="flex items-center gap-3">
         <Link
           to={`/learner/packages/${pkg.id}/pickup`}
-          className="rounded-lg bg-primary-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-800 transition"
+          className="rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-bold text-black shadow-sm hover:bg-gray-50 hover:border-gray-400 transition active:scale-95"
         >
           {t("pkgGetCodeBtn")}
         </Link>
