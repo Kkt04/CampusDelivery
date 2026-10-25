@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Delivery Management System — Capstone LLD Evaluation Deck</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-light: rgba(59, 130, 246, 0.15);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Top Control Bar */
+    header.deck-header {
+      height: 52px;
+      background: #090d16;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: #ef4444;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #fff;
+    }
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #f1f5f9;
+    }
+    .brand-badge {
+      font-size: 11px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .controls-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .timer-badge {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      background: #1e293b;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .timer-badge:hover { background: #334155; }
+    .btn {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      background: #334155;
+      border-color: #475569;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    .btn.active {
+      background: #3b82f6;
+      border-color: #60a5fa;
+      color: #fff;
+    }
+
+    /* Main Deck Layout */
+    .deck-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Slide Stage */
+    .slide-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-y: auto;
+      background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 75%);
+    }
+
+    .slide-card {
+      width: 100%;
+      max-width: 1200px;
+      min-height: 640px;
+      max-height: 90vh;
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .slide-card.active {
+      display: flex;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.985); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .slide-header {
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .slide-title-wrap h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .slide-title-wrap p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .slide-meta-badge {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      background: #1f2937;
+      color: #9ca3af;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      white-space: nowrap;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+    .slide-body.full-width {
+      grid-template-columns: 1fr;
+    }
+
+    /* Content components */
+    .content-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .bullet-card {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+    .bullet-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bullet-card ul {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .bullet-card li {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #e5e7eb;
+      position: relative;
+      padding-left: 18px;
+    }
+    .bullet-card li::before {
+      content: "•";
+      color: #38bdf8;
+      position: absolute;
+      left: 0;
+      font-size: 18px;
+      top: -2px;
+    }
+    .bullet-card li strong {
+      color: #f9fafb;
+    }
+
+    .code-box {
+      background: #090d16;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #38bdf8;
+      overflow-x: auto;
+    }
+
+    /* Diagram Pane */
+    .diagram-pane {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #090d16;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 12px;
+      position: relative;
+      cursor: zoom-in;
+      overflow: hidden;
+      min-height: 380px;
+    }
+    .diagram-pane img {
+      max-width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+    }
+    .diagram-pane:hover img {
+      transform: scale(1.02);
+    }
+    .diagram-hint {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid #374151;
+      font-size: 11px;
+      color: #9ca3af;
+      padding: 3px 8px;
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Viva Anchor Footer */
+    .slide-footer {
+      padding: 12px 28px;
+      background: #0d131f;
+      border-top: 1px solid #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .viva-anchor {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+    }
+    .viva-anchor strong {
+      color: #38bdf8;
+    }
+    .code-pill {
+      font-family: var(--font-mono);
+      background: #1e293b;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      font-size: 11px;
+    }
+
+    /* Speaker Notes Drawer */
+    .speaker-drawer {
+      width: 420px;
+      background: #090d16;
+      border-left: 1px solid var(--card-border);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: width 0.2s ease;
+    }
+    .speaker-drawer.open {
+      display: flex;
+    }
+    .drawer-header {
+      padding: 14px 18px;
+      background: #111827;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f3f4f6;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .drawer-body {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #d1d5db;
+    }
+    .script-quote {
+      background: #111827;
+      border-left: 3px solid #3b82f6;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+      font-style: normal;
+    }
+    .script-quote p {
+      margin-bottom: 10px;
+    }
+    .script-quote p:last-child {
+      margin-bottom: 0;
+    }
+    .viva-box {
+      background: #1e1b4b;
+      border: 1px solid #4338ca;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 14px;
+    }
+    .viva-box h5 {
+      color: #818cf8;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .viva-box p {
+      font-size: 12.5px;
+      color: #e0e7ff;
+    }
+
+    /* Bottom Navigator Bar */
+    footer.deck-footer {
+      height: 48px;
+      background: #090d16;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    .progress-bar-wrap {
+      flex: 1;
+      max-width: 400px;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4);
+      width: 6.25%;
+      transition: width 0.2s ease;
+    }
+
+    /* Modal for Diagram Full Zoom */
+    .zoom-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      cursor: zoom-out;
+    }
+    .zoom-modal.active {
+      display: flex;
+    }
+    .zoom-modal img {
+      max-width: 95vw;
+      max-height: 92vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    }
+    .zoom-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: #1f2937;
+      color: #fff;
+      border: 1px solid #374151;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* Thumbnails drawer */
+    .thumbnails-drawer {
+      display: none;
+      position: fixed;
+      bottom: 48px;
+      left: 0;
+      right: 0;
+      height: 140px;
+      background: #090d16;
+      border-top: 1px solid var(--card-border);
+      z-index: 90;
+      overflow-x: auto;
+      padding: 12px 20px;
+      gap: 12px;
+    }
+    .thumbnails-drawer.open {
+      display: flex;
+    }
+    .thumb-item {
+      width: 150px;
+      height: 105px;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    .thumb-item:hover {
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+    }
+    .thumb-item.active {
+      border-color: #38bdf8;
+      background: #1e3a8a;
+    }
+    .thumb-num {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: #94a3b8;
+    }
+    .thumb-title {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.3;
+    }
+
+    /* Print styles for saving clean PDF */
+    @media print {
+      header.deck-header, footer.deck-footer, .speaker-drawer, .thumbnails-drawer, .zoom-modal {
+        display: none !important;
+      }
+      body {
+        height: auto;
+        overflow: visible;
+        background: #fff;
+        color: #000;
+      }
+      .slide-stage {
+        padding: 0;
+        background: #fff;
+        display: block;
+      }
+      .slide-card {
+        display: flex !important;
+        page-break-after: always;
+        break-after: page;
+        min-height: 100vh;
+        max-height: none;
+        box-shadow: none;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        background: #fff;
+        color: #000;
+      }
+      .slide-header {
+        background: #f8fafc;
+        border-bottom: 2px solid #000;
+      }
+      .slide-title-wrap h2 { color: #000; }
+      .bullet-card {
+        background: #f8fafc;
+        border: 1px solid #ccc;
+      }
+      .bullet-card li { color: #333; }
+      .bullet-card h4 { color: #0284c7; }
+      .diagram-pane {
+        background: #fff;
+        border: 1px solid #ccc;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Control Bar -->
+  <header class="deck-header">
+    <div class="brand-section">
+      <div class="brand-logo">CD</div>
+      <span class="brand-title">Campus Delivery (Gate No. 2)</span>
+      <span class="brand-badge">Capstone LLD Evaluation</span>
+    </div>
+
+    <div class="controls-section">
+      <div class="timer-badge" id="timerBadge" title="Click to Start / Pause timer">
+        <span>⏱️</span>
+        <span id="timerText">00:00</span>
+        <span style="font-size:10px; color:#64748b;">/ 12:00</span>
+      </div>
+      <button class="btn" id="btnThumbnails" title="View all slide thumbnails">📑 Slides</button>
+      <button class="btn active" id="btnNotes" title="Toggle speaker notes [S]">🎙️ Speaker Notes [S]</button>
+      <button class="btn" id="btnFullscreen" title="Toggle Fullscreen [F]">⛶ Fullscreen</button>
+    </div>
+  </header>
+
+  <!-- Deck Workspace -->
+  <div class="deck-container">
+    <main class="slide-stage" id="slideStage">
+
+      <!-- SLIDE 1: Title -->
+      <section class="slide-card active" data-slide="1">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>📦 Campus Delivery Management System (CDMS)</h2>
+            <p>Gate No. 2 High-Concurrency Parcel Custody & Verification Architecture</p>
+          </div>
+          <div class="slide-meta-badge">Slide 01 / 16 • 0:30</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Evaluation Credentials</h4>
+              <ul>
+                <li><strong>Capstone Project</strong>: System Design & System Development (LLD Evaluation)</li>
+                <li><strong>Evaluation Date</strong>: First Week of November 2026</li>
+                <li><strong>Team</strong>: Kalash Kumari Thakur & Team</li>
+                <li><strong>Repository</strong>: <code>https://github.com/Kkt04/CampusDelivery</code></li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Core Engineering Highlights</h4>
+              <ul>
+                <li><strong>Zero-Loss Handover</strong>: 4-layer defence-in-depth against duplicate collection.</li>
+                <li><strong>Atomic CAS Concurrency</strong>: Race-free storage allocation and single-use pickup token redemption.</li>
+                <li><strong>81 Automated Tests</strong>: Unit, integration, and concurrency race suites with 100% pass rate.</li>
+                <li><strong>Accessibility & Localization</strong>: 100% Hindi/English bilingual UI across 3 dashboards.</li>
+              </ul>
+            </div>
+            <div class="code-box">
+FastAPI (Python 3.12) | PyMongo | React 18 | Vite | Tailwind CSS
+81 Tests Passing (pytest) | HMAC-SHA256 Token Auth | Atomic CAS
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/11_component_architecture_diagram.png')">
+            <img src="../diagrams/11_component_architecture_diagram.png" alt="Architecture Overview">
+            <span class="diagram-hint">🔍 Click to zoom architecture</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Main Application Entry:</strong> <span class="code-pill">backend/app/main.py:1-60</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: Operational Challenges -->
+      <section class="slide-card" data-slide="2">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>⚠️ Problem Statement: Gate No. 2 Operational Chaos</h2>
+            <p>The operational gap between courier truck drop-offs and verified student collection</p>
+          </div>
+          <div class="slide-meta-badge">Slide 02 / 16 • 1:00</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>The Gate No. 2 Bottleneck</h4>
+              <ul>
+                <li><strong>400+ Daily Shipments</strong>: Arriving erratically from Amazon, Flipkart, BlueDart, DTDC, and India Post.</li>
+                <li><strong>Manual Paper Registers</strong>: Prone to illegible handwriting, lost pages, and zero instant queryability.</li>
+                <li><strong>Identity Impersonation</strong>: Lack of cryptographic authentication allows unauthorized collections.</li>
+                <li><strong>Storage Shelf Overflow</strong>: Random placement leads to damaged packages and long search queues.</li>
+                <li><strong>Overdue Parcel Stagnation</strong>: No automated alerts when packages remain uncollected for days.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>CDMS Digital Transformation</h4>
+              <ul>
+                <li><strong>Immutable Custody Chain</strong>: Every status transition digitally signed and logged.</li>
+                <li><strong>Single-Use Cryptographic Tokens</strong>: 6-digit salted HMAC codes with 30-min TTL.</li>
+                <li><strong>Automated 3-Day Overdue Audit</strong>: Automated daily student notifications and metric increments.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/01_use_case_diagram.png')">
+            <img src="../diagrams/01_use_case_diagram.png" alt="Operational Use Cases">
+            <span class="diagram-hint">🔍 Click to zoom use cases</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Requirements Specification:</strong> <span class="code-pill">docs/01-requirements.md</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: System Architecture -->
+      <section class="slide-card" data-slide="3">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🏗️ End-to-End System Architecture (Layered Monolith)</h2>
+            <p>Clean / Onion Architecture with strict boundary enforcement</p>
+          </div>
+          <div class="slide-meta-badge">Slide 03 / 16 • 1:15</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Clean Layered Separation</h4>
+              <ul>
+                <li><strong>1. Presentation Layer</strong>: React 18, Vite, Tailwind CSS, Lucide icons, Bilingual i18n context.</li>
+                <li><strong>2. API & Presenter Layer</strong>: FastAPI REST routes, OAuth2 JWT bearer auth, Pydantic v2 DTOs, Role-Aware Presenters.</li>
+                <li><strong>3. Application Services</strong>: <code>PackageIntakeService</code>, <code>StorageAllocationService</code>, <code>PickupService</code>, <code>PackageTransitioner</code>.</li>
+                <li><strong>4. Pure Domain Core</strong>: Finite State Machine, Strategy algorithms, Pickup token rules, In-process <code>EventBus</code> (0 framework dependencies).</li>
+                <li><strong>5. Persistence Layer</strong>: Unit of Work, PyMongo repositories with atomic CAS queries.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Architectural Justification: Why Not Microservices?</h4>
+              <ul>
+                <li>Avoids distributed transaction overhead (no 2-phase commit or complex Sagas needed).</li>
+                <li>Provides sub-15ms p95 latency on single server instances.</li>
+                <li>Maintains strict domain boundaries ready for future microservice extraction if campus scales to 50+ gates.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/11_component_architecture_diagram.png')">
+            <img src="../diagrams/11_component_architecture_diagram.png" alt="Component Architecture">
+            <span class="diagram-hint">🔍 Click to zoom architecture</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Composition Root:</strong> <span class="code-pill">backend/app/container.py:1-46</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: Criterion 1: Requirement Analysis -->
+      <section class="slide-card" data-slide="4">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🎯 Criterion 1: Requirement Analysis (FRs, NFRs & Actors)</h2>
+            <p>Role-Based Access Control & Functional Boundaries</p>
+          </div>
+          <div class="slide-meta-badge">Slide 04 / 16 • 1:00</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Three Enforced Human Actors</h4>
+              <ul>
+                <li><strong>Security Staff (<code>SECURITY_STAFF</code>)</strong>: Ingest shipments, verify recipient identity, allocate shelves, verify pickup tokens, execute physical handover.</li>
+                <li><strong>Learners (<code>LEARNER</code>)</strong>: Track packages, receive arrival alerts, generate single-use 6-digit pickup tokens, report package issues.</li>
+                <li><strong>Operations Admins (<code>OPERATIONS_ADMIN</code>)</strong>: Supervise facility bin utilization, resolve damaged/unidentified parcels, review audit logs.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Functional & Non-Functional Matrix</h4>
+              <ul>
+                <li><strong>FR-1 to FR-6</strong>: Rapid barcode intake, size-aware bin allocation, multi-channel notifications, cryptographic tokens, atomic handover, dispute management.</li>
+                <li><strong>NFR-1 (Atomicity)</strong>: Zero double-delivery, zero shelf overfills under concurrency.</li>
+                <li><strong>NFR-2 (Security)</strong>: Data isolation (learners only see their own packages); salted HMAC tokens.</li>
+                <li><strong>NFR-3 (Idempotency)</strong>: Safe retries on all mutations via <code>Idempotency-Key</code>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/01_use_case_diagram.png')">
+            <img src="../diagrams/01_use_case_diagram.png" alt="Use Case Diagram">
+            <span class="diagram-hint">🔍 Click to zoom use cases</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Role Matrix & Permissions:</strong> <span class="code-pill">backend/app/domain/permissions.py:15-45</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: Criterion 2: Class Diagram & Domain Entities -->
+      <section class="slide-card" data-slide="5">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>📐 Criterion 2: Class Diagram & Domain Entities</h2>
+            <p>Rich Document Entity Hierarchy & Strict Multiplicities</p>
+          </div>
+          <div class="slide-meta-badge">Slide 05 / 16 • 1:15</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>10 Core Entities Derived from <code>Document</code></h4>
+              <ul>
+                <li><strong>Base Model</strong>: <code>Document</code> (<code>id: int</code>, <code>created_at</code>, <code>updated_at</code>, <code>to_doc()</code>, <code>from_doc()</code>).</li>
+                <li><strong><code>User</code></strong>: <code>institutional_id</code>, <code>email</code>, <code>role</code>, <code>hashed_password</code>.</li>
+                <li><strong><code>StorageLocation</code></strong>: <code>code</code>, <code>capacity</code>, <code>occupied_count</code>, <code>max_package_size</code>.</li>
+                <li><strong><code>Package</code></strong>: <code>tracking_id</code>, <code>recipient_id</code>, <code>storage_location_id</code>, <code>status</code>.</li>
+                <li><strong><code>PickupToken</code></strong>: <code>code_hash</code>, <code>salt</code>, <code>expires_at</code>, <code>used_at</code>, <code>failed_attempts</code>.</li>
+                <li><strong><code>PickupRecord</code></strong>: Immutable handover record (<code>package_id</code>, <code>token_id</code>, <code>collected_at</code>).</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Guaranteed Domain Multiplicities</h4>
+              <ul>
+                <li><code>User (1) ── (0..*) Package</code>: Student owns zero or many packages.</li>
+                <li><code>Package (0..1) ── (0..1) StorageLocation</code>: Package on at most 1 shelf; <code>occupied_count &le; capacity</code>.</li>
+                <li><code>Package (1) ── (0..*) PickupToken</code>: At most <strong>one active token</strong> at any time.</li>
+                <li><code>Package (1) ── (0..1) PickupRecord</code>: Exactly one handover proof (<code>UNIQUE(package_id)</code>).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/02_class_diagram_domain_entities.png')">
+            <img src="../diagrams/02_class_diagram_domain_entities.png" alt="Domain Entities Class Diagram">
+            <span class="diagram-hint">🔍 Click to zoom domain entities</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Entity Definitions:</strong> <span class="code-pill">backend/app/infrastructure/models.py:32-200</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: Criterion 3: Object-Oriented Design -->
+      <section class="slide-card" data-slide="6">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🧩 Criterion 3: Object-Oriented Design (4 Pillars in Action)</h2>
+            <p>Abstraction, Encapsulation, Inheritance, and Polymorphism in Python</p>
+          </div>
+          <div class="slide-meta-badge">Slide 06 / 16 • 1:15</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>1. Abstraction (Protocols)</h4>
+              <ul>
+                <li><code>StorageAllocationStrategy</code> protocol declares only <code>rank()</code>.</li>
+                <li><code>NotificationChannel</code> protocol declares only <code>send()</code>.</li>
+                <li>Services depend purely on protocols, completely decoupled from concrete drivers.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>2. Encapsulation</h4>
+              <ul>
+                <li><code>StorageCandidate.accepts(size)</code> encapsulates shelf dimension ranking and capacity limits. External callers cannot bypass these rules.</li>
+                <li><code>PackageTransitioner.apply()</code> encapsulates state change, history persistence, audit logging, and event dispatch into an atomic routine.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>3. Inheritance & 4. Polymorphism</h4>
+              <ul>
+                <li><strong>Inheritance</strong>: 10 document models inherit from <code>Document</code>; custom exceptions inherit from <code>AppException</code>.</li>
+                <li><strong>Polymorphism</strong>: <code>SuitableSizeStrategy</code> and <code>FirstAvailableStrategy</code> satisfy <code>StorageAllocationStrategy</code> polymorphically at runtime.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/03_class_diagram_services_and_architecture.png')">
+            <img src="../diagrams/03_class_diagram_services_and_architecture.png" alt="Services Architecture">
+            <span class="diagram-hint">🔍 Click to zoom services UML</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Protocols:</strong> <span class="code-pill">backend/app/domain/interfaces.py:16-37</span> | <strong>Strategies:</strong> <span class="code-pill">backend/app/domain/allocation.py:31-51</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: Criterion 4: SOLID Principles -->
+      <section class="slide-card" data-slide="7">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>💎 Criterion 4: SOLID Principles Mapped to Code</h2>
+            <p>Clean architectural proof for each of the 5 SOLID design tenets</p>
+          </div>
+          <div class="slide-meta-badge">Slide 07 / 16 • 1:30</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>The 5 Principles in CDMS</h4>
+              <ul>
+                <li><strong>S (Single Responsibility)</strong>: Dedicated services: <code>PackageIntakeService</code> (intake), <code>StorageAllocationService</code> (shelving), <code>PickupService</code> (token/handover), <code>AuditService</code> (audit).</li>
+                <li><strong>O (Open/Closed)</strong>: New allocation strategies or notification channels are added via registration in <code>container.py</code> without editing existing service logic.</li>
+                <li><strong>L (Liskov Substitution)</strong>: <code>SuitableSizeStrategy</code> and <code>FirstAvailableStrategy</code> are fully interchangeable; both honor the same contract without side effects.</li>
+                <li><strong>I (Interface Segregation)</strong>: Micro-protocols (<code>StorageAllocationStrategy</code> has only 1 method: <code>rank</code>; <code>NotificationChannel</code> has only <code>send</code>).</li>
+                <li><strong>D (Dependency Inversion)</strong>: High-level services receive abstract protocols via constructors; choices wired in Composition Root (<code>container.py</code>).</li>
+              </ul>
+            </div>
+            <div class="code-box">
+# services/storage_allocation.py - Dependency Inversion in action
+class StorageAllocationService:
+    def __init__(self, uow: UnitOfWork, strategy: StorageAllocationStrategy) -> None:
+        self._uow = uow
+        self._strategy = strategy  # Depends on abstraction, not concrete class!
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/13_design_patterns_diagram.png')">
+            <img src="../diagrams/13_design_patterns_diagram.png" alt="SOLID & Design Patterns">
+            <span class="diagram-hint">🔍 Click to zoom patterns</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Composition Root:</strong> <span class="code-pill">backend/app/container.py:17-46</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 8: Criterion 5: Design Patterns & Justifications -->
+      <section class="slide-card" data-slide="8">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🎨 Criterion 5: Design Patterns & Architectural Justifications</h2>
+            <p>State, Strategy, Observer, Repository, Unit of Work, and Factory</p>
+          </div>
+          <div class="slide-meta-badge">Slide 08 / 16 • 1:30</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>1. State Pattern (Table-Driven FSM)</h4>
+              <ul>
+                <li><strong>Where</strong>: <code>domain/state_machine.py:50-125</code> (12 statuses, 19 valid edges).</li>
+                <li><strong>Justification</strong>: Eliminates spaghetti <code>if/elif</code> chains; avoids 12 empty GoF classes while providing an easily auditable transition table.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>2. Strategy Pattern</h4>
+              <ul>
+                <li><strong>Where</strong>: <code>SuitableSizeStrategy</code> & <code>FirstAvailableStrategy</code> in <code>domain/allocation.py</code>.</li>
+                <li><strong>Justification</strong>: Decouples bin ranking algorithms from the database reservation loop.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>3. Observer Pattern & Unit of Work</h4>
+              <ul>
+                <li><strong>Observer</strong>: In-process <code>EventBus</code> publishes <code>PackageStatusChanged</code>. Isolates notification failures from database commits.</li>
+                <li><strong>Unit of Work</strong>: Coordinates transactions across multiple Mongo repositories.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/10_state_machine_diagram.png')">
+            <img src="../diagrams/10_state_machine_diagram.png" alt="State Machine Diagram">
+            <span class="diagram-hint">🔍 Click to zoom state machine</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>FSM Table:</strong> <span class="code-pill">backend/app/domain/state_machine.py:63-125</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 9: Criterion 6: Sequence & Activity Diagrams -->
+      <section class="slide-card" data-slide="9">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🔄 Criterion 6: Sequence & Activity Diagrams (Key Use Cases)</h2>
+            <p>Intake, Token Issuance, and Concurrency-Safe Handover</p>
+          </div>
+          <div class="slide-meta-badge">Slide 09 / 16 • 1:30</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Handover Sequence Message Flow</h4>
+              <ul>
+                <li><strong>1. Identification</strong>: Student gives ID and 6-digit code to Guard at Gate No. 2.</li>
+                <li><strong>2. Verification</strong>: <code>PickupService</code> verifies recipient, expiry, and matches HMAC-SHA256 salt hash.</li>
+                <li><strong>3. Atomic Token CAS</strong>: <code>mark_used()</code> executes <code>find_one_and_update</code> on <code>used_at: None</code>. Exactly 1 concurrent request can win!</li>
+                <li><strong>4. State Machine Transition</strong>: Moves to <code>COLLECTED</code>; releases shelf slot.</li>
+                <li><strong>5. Handover Proof</strong>: Writes immutable <code>PickupRecord</code> (<code>UNIQUE(package_id)</code>).</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Activity Alternate Flows</h4>
+              <ul>
+                <li>Expired Token (&gt;30 min) &rarr; Rejection with <code>PICKUP_CODE_EXPIRED</code>.</li>
+                <li>3 Failed Attempts &rarr; Token permanently locked (<code>PICKUP_CODE_LOCKED</code>).</li>
+                <li>Damaged on arrival &rarr; Diverts to <code>DAMAGED</code> holding state & opens incident.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/07_sequence_pickup_handover_concurrency.png')">
+            <img src="../diagrams/07_sequence_pickup_handover_concurrency.png" alt="Sequence Diagram: Handover Concurrency">
+            <span class="diagram-hint">🔍 Click to zoom handover sequence</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Handover Code:</strong> <span class="code-pill">backend/app/services/pickup.py:81-105</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: Criterion 7: API & Interface Design -->
+      <section class="slide-card" data-slide="10">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🌐 Criterion 7: API & Interface Design (RESTful Clean Architecture)</h2>
+            <p>Pydantic v2 DTOs, Role-Aware Presenters, and Idempotency</p>
+          </div>
+          <div class="slide-meta-badge">Slide 10 / 16 • 1:00</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>RESTful Resource Hierarchy</h4>
+              <ul>
+                <li><code>/api/v1/auth</code>: JWT Login, Profile, Learner self-registration.</li>
+                <li><code>/api/v1/packages</code>: Ingest, Search, Reassign storage, Lifecycle.</li>
+                <li><code>/api/v1/pickups</code>: Request token, Verify code, Complete handover.</li>
+                <li><code>/api/v1/storage</code>: Shelves, Bin capacities, Occupancy metrics.</li>
+                <li><code>/api/v1/incidents</code>: Damage reports, Follow-up comments, Admin resolve.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Interface Defenses</h4>
+              <ul>
+                <li><strong>Role-Aware Presenters</strong>: <code>presenters.py</code> hides internal guard notes and staff IDs when viewed by learners.</li>
+                <li><strong>RFC 7807 Problem Details</strong>: Standardized error payloads (<code>code</code>, <code>message</code>, <code>detail</code>).</li>
+                <li><strong>Network Idempotency</strong>: Safe retries on write requests via client <code>Idempotency-Key</code> and SHA-256 fingerprinting.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/06_sequence_pickup_request_and_token.png')">
+            <img src="../diagrams/06_sequence_pickup_request_and_token.png" alt="API Sequence Flow">
+            <span class="diagram-hint">🔍 Click to zoom API token flow</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Role Masking:</strong> <span class="code-pill">backend/app/api/presenters.py:25-65</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: Criterion 8: Database Schema & Concurrency -->
+      <section class="slide-card" data-slide="11">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🗄️ Criterion 8: Database Schema, Indexing & Concurrency Control</h2>
+            <p>10 Collections, Compound Indexes, and Atomic CAS Operations</p>
+          </div>
+          <div class="slide-meta-badge">Slide 11 / 16 • 1:15</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Database-Level Unique Constraints</h4>
+              <ul>
+                <li><code>users.institutional_id</code> & <code>users.email</code> (Unique).</li>
+                <li><code>packages.tracking_id</code> & <code>packages.internal_code</code> (Unique).</li>
+                <li><code>pickup_records.package_id</code> (Unique &rarr; Physically guarantees zero double collections).</li>
+                <li><code>idempotency_keys(user_id, scope, key)</code> (Unique).</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Atomic Compare-And-Swap (CAS) in Action</h4>
+              <ul>
+                <li><strong>Shelf Reservation</strong>: <code>find_one_and_update({"_id": id, "is_active": True, "$expr": {"$lt": ["$occupied_count", "$capacity"]}}, {"$inc": {"occupied_count": 1}})</code></li>
+                <li><strong>Token Redemption</strong>: <code>find_one_and_update({"_id": id, "used_at": None, "revoked_at": None}, {"$set": {"used_at": now}})</code></li>
+                <li><strong>Outcome</strong>: Guaranteed race-free execution without distributed locks.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/12_database_er_schema_diagram.png')">
+            <img src="../diagrams/12_database_er_schema_diagram.png" alt="Database ER Diagram">
+            <span class="diagram-hint">🔍 Click to zoom ER schema</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>CAS Reservation:</strong> <span class="code-pill">backend/app/repositories/mongo_repos.py:338-347</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 12: Criterion 9: Error Handling & 20 Edge Cases -->
+      <section class="slide-card" data-slide="12">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🛡️ Criterion 9: Error Handling, Validation & 20 Edge Cases</h2>
+            <p>Defensive Programming, Brute-Force Lockout, and Automated Overdue Tracking</p>
+          </div>
+          <div class="slide-meta-badge">Slide 12 / 16 • 1:15</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Real-World Edge Cases Defended</h4>
+              <ul>
+                <li><strong>Double Handover Race</strong>: Blocked by atomic token CAS & unique <code>pickup_records</code> index.</li>
+                <li><strong>Shelf Overbooking</strong>: Atomic <code>occupied_count &lt; capacity</code> check prevents overfills.</li>
+                <li><strong>Brute Force Code Guessing</strong>: 3 failed attempts lock token; IP sliding window rate limit.</li>
+                <li><strong>Salted HMAC Hash</strong>: Zero plaintext tokens in database; immune to database leak.</li>
+                <li><strong>Token Expiry</strong>: Strict 30-minute validity enforced.</li>
+                <li><strong>Damaged on Arrival</strong>: Held in <code>DAMAGED</code> state; incident ticket opened.</li>
+                <li><strong>Unidentified Recipient</strong>: Stored in holding queue until claimed with tracking ID.</li>
+                <li><strong>Automated 3-Day Overdue</strong>: Daily notifications sent; <code>awaiting_storage</code> stat incremented.</li>
+              </ul>
+            </div>
+            <div class="code-box">
+# domain/pickup_rules.py - Token Usability Guard
+if token.failed_attempts >= 3:
+    return "PICKUP_CODE_LOCKED", "Too many incorrect attempts. Please generate a new code."
+if token.expires_at < now:
+    return "PICKUP_CODE_EXPIRED", "This pickup code has expired."
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/09_activity_concurrency_storage_handover.png')">
+            <img src="../diagrams/09_activity_concurrency_storage_handover.png" alt="Activity Concurrency Diagram">
+            <span class="diagram-hint">🔍 Click to zoom activity flow</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Pickup Rules:</strong> <span class="code-pill">backend/app/domain/pickup_rules.py:25-65</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 13: Criterion 10: Working Implementation & Tech Stack -->
+      <section class="slide-card" data-slide="13">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>💻 Criterion 10: Working Implementation & Testing Rigor</h2>
+            <p>81 Automated Pytest Suites & Full Bilingual React Application</p>
+          </div>
+          <div class="slide-meta-badge">Slide 13 / 16 • 1:00</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Technology Stack & Tooling</h4>
+              <ul>
+                <li><strong>Backend</strong>: Python 3.12, FastAPI, PyMongo, Pydantic v2, Pytest, Jose (JWT), Passlib (Bcrypt).</li>
+                <li><strong>Frontend</strong>: React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons, Context State.</li>
+                <li><strong>Accessibility</strong>: 100% Hindi/English Bilingual Localization toggle across all pages.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>81 Automated Tests (100% Pass Rate)</h4>
+              <ul>
+                <li><code>test_allocation.py</code> (5 unit tests): Strategy ranking, size filtering.</li>
+                <li><code>test_rules.py</code> (14 unit tests): Token state, permissions, HMAC verification.</li>
+                <li><code>test_state_machine.py</code> (10 unit tests): FSM graph completeness, guards.</li>
+                <li><code>test_auth_and_access.py</code> (15 API tests): RBAC, JWT, rate limiting.</li>
+                <li><code>test_intake_and_storage.py</code> (12 API tests): Barcode intake, shelf allocation.</li>
+                <li><code>test_pickup.py</code> (11 API tests): Handover, concurrent double-pickup rejection.</li>
+                <li><code>test_reliability.py</code> (9 API tests): Incident escalation, overdue audit.</li>
+                <li><code>test_returns.py</code> (5 API tests): Return to courier workflows.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/08_activity_package_lifecycle.png')">
+            <img src="../diagrams/08_activity_package_lifecycle.png" alt="Lifecycle Activity Flow">
+            <span class="diagram-hint">🔍 Click to zoom lifecycle activity</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Test Suite:</strong> <span class="code-pill">backend/tests/</span> (81 tests passing in 0.02s unit / 2.5s suite)
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 14: Live Demo Flow -->
+      <section class="slide-card" data-slide="14">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🎬 5-Minute Live System Evaluation Demonstration</h2>
+            <p>End-to-End Walkthrough Across Dual Guard & Student Browser Windows</p>
+          </div>
+          <div class="slide-meta-badge">Slide 14 / 16 • 5:00</div>
+        </div>
+        <div class="slide-body full-width">
+          <div class="content-pane" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="bullet-card">
+              <h4>Step 1: Courier Intake & Auto-Allocation</h4>
+              <ul>
+                <li>Guard scans incoming Amazon shipment <code>AMZ-998811</code>.</li>
+                <li>System matches student <strong>Ananya Iyer</strong> (ID: <code>2024CS0142</code>).</li>
+                <li><code>SuitableSizeStrategy</code> auto-allocates optimal shelf slot <code>G2-A1</code>.</li>
+                <li>Package status transitions to <code>STORED</code> &rarr; <code>READY_FOR_PICKUP</code>.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Step 2: Learner Notification & Token Request</h4>
+              <ul>
+                <li>Learner dashboard displays real-time package arrival card.</li>
+                <li>Learner clicks <strong>[Get Pickup Code]</strong>.</li>
+                <li>System generates 6-digit code with live 30-minute countdown.</li>
+                <li>Salted HMAC-SHA256 hash stored; plaintext sent to browser only.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Step 3: Atomic Handover at Gate No. 2</h4>
+              <ul>
+                <li>Guard inputs student ID and 6-digit code.</li>
+                <li>System executes atomic CAS: marks token used & status <code>COLLECTED</code>.</li>
+                <li>Shelf capacity automatically released; immutable <code>PickupRecord</code> saved.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Step 4: Concurrency Attack Simulation</h4>
+              <ul>
+                <li>Guard re-submits identical code in second tab.</li>
+                <li>System rejects immediately with <strong>HTTP 409 Conflict</strong>: <em>"This package has already been collected."</em></li>
+                <li>Demonstrates absolute immunity to double-handover fraud.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Live UI Pages:</strong> <span class="code-pill">frontend/src/pages/security/SecurityDashboard.tsx</span> & <span class="code-pill">LearnerDashboard.tsx</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 15: Limitations & Roadmap -->
+      <section class="slide-card" data-slide="15">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🚀 Limitations, Scalability & Production Roadmap</h2>
+            <p>Architectural Trade-offs & Future Multi-Campus Evolution</p>
+          </div>
+          <div class="slide-meta-badge">Slide 15 / 16 • 0:45</div>
+        </div>
+        <div class="slide-body">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Current Milestone 1 Boundaries</h4>
+              <ul>
+                <li><strong>Single-Node MongoDB</strong>: Designed for single-campus gate (~5,000 students, 400 pkgs/day).</li>
+                <li><strong>In-Process EventBus</strong>: Synchronous notification dispatch post-commit.</li>
+                <li><strong>Console Mock Channels</strong>: Mocked SMS/WhatsApp channels for local development.</li>
+              </ul>
+            </div>
+            <div class="bullet-card">
+              <h4>Production Roadmap (Milestone 2 & Beyond)</h4>
+              <ul>
+                <li><strong>Multi-Gate Sharding</strong>: Shard MongoDB collections by <code>campus_id</code> and <code>gate_id</code>.</li>
+                <li><strong>Transactional Outbox & Kafka</strong>: Guaranteed at-least-once event streaming even during third-party SMS gateway outages.</li>
+                <li><strong>AI Barcode OCR Camera</strong>: Hardware camera integration at Gate No. 2 for 2-second touchless intake scanning.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="diagram-pane" onclick="openZoom('../diagrams/11_component_architecture_diagram.png')">
+            <img src="../diagrams/11_component_architecture_diagram.png" alt="Architecture Roadmap">
+            <span class="diagram-hint">🔍 Click to zoom architecture</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Limitations Document:</strong> <span class="code-pill">docs/10-limitations.md</span>
+          </div>
+          <div class="slide-meta-badge">Next: Space / [→]</div>
+        </div>
+      </section>
+
+      <!-- SLIDE 16: Conclusion & Viva Matrix -->
+      <section class="slide-card" data-slide="16">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <h2>🏆 Conclusion & Master Viva Defense Reference Card</h2>
+            <p>10/10 LLD Evaluation Criteria Satisfied with Zero Concurrency Flaws</p>
+          </div>
+          <div class="slide-meta-badge">Slide 16 / 16 • 0:30</div>
+        </div>
+        <div class="slide-body full-width">
+          <div class="content-pane">
+            <div class="bullet-card">
+              <h4>Master Viva Quick-Lookup Card</h4>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px;">
+                <div style="background:#111827; padding:10px; border-radius:6px; border:1px solid #374151;">
+                  <strong style="color:#38bdf8; font-size:12px;">1. State Machine Table</strong><br>
+                  <span class="code-pill">domain/state_machine.py:63</span>
+                </div>
+                <div style="background:#111827; padding:10px; border-radius:6px; border:1px solid #374151;">
+                  <strong style="color:#38bdf8; font-size:12px;">2. Strategy Pattern</strong><br>
+                  <span class="code-pill">domain/allocation.py:31</span>
+                </div>
+                <div style="background:#111827; padding:10px; border-radius:6px; border:1px solid #374151;">
+                  <strong style="color:#38bdf8; font-size:12px;">3. Atomic Storage CAS</strong><br>
+                  <span class="code-pill">repositories/mongo_repos.py:338</span>
+                </div>
+                <div style="background:#111827; padding:10px; border-radius:6px; border:1px solid #374151;">
+                  <strong style="color:#38bdf8; font-size:12px;">4. Atomic Token CAS</strong><br>
+                  <span class="code-pill">repositories/mongo_repos.py:384</span>
+                </div>
+                <div style="background:#111827; padding:10px; border-radius:6px; border:1px solid #374151;">
+                  <strong style="color:#38bdf8; font-size:12px;">5. Anti-Double Handover</strong><br>
+                  <span class="code-pill">services/pickup.py:81</span>
+                </div>
+                <div style="background:#111827; padding:10px; border-radius:6px; border:1px solid #374151;">
+                  <strong style="color:#38bdf8; font-size:12px;">6. Composition Root (DIP)</strong><br>
+                  <span class="code-pill">container.py:30</span>
+                </div>
+              </div>
+            </div>
+            <div class="bullet-card">
+              <h4>Engineering Summary</h4>
+              <ul>
+                <li>Delivered a robust, high-concurrency, zero-loss parcel custody system for university campus Gate No. 2.</li>
+                <li>Fully tested with 81 automated tests and real-world edge case defenses.</li>
+                <li>Thank you, respected evaluators. We are ready for your questions and code inspection!</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="viva-anchor">
+            <span>Anchor:</span> <strong>Master Defense Guide:</strong> <span class="code-pill">docs/15-capstone-presentation-deck.md</span>
+          </div>
+          <div class="slide-meta-badge">Thank You / Q&A</div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Speaker Notes Drawer -->
+    <aside class="speaker-drawer open" id="speakerDrawer">
+      <div class="drawer-header">
+        <span class="drawer-title">🎙️ Speaker Script (Verbatim)</span>
+        <span class="code-pill" id="notesSlideIndicator">Slide 1 / 16</span>
+      </div>
+      <div class="drawer-body" id="drawerBody">
+        <!-- Injected via JavaScript based on active slide -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- Thumbnails Drawer -->
+  <div class="thumbnails-drawer" id="thumbnailsDrawer">
+    <!-- Injected via JavaScript -->
+  </div>
+
+  <!-- Bottom Navigator Bar -->
+  <footer class="deck-footer">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="btn" id="btnPrev" title="Previous slide [←]">&#9664; Prev</button>
+      <button class="btn btn-primary" id="btnNext" title="Next slide [→] / [Space]">Next &#9654;</button>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-muted);">
+      <span id="slideCounter">Slide 1 of 16</span>
+      <span style="color:#475569;">|</span>
+      <span>Press <strong>[←] [→]</strong> or <strong>[Space]</strong> to navigate</span>
+    </div>
+  </footer>
+
+  <!-- Modal for Diagram Full Zoom -->
+  <div class="zoom-modal" id="zoomModal" onclick="closeZoom()">
+    <button class="zoom-close-btn" onclick="closeZoom()">✕ Close Zoom</button>
+    <img id="zoomImg" src="" alt="Zoomed Diagram">
+  </div>
+
+  <script>
+    // --- Slide Meta and Scripts ---
+    const SLIDES_COUNT = 16;
+    let currentSlide = 1;
+
+    const SCRIPTS = {
+      1: {
+        title: "Slide 1: Title & Project Overview",
+        time: "0:30",
+        quote: `<p>"Good morning, respected members of the evaluation committee. Today, we are proud to present our final year capstone project: the <strong>Campus Delivery Management System (CDMS)</strong>, engineered specifically to solve the high-volume parcel custody and delivery challenges at campus Gate No. 2.</p>
+        <p>In university campuses, parcel management is plagued by manual logbooks, misplacement, long student queues, and a complete absence of cryptographic proof of delivery. Our system transforms this chaotic bottleneck into an automated, enterprise-grade, role-governed platform.</p>
+        <p>Over the course of this presentation, we will walk you through our complete Low-Level Design, rigorously demonstrating how our codebase adheres to all 10 evaluation criteria—from requirement analysis, class modeling, and OOP pillars, to SOLID principles, design patterns, concurrency-safe database indexing, and 81 automated tests."</p>`,
+        vivaQ: "Why did you build this system?",
+        vivaA: "To eliminate the daily chaos at Gate No. 2: lost parcels, long student queues, and lack of proof of collection, using cryptographic tokens and atomic database operations."
+      },
+      2: {
+        title: "Slide 2: Problem Statement & Context",
+        time: "1:00",
+        quote: `<p>"To understand our design decisions, consider the ground reality at Gate No. 2. Every single day, couriers dump hundreds of packages from multiple logistics carriers. Security guards maintain paper logbooks, and students spend 15 to 20 minutes waiting in line while guards manually hunt through disorganized shelves.</p>
+        <p>More critically, there is zero verifiable proof of handover. A student can claim they never received a package, or an unauthorized person can pick up someone else's shipment. Furthermore, when shelves overflow, fragile goods get damaged because guards lack real-time visibility into shelf capacity.</p>
+        <p>Our project, CDMS, was engineered to eliminate every single one of these vulnerabilities using strict Low-Level Design principles, atomic database operations, and cryptographic verification."</p>`,
+        vivaQ: "Why not use physical smart lockers?",
+        vivaA: "Physical smart lockers cost thousands of dollars, have fixed dimensions, and cannot handle oversized packages or erratic bulk courier drops at a university gate."
+      },
+      3: {
+        title: "Slide 3: System Architecture",
+        time: "1:15",
+        quote: `<p>"Slide 3 presents our system architecture. We deliberately adopted a <strong>Layered Modular Monolith</strong> adhering to Clean Architecture principles.</p>
+        <p>Why not microservices? In a campus environment handling thousands of daily operations, a microservices architecture introduces distributed transaction complexity, network latency, and the need for two-phase commits (2PC) or Saga orchestrators just to complete a simple pickup. With our modular monolith, we achieve sub-15 millisecond response times and atomic consistency on a single server, while maintaining strict domain separation.</p>
+        <p>Notice the dependency arrows: our Core Domain layer in <code>backend/app/domain</code> has zero external dependencies—it does not import FastAPI, PyMongo, or any external framework. The API layer communicates with Application Services, which interact with Domain entities, and persistence is cleanly abstracted behind our Unit of Work and Repository interfaces."</p>`,
+        vivaQ: "Where is the dependency inversion in the architecture?",
+        vivaA: "In container.py, where abstract protocols (StorageAllocationStrategy, IUnitOfWork) are bound to concrete implementations. Services only depend on protocols."
+      },
+      4: {
+        title: "Slide 4: Criterion 1 — Requirement Analysis",
+        time: "1:00",
+        quote: `<p>"Moving to <strong>Criterion 1: Requirement Analysis</strong>. Our design begins with clear boundaries across three distinct human actors: Security Staff, Learners, and Operations Admins.</p>
+        <p>We defined six core Functional Requirements and four Non-Functional Requirements. For functional requirements, the system governs the entire lifecycle: from courier intake and fuzzy student matching, to size-aware shelf allocation, cryptographic pickup verification, and incident management.</p>
+        <p>Crucially, our Non-Functional Requirements dictate the low-level design. For example, NFR-1 mandates absolute atomicity: under no circumstances can two guards hand over the same parcel to two students, nor can a shelf be overbooked beyond capacity. NFR-4 mandates network idempotency: if a guard's barcode scanner loses Wi-Fi mid-request, re-submitting with the same idempotency key safely replays the cached result without creating duplicate database records."</p>`,
+        vivaQ: "What are the actors and how are their permissions enforced?",
+        vivaA: "Security Staff, Learners, and Admins. Enforced at the FastAPI route level using role dependencies and domain/permissions.py:can_perform()."
+      },
+      5: {
+        title: "Slide 5: Criterion 2 — Class Diagram",
+        time: "1:15",
+        quote: `<p>"Criterion 2 addresses our <strong>Class Diagram and Domain Entities</strong>. In <code>backend/app/infrastructure/models.py</code>, we modeled ten core domain entities inheriting from a common <code>Document</code> base class.</p>
+        <p>Let us highlight the multiplicities that guarantee system integrity:
+        First, between <code>Package</code> and <code>StorageLocation</code>, the relationship is 0-or-1 to 0-or-1. A package cannot reside on two shelves simultaneously, and our shelf counter enforces that <code>occupied_count</code> can never exceed <code>capacity</code>.</p>
+        <p>Second, between <code>Package</code> and <code>PickupToken</code>, a package can have multiple historical tokens—for example, if a previous code expired—but at most one active token can exist.</p>
+        <p>Finally, between <code>Package</code> and <code>PickupRecord</code>, there is a strict 1 to 0-or-1 relationship. The moment a parcel is handed over, an immutable <code>PickupRecord</code> is written with a database-level unique constraint on <code>package_id</code>. This makes duplicate collections physically impossible at the schema level."</p>`,
+        vivaQ: "What is the relationship between Package and PickupRecord?",
+        vivaA: "1 to 0..1. A package has 0 pickup records while in transit/storage, and exactly 1 immutable pickup record once collected, enforced by UNIQUE(package_id)."
+      },
+      6: {
+        title: "Slide 6: Criterion 3 — OOP Pillars",
+        time: "1:15",
+        quote: `<p>"Criterion 3 evaluates our <strong>Object-Oriented Design</strong>. Rather than writing procedural script-style code, we implemented all four pillars of OOP:</p>
+        <p>For <strong>Abstraction</strong>, look at <code>backend/app/domain/interfaces.py</code>. We defined <code>StorageAllocationStrategy</code> and <code>NotificationChannel</code> using Python's <code>typing.Protocol</code>. Services depend purely on these abstract interfaces, without knowing whether notifications are stored in MongoDB or sent via an external SMTP server.</p>
+        <p>For <strong>Encapsulation</strong>, business validation rules are encapsulated inside domain value objects. In <code>domain/allocation.py</code>, <code>StorageCandidate.accepts()</code> encapsulates whether a shelf can accept a parcel based on size rank and available slots. External services cannot arbitrarily mutate shelf counts.</p>
+        <p>For <strong>Inheritance</strong>, our 10 document models extend <code>Document</code>, sharing common persistence methods.</p>
+        <p>For <strong>Polymorphism</strong>, our allocation service calls <code>self._strategy.rank()</code>. At runtime, we can seamlessly swap between <code>SuitableSizeStrategy</code> and <code>FirstAvailableStrategy</code> without modifying a single line of service code."</p>`,
+        vivaQ: "Why did you use typing.Protocol instead of abc.ABC?",
+        vivaA: "Protocol provides structural subtyping (duck typing with static verification), allowing pure domain classes to satisfy contracts without subclassing framework bases."
+      },
+      7: {
+        title: "Slide 7: Criterion 4 — SOLID Principles",
+        time: "1:30",
+        quote: `<p>"Slide 7 demonstrates our strict adherence to the <strong>SOLID principles</strong>.</p>
+        <p>Under <strong>Single Responsibility (SRP)</strong>, we refused to create a god-object like <code>PackageService</code>. Instead, <code>PackageIntakeService</code> has only one reason to change: intake rules. <code>StorageAllocationService</code> has only one reason to change: shelf allocation. And <code>PickupService</code> only changes if pickup verification policies change.</p>
+        <p>Under <strong>Open/Closed (OCP)</strong>, our system is open for extension but closed for modification. If management requests an SMS or WhatsApp notification channel tomorrow, we simply write a new class implementing <code>NotificationChannel</code> and register it in <code>channel_factory</code>. Not a single line of our intake or pickup services needs to be edited.</p>
+        <p>Under <strong>Liskov Substitution (LSP)</strong>, both <code>SuitableSizeStrategy</code> and <code>FirstAvailableStrategy</code> satisfy the exact same ranking contract without hidden side effects.</p>
+        <p>Under <strong>Interface Segregation (ISP)</strong>, our protocols are lean. We did not build a monolithic provider interface with ten unused methods.</p>
+        <p>Under <strong>Dependency Inversion (DIP)</strong>, high-level services never instantiate concrete databases or strategies. In <code>backend/app/container.py</code>, our Composition Root injects abstract strategies and the Unit of Work into each service."</p>`,
+        vivaQ: "Show me where the Open/Closed Principle is applied.",
+        vivaA: "In container.py: ALLOCATION_STRATEGIES registry and channel_factory. New strategies or channels are registered as dictionaries without altering service workflows."
+      },
+      8: {
+        title: "Slide 8: Criterion 5 — Design Patterns",
+        time: "1:30",
+        quote: `<p>"Slide 8 details our <strong>Design Patterns</strong>. Every pattern chosen solves a concrete architectural problem:</p>
+        <p>First, the <strong>State Pattern</strong>. Managing 12 distinct package statuses with ad-hoc conditionals leads to catastrophic race conditions—such as a collected package magically becoming ready again. In <code>backend/app/domain/state_machine.py</code>, we implemented a table-driven Finite State Machine. Every valid transition is an immutable <code>Transition</code> object with source state, destination state, permitted roles, and guard functions. If a transition is not in the table, it is rejected immediately.</p>
+        <p>Second, the <strong>Strategy Pattern</strong> in <code>domain/allocation.py</code> allows configurable storage bin ranking. <code>SuitableSizeStrategy</code> packs small parcels into small bins, preserving large bins for oversized deliveries.</p>
+        <p>Third, the <strong>Observer Pattern</strong>. Our in-process <code>EventBus</code> publishes domain events upon status transitions. The <code>NotificationDispatcher</code> listens to these events. This guarantees fault isolation: even if an external notification service throws an exception, the package handover transaction remains committed.</p>
+        <p>Finally, our <strong>Repository and Unit of Work</strong> patterns isolate persistence logic and give us testable, atomic operations."</p>`,
+        vivaQ: "Why did you choose a table-driven State pattern over classic GoF State classes?",
+        vivaA: "Classic GoF creates 12 separate classes with dozens of empty methods. A table-driven FSM keeps all 19 valid transitions in one transparent, auditable table that can be verified in seconds."
+      },
+      9: {
+        title: "Slide 9: Criterion 6 — Sequence & Activity",
+        time: "1:30",
+        quote: `<p>"Slide 9 covers <strong>Criterion 6: Sequence and Activity Diagrams</strong>, showing how objects interact during critical use cases.</p>
+        <p>Let us trace the <strong>Pickup Handover Flow</strong> shown on this slide. When the student arrives at Gate No. 2, they provide their student ID and 6-digit pickup code.</p>
+        <p>Notice the message sequence between <code>PickupController</code>, <code>PickupService</code>, <code>UnitOfWork</code>, and <code>MongoTokenRepository</code>:
+        First, <code>PickupService</code> retrieves the package.
+        Second, it invokes <code>_check_code()</code>, which verifies three conditions: the token has not expired, the learner ID matches, and the salted HMAC-SHA256 hash matches the database value.
+        Third, and most importantly, it invokes <code>tokens.mark_used()</code>. This is an atomic Compare-And-Swap operation. If two guards simultaneously attempt to hand over the same package, only the first request succeeds in modifying <code>used_at</code>; the second request immediately receives a 409 Conflict error.
+        Finally, <code>PackageTransitioner</code> moves the package to <code>COLLECTED</code>, shelf capacity is decremented, and an immutable <code>PickupRecord</code> is written."</p>`,
+        vivaQ: "What happens in the sequence if a wrong code is entered?",
+        vivaA: "failed_attempts is incremented. If it reaches 3, the token is marked PICKUP_CODE_LOCKED and cannot be used again."
+      },
+      10: {
+        title: "Slide 10: Criterion 7 — API Design",
+        time: "1:00",
+        quote: `<p>"Slide 10 details <strong>Criterion 7: API and Interface Design</strong>. Our RESTful API follows clean, predictable resource conventions under <code>/api/v1</code>.</p>
+        <p>All incoming request payloads are strictly validated using Pydantic v2 data models. For instance, student IDs, phone numbers, and courier tracking numbers are validated against strict regular expressions, automatically rejecting malformed inputs with descriptive 422 Unprocessable Entity responses.</p>
+        <p>Notice also our <strong>Role-Aware Presenters</strong> in <code>backend/app/api/presenters.py</code>. When a learner queries their package, internal security notes and staff IDs are stripped from the JSON response, enforcing privacy at the API boundary.</p>
+        <p>Furthermore, all critical state-changing endpoints—such as package registration and handover—support the standard <code>Idempotency-Key</code> header. If a network interruption occurs, the client can safely retry the request, and the server returns the cached response without re-executing the operation."</p>`,
+        vivaQ: "How does your idempotency guard work?",
+        vivaA: "Clients supply an Idempotency-Key header. We hash the request payload with SHA-256 and look up the key in idempotency_keys collection. If found, the cached response is replayed immediately."
+      },
+      11: {
+        title: "Slide 11: Criterion 8 — Database & Concurrency",
+        time: "1:15",
+        quote: `<p>"Slide 11 focuses on <strong>Criterion 8: Database Schema, Indexing, and Concurrency Control</strong>.</p>
+        <p>In high-concurrency environments, application-level checks like <code>if shelf.occupied < shelf.capacity</code> fail because of race conditions between the read and the write.</p>
+        <p>In CDMS, we solved this using <strong>Atomic Compare-And-Swap (CAS) queries</strong> directly in MongoDB. Look at <code>try_reserve()</code> in <code>backend/app/repositories/mongo_repos.py</code>. We execute <code>find_one_and_update</code> with a precondition filter: <code>occupied_count < capacity</code>, incrementing the counter atomically. Even if 50 guards attempt to reserve the final slot on shelf <code>G2-A1</code> simultaneously, MongoDB's document-level lock ensures that exactly one guard succeeds, and the other 49 receive <code>None</code> and fail safely.</p>
+        <p>Similarly, in <code>pickup_records</code>, we enforce a database-level unique index on <code>package_id</code>. Even in the event of an edge-case concurrency collision, the database engine physically rejects any secondary insertion."</p>`,
+        vivaQ: "Can two guards overfill a shelf if they click at the same millisecond?",
+        vivaA: "No! MongoDB's find_one_and_update atomically tests $expr: {$lt: ['$occupied_count', '$capacity']} and increments in a single atomic step."
+      },
+      12: {
+        title: "Slide 12: Criterion 9 — Error Handling & Edge Cases",
+        time: "1:15",
+        quote: `<p>"Slide 12 covers <strong>Criterion 9: Error Handling, Validation, and Edge Cases</strong>.</p>
+        <p>A robust system is defined by how it behaves when things go wrong. We identified and implemented defensive programming guards for over 20 real-world edge cases.</p>
+        <p>For security against brute-force guessing of 6-digit pickup codes: every failed code entry increments <code>failed_attempts</code>. If 3 failed attempts occur, the token is permanently locked with <code>PICKUP_CODE_LOCKED</code>, requiring the student to generate a new token. In addition, our <code>SlidingWindowRateLimiter</code> throttles suspicious IP addresses.</p>
+        <p>For overdue parcels: if a parcel sits on a shelf for more than 3 days, our background scheduler flags it as overdue, increments the <code>awaiting_storage</code> metric, and sends daily automated reminder notifications until collection.</p>
+        <p>All errors map to standardized RFC 7807 problem payloads with machine-readable error codes, enabling the frontend to display localized, user-friendly guidance."</p>`,
+        vivaQ: "What happens if a package remains uncollected for more than 3 days?",
+        vivaA: "The system automatically tags it as overdue, increments the awaiting_storage counter, and sends daily in-app reminder notifications until pickup."
+      },
+      13: {
+        title: "Slide 13: Criterion 10 — Working Implementation",
+        time: "1:00",
+        quote: `<p>"Slide 13 covers <strong>Criterion 10: Working Implementation</strong>. We did not just produce design diagrams; we built a completely functional, production-ready system backed by 81 automated tests.</p>
+        <p>On the backend, we run FastAPI on Python 3.12 with PyMongo. On the frontend, we built a responsive React 18 SPA with TypeScript and Tailwind CSS, featuring full bilingual localization in English and Hindi for university accessibility.</p>
+        <p>Our test suite is divided into unit tests and API integration tests. Unit tests in <code>backend/tests/unit</code> test our pure domain logic—such as allocation strategies, token rules, and state machine transitions—without spinning up a database. Our integration tests in <code>backend/tests/api</code> test end-to-end HTTP requests, concurrency race conditions, and role-based permissions. Every single one of our 81 tests passes consistently."</p>`,
+        vivaQ: "How do you test concurrency in your test suite?",
+        vivaA: "In backend/tests/api/test_pickup.py: test_concurrent_handover_results_in_exactly_one_collection submits concurrent handovers and asserts 1 success, 1 409 conflict, and 1 record."
+      },
+      14: {
+        title: "Slide 14: 5-Minute Live Evaluation Demo",
+        time: "5:00",
+        quote: `<p>"Now, we would like to present our <strong>5-minute live demonstration</strong>. We have set up two side-by-side browser windows: on the left is our Security Guard stationed at Gate No. 2, and on the right is our student, Ananya Iyer.</p>
+        <p>Watch as the guard intakes a newly arrived Amazon package. As the guard types the tracking ID, the system matches Ananya's institutional ID. Upon clicking 'Register and Store', our <code>SuitableSizeStrategy</code> automatically reserves shelf slot <code>G2-A1</code>.</p>
+        <p>Immediately on the right, Ananya receives an in-app notification. She clicks 'Get Pickup Code'. A secure 6-digit token is generated with a live 30-minute countdown.</p>
+        <p>Now, Ananya presents this code at Gate No. 2. The guard enters her institutional ID and the code. Upon clicking 'Complete Handover', the transaction commits atomically: the shelf is released, the package moves to Collected, and an immutable audit record is saved.</p>
+        <p>To prove our concurrency and security guarantees to the committee, we immediately attempt to submit the exact same code again. As you can see on the screen, the system instantly blocks it with a 409 Conflict: 'This package has already been collected.' Zero possibility of double handover."</p>`,
+        vivaQ: "Can the student view other students' packages?",
+        vivaA: "No. The API verifies current_user.id == package.recipient_id. If mismatched, it returns 404 NotFound to prevent user enumeration."
+      },
+      15: {
+        title: "Slide 15: Limitations & Roadmap",
+        time: "0:45",
+        quote: `<p>"Slide 15 addresses our <strong>Limitations, Scalability, and Future Roadmap</strong>. An essential mark of engineering maturity is acknowledging design trade-offs:</p>
+        <p>In our current release (Milestone 1), we targeted a single university gate with approximately 5,000 active students. For this operational profile, our single-node MongoDB deployment with atomic CAS updates and in-process <code>EventBus</code> is remarkably fast and easy to maintain.</p>
+        <p>For Milestone 2 and multi-campus scale, our roadmap includes three key enhancements:
+        First, sharding the database collection on <code>campus_id</code> and <code>gate_id</code> to distribute write loads.
+        Second, introducing an Outbox table and Apache Kafka message broker to replace the in-process event bus, providing fault-tolerant, asynchronous delivery even during third-party SMS downtime.
+        Third, deploying an automated OCR camera scanner at Gate No. 2 to eliminate manual keyboard input entirely."</p>`,
+        vivaQ: "What happens if the server crashes after commit but before notification?",
+        vivaA: "The package is committed safely, but in M1 the in-memory event is lost. As noted in docs/10-limitations.md, M2 implements the Transactional Outbox pattern to guarantee at-least-once delivery."
+      },
+      16: {
+        title: "Slide 16: Conclusion & Viva Matrix",
+        time: "0:30",
+        quote: `<p>"To conclude: our Campus Delivery Management System fulfills every Low-Level Design component mandated by the curriculum. We have transformed Gate No. 2 parcel operations into a mathematically verified, high-concurrency digital platform.</p>
+        <p>We have our complete codebase, test suite, and interactive architecture viewer open and ready for the committee's inspection.</p>
+        <p>Thank you, and we now welcome your questions."</p>`,
+        vivaQ: "What is your proudest engineering accomplishment in this project?",
+        vivaA: "Achieving mathematically guaranteed zero double-handover and zero shelf overbooking using atomic CAS and defense-in-depth, backed by 81 passing tests."
+      }
+    };
+
+    // --- DOM Elements ---
+    const slides = document.querySelectorAll('.slide-card');
+    const progressBar = document.getElementById('progressBar');
+    const slideCounter = document.getElementById('slideCounter');
+    const drawerBody = document.getElementById('drawerBody');
+    const notesIndicator = document.getElementById('notesSlideIndicator');
+    const speakerDrawer = document.getElementById('speakerDrawer');
+    const thumbnailsDrawer = document.getElementById('thumbnailsDrawer');
+    const btnNotes = document.getElementById('btnNotes');
+    const btnThumbnails = document.getElementById('btnThumbnails');
+    const zoomModal = document.getElementById('zoomModal');
+    const zoomImg = document.getElementById('zoomImg');
+
+    function updateSlide(index) {
+      if (index < 1 || index > SLIDES_COUNT) return;
+      currentSlide = index;
+
+      slides.forEach(s => s.classList.remove('active'));
+      const activeSlide = document.querySelector(`.slide-card[data-slide="${currentSlide}"]`);
+      if (activeSlide) activeSlide.classList.add('active');
+
+      const pct = (currentSlide / SLIDES_COUNT) * 100;
+      progressBar.style.width = pct + '%';
+      slideCounter.innerText = `Slide ${currentSlide} of ${SLIDES_COUNT}`;
+      notesIndicator.innerText = `Slide ${currentSlide} / ${SLIDES_COUNT}`;
+
+      // Update speaker notes
+      const script = SCRIPTS[currentSlide];
+      if (script) {
+        drawerBody.innerHTML = `
+          <div style="font-size: 11.5px; font-weight:700; color: #38bdf8; text-transform: uppercase; margin-bottom: 8px;">
+            Target Time: ${script.time}
+          </div>
+          <div class="script-quote">
+            ${script.quote}
+          </div>
+          <div class="viva-box">
+            <h5>Anticipated Viva Defense Question</h5>
+            <p><strong>Q:</strong> ${script.vivaQ}</p>
+            <p style="margin-top:6px;"><strong>Winning A:</strong> ${script.vivaA}</p>
+          </div>
+        `;
+      }
+
+      // Update thumbnails active state
+      document.querySelectorAll('.thumb-item').forEach((t, i) => {
+        if (i + 1 === currentSlide) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+    }
+
+    // --- Navigation Handlers ---
+    document.getElementById('btnNext').addEventListener('click', () => {
+      if (currentSlide < SLIDES_COUNT) updateSlide(currentSlide + 1);
+    });
+    document.getElementById('btnPrev').addEventListener('click', () => {
+      if (currentSlide > 1) updateSlide(currentSlide - 1);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (zoomModal.classList.contains('active')) {
+        if (e.key === 'Escape') closeZoom();
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        if (currentSlide < SLIDES_COUNT) updateSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        if (currentSlide > 1) updateSlide(currentSlide - 1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        updateSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        updateSlide(SLIDES_COUNT);
+      } else if (e.key === 's' || e.key === 'S') {
+        toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    // --- Toggle Notes & Thumbnails ---
+    function toggleNotes() {
+      speakerDrawer.classList.toggle('open');
+      btnNotes.classList.toggle('active');
+    }
+    btnNotes.addEventListener('click', toggleNotes);
+
+    function toggleThumbnails() {
+      thumbnailsDrawer.classList.toggle('open');
+      btnThumbnails.classList.toggle('active');
+    }
+    btnThumbnails.addEventListener('click', toggleThumbnails);
+
+    // --- Fullscreen ---
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    // --- Diagram Zoom Modal ---
+    window.openZoom = function(src) {
+      zoomImg.src = src;
+      zoomModal.classList.add('active');
+    };
+    window.closeZoom = function() {
+      zoomModal.classList.remove('active');
+    };
+
+    // --- Build Thumbnails ---
+    for (let i = 1; i <= SLIDES_COUNT; i++) {
+      const thumb = document.createElement('div');
+      thumb.className = `thumb-item ${i === 1 ? 'active' : ''}`;
+      thumb.onclick = () => {
+        updateSlide(i);
+        toggleThumbnails();
+      };
+      const title = SCRIPTS[i] ? SCRIPTS[i].title.split(': ')[1] || `Slide ${i}` : `Slide ${i}`;
+      thumb.innerHTML = `
+        <span class="thumb-num">#${i < 10 ? '0' + i : i}</span>
+        <span class="thumb-title">${title}</span>
+      `;
+      thumbnailsDrawer.appendChild(thumb);
+    }
+
+    // --- Presentation Timer ---
+    let timerSeconds = 0;
+    let timerRunning = false;
+    let timerInterval = null;
+    const timerText = document.getElementById('timerText');
+    const timerBadge = document.getElementById('timerBadge');
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    timerBadge.addEventListener('click', () => {
+      if (!timerRunning) {
+        timerRunning = true;
+        timerBadge.style.borderColor = '#10b981';
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          timerText.innerText = formatTime(timerSeconds);
+          if (timerSeconds > 720) { // Over 12 mins
+            timerText.style.color = '#ef4444';
+          }
+        }, 1000);
+      } else {
+        timerRunning = false;
+        clearInterval(timerInterval);
+        timerBadge.style.borderColor = '#f59e0b';
+      }
+    });
+
+    // Initialize first slide
+    updateSlide(1);
+  </script>
+</body>
+</html>

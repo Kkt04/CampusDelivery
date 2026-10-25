@@ -4,7 +4,22 @@
   <img src="frontend/public/logo.png" alt="Campus Delivery Hub Logo" width="130" />
   <h3>Secure, Traceable, and Concurrency-Safe Campus Parcel Custody Management</h3>
   <p><strong>Gate No. 2 Custody Hub &bull; Low-Level Design (LLD) &amp; Capstone Defense Guide</strong></p>
+  <p>
+    <a href="docs/presentation.html"><strong>🖥️ Open Interactive Slide Deck (docs/presentation.html)</strong></a> &bull;
+    <a href="docs/15-capstone-presentation-deck.md"><strong>📖 Full Presentation Script & Viva Matrix</strong></a> &bull;
+    <a href="diagrams/index.html"><strong>📊 Interactive Diagrams Catalog</strong></a>
+  </p>
 </div>
+
+---
+
+## 🎓 Capstone Evaluation Fast Track (November 2026)
+
+For the final evaluation committee and viva examination, review these dedicated defense resources:
+- **[Interactive HTML Slide Deck](docs/presentation.html)**: 16 evaluation-ready widescreen slides with click-to-zoom diagrams, built-in presentation timer, slide thumbnails, and toggleable **Verbatim Speaker Notes (`[S]`)**.
+- **[Master Presentation Deck & Spoken Script (docs/15-capstone-presentation-deck.md)](docs/15-capstone-presentation-deck.md)**: Full slide-by-slide word-for-word spoken presentation script, exact "Show Me in the Code" viva line anchors, and top 15 tough evaluator questions with winning answers.
+- **[PowerPoint (.pptx) Generator](docs/generate_pptx.py)**: Run `python docs/generate_pptx.py` to generate the `.pptx` deck file.
+- **[Diagrams Catalog](diagrams/index.html)**: All 13 system design diagrams (Use Cases, Class UML, Sequence, Activity, State Machine, Architecture, ER Schema).
 
 ---
 
