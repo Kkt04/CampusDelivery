@@ -5,7 +5,6 @@ import type { PickupCode } from "../../api/types";
 import { useUser } from "../../auth/AuthContext";
 import { Alert, Button, ErrorAlert, PageHeader, Spinner, TextLink } from "../../components/ui";
 import { useLanguage } from "../../i18n/LanguageContext";
-import { QrCodeSvg } from "../../lib/qrcode";
 import { useAction, useApi } from "../../lib/useApi";
 
 function useCountdown(expiresAt: string | null) {
@@ -72,28 +71,25 @@ export function PickupCodePage() {
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="ticket px-6 py-6 text-center bg-white shadow-ticket rounded-2xl border border-primary-200">
+          <div className="ticket px-6 py-8 text-center bg-white shadow-ticket rounded-2xl border border-primary-200">
+            <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary-700 bg-primary-100/70 px-3 py-1 rounded-full mb-3">
+              Single-Use OTP Code
+            </span>
             <p className="text-sm font-medium text-primary-800">{t("pickupCodeInstructions")}</p>
-            
-            {/* Visual QR Code Ticket for Gate No. 2 Scanner */}
-            <div className="flex flex-col items-center justify-center my-4">
-              <QrCodeSvg
-                value={`CDMS:${issued.internal_code}:${user.institutional_id}:${issued.code}`}
-                size={175}
-              />
-              <span className="text-[11px] text-muted font-mono mt-1">
-                Scan at Gate No. 2 reader
-              </span>
-            </div>
 
-            <p
-              className="code-text text-4xl font-black tracking-[0.2em] text-primary-950 sm:text-5xl"
-              aria-label={`Pickup code ${issued.code.split("").join(" ")}`}
-            >
-              {issued.code.slice(0, 3)}
-              <span className="mx-2 text-primary-300">–</span>
-              {issued.code.slice(3)}
-            </p>
+            <div className="my-6 py-2">
+              <p
+                className="code-text text-5xl font-black tracking-[0.25em] text-primary-950 sm:text-6xl"
+                aria-label={`Pickup code ${issued.code.split("").join(" ")}`}
+              >
+                {issued.code.slice(0, 3)}
+                <span className="mx-2 text-primary-300">–</span>
+                {issued.code.slice(3)}
+              </p>
+              <p className="text-xs text-muted mt-3">
+                Show or share this 6-digit OTP with the security officer at Gate No. 2
+              </p>
+            </div>
             <div className="mx-auto mt-5 border-t-2 border-dashed border-primary-100 pt-4 text-sm">
               <div className="grid grid-cols-3 gap-2">
                 <div>

@@ -14,9 +14,6 @@ export function PickupVerification() {
   const [record, setRecord] = useState<PickupRecord | null>(null);
   const [idemKey, setIdemKey] = useState(newIdempotencyKey);
 
-  // Quick QR scanner input
-  const [qrScanInput, setQrScanInput] = useState("");
-
   // Supervisor Manual Override Modal
   const [showOverride, setShowOverride] = useState(false);
   const [overridePkgCode, setOverridePkgCode] = useState("");
@@ -33,32 +30,10 @@ export function PickupVerification() {
   const verify = useAction(() => pickupApi.verify(clean()));
   const complete = useAction(() => pickupApi.complete(clean(), idemKey));
 
-  function handleScanParse(raw: string): boolean {
-    const trimmed = raw.trim();
-    if (trimmed.startsWith("CDMS:")) {
-      const parts = trimmed.split(":");
-      if (parts.length >= 4) {
-        setInput({
-          package_code: parts[1],
-          learner_institutional_id: parts[2],
-          code: parts[3],
-        });
-        setVerified(null);
-        return true;
-      }
-    }
-    return false;
-  }
-
   function handleFormKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
     if (e.key === "Enter") {
       const target = e.target as HTMLInputElement;
       if (target.tagName === "BUTTON") return;
-
-      if (handleScanParse(target.value)) {
-        e.preventDefault();
-        return;
-      }
 
       if (!input.package_code || !input.learner_institutional_id || input.code.replace(/\D/g, "").length !== 6) {
         e.preventDefault();
@@ -106,16 +81,13 @@ export function PickupVerification() {
 
   function reset() {
     setInput({ package_code: "", learner_institutional_id: "", code: "" });
-    setQrScanInput("");
     setVerified(null);
     setRecord(null);
     setIdemKey(newIdempotencyKey());
   }
 
   const set = (k: keyof PickupInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (handleScanParse(val)) return;
-    setInput({ ...input, [k]: val });
+    setInput({ ...input, [k]: e.target.value });
     setVerified(null);
   };
 
@@ -152,27 +124,6 @@ export function PickupVerification() {
         description={t("pickupVerifySubtitle")}
       />
 
-      {/* QR Ticket Fast-Scan Bar */}
-      <div className="rounded-xl border border-primary-200 bg-primary-50/70 p-4">
-        <label htmlFor="qr-scanner" className="block text-xs font-semibold text-primary-900 mb-1.5">
-          📷 Fast QR Ticket Scan (Scan or paste CDMS:pkg:learner:code)
-        </label>
-        <input
-          id="qr-scanner"
-          className="input bg-white font-mono text-sm placeholder:font-sans placeholder:text-muted"
-          placeholder="Scan student QR ticket or barcode here..."
-          value={qrScanInput}
-          onChange={(e) => {
-            const v = e.target.value;
-            setQrScanInput(v);
-            if (handleScanParse(v)) {
-              setQrScanInput("");
-            }
-          }}
-          autoComplete="off"
-        />
-      </div>
-
       <form onSubmit={onVerify} onKeyDown={handleFormKeyDown} className="card space-y-4 p-5" noValidate>
         <ErrorAlert error={error} />
         <Field label="Package Code or Courier Tracking Barcode" htmlFor="pkg" hint="Scan the physical courier label barcode or internal code (e.g. 1Z..., PKG-...)">
@@ -197,13 +148,13 @@ export function PickupVerification() {
             required
           />
         </Field>
-        <Field label={t("pickupCodeLabel")} htmlFor="code" hint="6-digit verification code from student ticket">
+        <Field label={t("pickupCodeLabel")} htmlFor="code" hint="6-digit single-use OTP code provided by student">
           <input
             id="code"
-            className="input code-text text-lg tracking-[0.3em] font-bold"
+            className="input code-text text-xl tracking-[0.3em] font-bold text-center"
             inputMode="numeric"
-            maxLength={7}
-            placeholder="••••••"
+            maxLength={6}
+            placeholder="• • • • • •"
             value={input.code}
             onChange={set("code")}
             autoComplete="one-time-code"
