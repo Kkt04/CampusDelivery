@@ -13,15 +13,6 @@
 
 ---
 
-## 🎓 Capstone Evaluation Fast Track (November 2026)
-
-For the final evaluation committee and viva examination, review these dedicated defense resources:
-- **[Interactive HTML Slide Deck](docs/presentation.html)**: 16 evaluation-ready widescreen slides with click-to-zoom diagrams, built-in presentation timer, slide thumbnails, and toggleable **Verbatim Speaker Notes (`[S]`)**.
-- **[Master Presentation Deck & Spoken Script (docs/15-capstone-presentation-deck.md)](docs/15-capstone-presentation-deck.md)**: Full slide-by-slide word-for-word spoken presentation script, exact "Show Me in the Code" viva line anchors, and top 15 tough evaluator questions with winning answers.
-- **[PowerPoint (.pptx) Generator](docs/generate_pptx.py)**: Run `python docs/generate_pptx.py` to generate the `.pptx` deck file.
-- **[Diagrams Catalog](diagrams/index.html)**: All 13 system design diagrams (Use Cases, Class UML, Sequence, Activity, State Machine, Architecture, ER Schema).
-
----
 
 ## Table of Contents
 
