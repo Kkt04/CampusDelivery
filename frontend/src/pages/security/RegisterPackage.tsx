@@ -25,6 +25,12 @@ const EMPTY = {
   arrivedAt: nowLocal(),
 };
 
+const SIZE_ORDER: Record<PackageSize, number> = { SMALL: 1, MEDIUM: 2, LARGE: 3 };
+
+function canFit(pkgSize: PackageSize, rackMaxSize: PackageSize): boolean {
+  return SIZE_ORDER[pkgSize] <= SIZE_ORDER[rackMaxSize];
+}
+
 export function RegisterPackage() {
   const { t } = useLanguage();
   const [form, setForm] = useState(EMPTY);
@@ -40,6 +46,10 @@ export function RegisterPackage() {
     storageApi.list(true).then(setExistingLocations).catch(() => {});
   }, []);
 
+  const eligibleLocations = existingLocations.filter(
+    (loc) => loc.is_active && loc.occupied_count < loc.capacity && canFit(form.size, loc.max_package_size)
+  );
+
   const submit = useAction(async () => {
     const isUnlistedLearner = !form.unknownRecipient && learner && learner.id === 0;
     const recipientInstitutionalId = form.unknownRecipient || isUnlistedLearner ? null : learner?.institutional_id ?? null;
@@ -48,6 +58,10 @@ export function RegisterPackage() {
       : isUnlistedLearner
         ? `${learner.full_name} (${learner.institutional_id})`
         : (learner?.full_name ?? null);
+
+    const location = existingLocations.find(
+      (l) => l.code.trim().toUpperCase() === rackNumber.trim().toUpperCase()
+    );
 
     const pkg = await packagesApi.register({
       courier_name: form.courier.trim(),
@@ -61,44 +75,31 @@ export function RegisterPackage() {
       notes: null,
     }, idemKey);
 
-    const trimmedRack = rackNumber.trim();
-    if (trimmedRack) {
-      let location = existingLocations.find(
-        (l) => l.code.trim().toUpperCase() === trimmedRack.toUpperCase()
-      );
-      if (!location) {
-        try {
-          location = await storageApi.create({
-            code: trimmedRack.toUpperCase(),
-            capacity: 50,
-            max_package_size: "LARGE",
-          });
-          setExistingLocations((prev) => [...prev, location!]);
-        } catch {
-          try {
-            const all = await storageApi.list(false);
-            location = all.find((l) => l.code.trim().toUpperCase() === trimmedRack.toUpperCase());
-          } catch {
-            // fallback
-          }
-        }
-      }
+    if (location) {
+      const stored = await packagesApi.assignStorage(pkg.id, location.id, true);
+      return stored;
+    }
+    return pkg;
+  });
 
-      try {
-        const stored = await packagesApi.assignStorage(pkg.id, location?.id ?? null, true);
-        return stored;
-      } catch {
-        return pkg;
-      }
-    } else {
-      try {
-        const stored = await packagesApi.assignStorage(pkg.id, null, true);
-        return stored;
-      } catch {
-        return pkg;
+  function handleFormKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
+    if (e.key === "Enter") {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "BUTTON" || target.tagName === "TEXTAREA") return;
+      e.preventDefault();
+      // Auto-advance focus to next logical input
+      if (target.id === "tracking") {
+        const next = document.getElementById(form.unknownRecipient ? "hint" : "learner");
+        next?.focus();
+      } else if (target.id === "courier") {
+        const next = document.getElementById("tracking");
+        next?.focus();
+      } else if (target.id === "hint") {
+        const next = document.getElementById("rackNumber");
+        next?.focus();
       }
     }
-  });
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -174,7 +175,7 @@ export function RegisterPackage() {
         title={t("regPageTitle")}
         description={t("regPageSubtitle")}
       />
-      <form onSubmit={onSubmit} className="space-y-6" noValidate>
+      <form onSubmit={onSubmit} onKeyDown={handleFormKeyDown} className="space-y-6" noValidate>
         {submit.error && !duplicate && <ErrorAlert error={submit.error} />}
         {duplicate && (
           <Alert tone="warn" title={submit.error!.message}>
@@ -269,7 +270,7 @@ export function RegisterPackage() {
           </div>
         </Card>
 
-        {/* Rack Number / Storage Card (Condition removed, Manual Rack added) */}
+        {/* Rack Number / Storage Card */}
         <Card title={t("regStorageCard")}>
           <div className="space-y-3">
             <Field
@@ -277,25 +278,27 @@ export function RegisterPackage() {
               htmlFor="rackNumber"
               hint={t("regRackHint")}
             >
-              <div className="relative">
-                <input
-                  id="rackNumber"
-                  list="storage-racks"
-                  className="input font-mono uppercase font-semibold text-primary-800 placeholder:normal-case placeholder:font-normal"
-                  value={rackNumber}
-                  onChange={(e) => setRackNumber(e.target.value)}
-                  placeholder={t("regRackPlaceholder")}
-                  required
-                />
-                <datalist id="storage-racks">
-                  {existingLocations.map((loc) => (
-                    <option key={loc.id} value={loc.code}>
-                      {loc.code} ({loc.occupied_count}/{loc.capacity} {loc.description ? `- ${loc.description}` : ""})
-                    </option>
-                  ))}
-                </datalist>
-              </div>
+              <select
+                id="rackNumber"
+                className="input font-mono font-semibold text-primary-800"
+                value={rackNumber}
+                onChange={(e) => setRackNumber(e.target.value)}
+                required
+              >
+                <option value="">-- {t("regRackPlaceholder")} --</option>
+                {eligibleLocations.map((loc) => (
+                  <option key={loc.id} value={loc.code}>
+                    {loc.code} ({loc.capacity - loc.occupied_count} slots free, max: {loc.max_package_size})
+                    {loc.description ? ` - ${loc.description}` : ""}
+                  </option>
+                ))}
+              </select>
             </Field>
+            {eligibleLocations.length === 0 && (
+              <Alert tone="warn">
+                No active storage racks have available capacity for {form.size} packages. Please contact supervisor to create or free up rack space.
+              </Alert>
+            )}
             <p className="text-xs text-muted">
               {t("regReadyNotification")}
             </p>

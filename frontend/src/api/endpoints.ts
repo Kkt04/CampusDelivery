@@ -2,7 +2,7 @@
 import { request } from "./client";
 import type {
   AuditEntry, DailyRow, Dashboard, HistoryEntry, Incident, IncidentType, Notification, Package, PackageCondition,
-  PackageSize, PackageStatus, Page, PickupCode, PickupInput, PickupRecord, RegisterPackageInput, Role,
+  PackageSize, PackageStatus, Page, PickupCode, PickupInput, PickupOverrideInput, PickupRecord, RegisterPackageInput, Role,
   SignupInput, StorageLocation, TokenResponse, User, UserBrief,
 } from "./types";
 
@@ -22,8 +22,14 @@ export const authApi = {
     request<TokenResponse>("/auth/login", { method: "POST", body: { identifier, password } }),
   signup: (input: SignupInput) =>
     request<TokenResponse>("/auth/signup", { method: "POST", body: input }),
-  resetPassword: (identifier: string, new_password: string) =>
-    request<TokenResponse>("/auth/reset-password", { method: "POST", body: { identifier, new_password } }),
+  forgotPassword: (identifier: string) =>
+    request<{ message: string; dev_token?: string }>("/auth/forgot-password", { method: "POST", body: { identifier } }),
+  resetPasswordWithToken: (token: string, new_password: string) =>
+    request<TokenResponse>("/auth/reset-password", { method: "POST", body: { token, new_password } }),
+  changePassword: (current_password: string, new_password: string) =>
+    request<{ message: string }>("/auth/change-password", { method: "POST", body: { current_password, new_password } }),
+  refresh: (refresh_token: string) =>
+    request<TokenResponse>("/auth/refresh", { method: "POST", body: { refresh_token } }),
   me: () => request<User>("/auth/me"),
 };
 
@@ -51,6 +57,8 @@ export const pickupApi = {
     request<{ verified: boolean; package: Package }>("/pickups/verify", { method: "POST", body: input }),
   complete: (input: PickupInput, idempotencyKey: string) =>
     request<PickupRecord>("/pickups/complete", { method: "POST", body: input, idempotencyKey }),
+  override: (input: PickupOverrideInput, idempotencyKey: string) =>
+    request<PickupRecord>("/pickups/override", { method: "POST", body: input, idempotencyKey }),
   history: (page = 1) => request<Page<PickupRecord>>("/pickups", { query: { page } }),
 };
 

@@ -37,6 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (identifier: string, password: string) => {
     const result = await authApi.login(identifier, password);
     tokenStore.set(result.access_token);
+    if (result.refresh_token) {
+      tokenStore.setRefreshToken(result.refresh_token);
+    }
     setUser(result.user);
     return result.user;
   }, []);
@@ -44,6 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(async (input: SignupInput) => {
     const result = await authApi.signup(input);
     tokenStore.set(result.access_token);
+    if (result.refresh_token) {
+      tokenStore.setRefreshToken(result.refresh_token);
+    }
     setUser(result.user);
     return result.user;
   }, []);

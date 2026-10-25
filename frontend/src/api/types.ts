@@ -12,7 +12,13 @@ export type IncidentType =
 
 export interface Page<T> { items: T[]; total: number; page: number; page_size: number }
 
-export interface UserBrief { id: number; institutional_id: string; full_name: string }
+export interface UserBrief {
+  id: number;
+  institutional_id: string;
+  full_name: string;
+  email?: string | null;
+  phone?: string | null;
+}
 
 export interface User extends UserBrief {
   email: string;
@@ -22,7 +28,13 @@ export interface User extends UserBrief {
   created_at: string;
 }
 
-export interface TokenResponse { access_token: string; token_type: string; expires_in: number; user: User }
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: User;
+  refresh_token?: string;
+}
 
 export interface SignupInput {
   institutional_id: string;
@@ -82,6 +94,12 @@ export interface PickupCode { package_id: number; internal_code: string; code: s
 
 export interface PickupInput { package_code: string; learner_institutional_id: string; code: string }
 
+export interface PickupOverrideInput {
+  package_code: string;
+  learner_institutional_id: string;
+  reason: string;
+}
+
 export interface PickupRecord {
   id: number;
   package_id: number;
@@ -91,6 +109,8 @@ export interface PickupRecord {
   handed_over_by: UserBrief | null;
   storage_location_code: string | null;
   collected_at: string;
+  is_override?: boolean;
+  override_reason?: string | null;
 }
 
 export interface StorageLocation {

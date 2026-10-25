@@ -34,8 +34,10 @@ from app.infrastructure.models import (
     Notification,
     Package,
     PackageStatusHistory,
+    PasswordResetToken,
     PickupRecord,
     PickupToken,
+    RefreshToken,
     StorageLocation,
     User,
 )
@@ -177,6 +179,26 @@ class MongoPackageRepository(_Repo):
     def get_by_tracking_id(self, tracking_id: str) -> Package | None:
         doc = self.collection.find_one({"tracking_id": tracking_id})
         return self._track(_hydrate_package(self._store, Package.from_doc(doc))) if doc else None  # type: ignore[return-value]
+
+    def find_by_identifier(self, identifier: str) -> list[Package]:
+        raw = identifier.strip()
+        if not raw:
+            return []
+        query = {
+            "$or": [
+                {"internal_code": raw.upper()},
+                {"tracking_id": raw},
+                {"tracking_id": raw.upper()},
+            ]
+        }
+        docs = list(self.collection.find(query))
+        seen: set[int] = set()
+        unique: list[dict[str, Any]] = []
+        for d in docs:
+            if d["_id"] not in seen:
+                seen.add(d["_id"])
+                unique.append(d)
+        return [self._track(_hydrate_package(self._store, Package.from_doc(d))) for d in unique]  # type: ignore[misc]
 
     def code_exists(self, internal_code: str) -> bool:
         return self.collection.find_one({"internal_code": internal_code}, {"_id": 1}) is not None
@@ -552,6 +574,60 @@ class MongoIdempotencyRepository(_Repo):
     def add(self, record: IdempotencyKey) -> None:
         record.id = next_id(IdempotencyKey.COLLECTION)
         self.collection.insert_one(record.to_doc())
+
+
+class MongoPasswordResetTokenRepository(_Repo):
+    model = PasswordResetToken
+
+    def add(self, token: PasswordResetToken) -> PasswordResetToken:
+        token.id = next_id(PasswordResetToken.COLLECTION)
+        self.collection.insert_one(token.to_doc())
+        return self._track(token)  # type: ignore[return-value]
+
+    def get_by_hash(self, token_hash: str) -> PasswordResetToken | None:
+        doc = self.collection.find_one({"token_hash": token_hash})
+        return self._track(PasswordResetToken.from_doc(doc)) if doc else None  # type: ignore[return-value]
+
+    def mark_used(self, token_id: int, now: datetime) -> bool:
+        res = self.collection.update_one(
+            {"_id": token_id, "used_at": None},
+            {"$set": {"used_at": now}}
+        )
+        return res.modified_count > 0
+
+    def invalidate_for_user(self, user_id: int, now: datetime) -> int:
+        res = self.collection.update_many(
+            {"user_id": user_id, "used_at": None},
+            {"$set": {"used_at": now}}
+        )
+        return res.modified_count
+
+
+class MongoRefreshTokenRepository(_Repo):
+    model = RefreshToken
+
+    def add(self, token: RefreshToken) -> RefreshToken:
+        token.id = next_id(RefreshToken.COLLECTION)
+        self.collection.insert_one(token.to_doc())
+        return self._track(token)  # type: ignore[return-value]
+
+    def get_by_hash(self, token_hash: str) -> RefreshToken | None:
+        doc = self.collection.find_one({"token_hash": token_hash})
+        return self._track(RefreshToken.from_doc(doc)) if doc else None  # type: ignore[return-value]
+
+    def revoke(self, token_id: int, now: datetime) -> bool:
+        res = self.collection.update_one(
+            {"_id": token_id, "revoked_at": None},
+            {"$set": {"revoked_at": now}}
+        )
+        return res.modified_count > 0
+
+    def revoke_all_for_user(self, user_id: int, now: datetime) -> int:
+        res = self.collection.update_many(
+            {"user_id": user_id, "revoked_at": None},
+            {"$set": {"revoked_at": now}}
+        )
+        return res.modified_count
 
 
 def _page(collection, query: dict[str, Any], sort: list[tuple[str, int]], page: int, page_size: int,

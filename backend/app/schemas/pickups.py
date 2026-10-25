@@ -14,9 +14,15 @@ class PickupCodeOut(BaseModel):
 
 
 class PickupVerifyRequest(BaseModel):
-    package_code: str = Field(min_length=6, max_length=24)
+    package_code: str = Field(min_length=3, max_length=64, description="Internal code or courier tracking ID")
     learner_institutional_id: str = Field(min_length=3, max_length=32)
     code: str = Field(pattern=r"^\d{6}$")
+
+
+class PickupOverrideRequest(BaseModel):
+    package_code: str = Field(min_length=3, max_length=64, description="Internal code or courier tracking ID")
+    learner_institutional_id: str = Field(min_length=3, max_length=32)
+    reason: str = Field(min_length=5, max_length=250, description="Mandatory documented reason for override")
 
 
 class PickupVerificationOut(BaseModel):
@@ -33,3 +39,5 @@ class PickupRecordOut(BaseModel):
     handed_over_by: UserBrief | None
     storage_location_code: str | None
     collected_at: datetime
+    is_override: bool = False
+    override_reason: str | None = None

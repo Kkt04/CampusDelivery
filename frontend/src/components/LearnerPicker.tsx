@@ -39,10 +39,15 @@ export function LearnerPicker({
   if (value) {
     return (
       <div className="flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-3.5 py-2 text-sm">
-        <span>
+        <div>
           <strong className="text-ink">{value.full_name}</strong>{" "}
           <span className="text-muted font-mono">({value.institutional_id})</span>
-        </span>
+          {(value.email || value.phone) && (
+            <span className="ml-2 text-xs text-muted">
+              {value.email ? `• ${value.email}` : ""} {value.phone ? `• ${value.phone}` : ""}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           className="font-semibold text-primary-700 hover:text-primary-800 hover:underline"
@@ -96,10 +101,19 @@ export function LearnerPicker({
                 className="w-full px-3 py-2 text-left text-sm hover:bg-primary-50 hover:text-primary-800 transition flex justify-between items-center"
                 onClick={() => onChange(u)}
               >
-                <span>
-                  <strong>{u.full_name}</strong> <span className="text-muted">({u.institutional_id})</span>
-                </span>
-                <span className="text-xs bg-surface-alt border border-primary-200 text-primary-700 px-2 py-0.5 rounded font-semibold">
+                <div>
+                  <div className="font-semibold text-ink">
+                    {u.full_name}{" "}
+                    <span className="font-mono text-xs font-normal text-muted">({u.institutional_id})</span>
+                  </div>
+                  {(u.email || u.phone) && (
+                    <div className="text-xs text-muted flex items-center gap-2 mt-0.5">
+                      {u.email && <span>{u.email}</span>}
+                      {u.phone && <span>• {u.phone}</span>}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs bg-surface-alt border border-primary-200 text-primary-700 px-2 py-0.5 rounded font-semibold shrink-0 ml-2">
                   {t("select")}
                 </span>
               </button>

@@ -71,3 +71,21 @@ def hash_pickup_code(code: str, salt: str) -> str:
 
 def pickup_code_matches(code: str, salt: str, expected_hash: str) -> bool:
     return hmac.compare_digest(hash_pickup_code(code, salt), expected_hash)
+
+
+def generate_reset_token() -> tuple[str, str]:
+    """Cryptographically secure 32-byte URL-safe password reset token and its sha256 hash."""
+    raw = secrets.token_urlsafe(32)
+    return raw, hash_token(raw)
+
+
+def hash_token(token: str) -> str:
+    """SHA-256 hash of an opaque token for secure storage."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def generate_refresh_token() -> tuple[str, str]:
+    """Cryptographically secure 48-byte URL-safe refresh token and its sha256 hash."""
+    raw = secrets.token_urlsafe(48)
+    return raw, hash_token(raw)
+

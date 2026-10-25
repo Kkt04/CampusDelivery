@@ -19,6 +19,24 @@ class SignupRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
 
 
+class ForgotPasswordRequest(BaseModel):
+    identifier: str = Field(min_length=2, max_length=254, description="Institutional ID or email")
+
+
+class ResetPasswordWithTokenRequest(BaseModel):
+    token: str = Field(min_length=16, max_length=128, description="Cryptographic reset token")
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(min_length=16, max_length=128)
+
+
 class ResetPasswordRequest(BaseModel):
     identifier: str = Field(min_length=2, max_length=254, description="Institutional ID or email")
     new_password: str = Field(min_length=8, max_length=128)
@@ -40,6 +58,7 @@ class TokenOut(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     user: UserOut
+    refresh_token: str | None = None
 
 
 class UserCreate(BaseModel):

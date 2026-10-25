@@ -7,6 +7,11 @@ the learner has read it (that is `read_at`).
 import logging
 from collections.abc import Callable
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from app.core.config import get_settings
 from app.core.exceptions import NotificationDeliveryError
 from app.domain.enums import NotificationChannelType
 from app.domain.interfaces import NotificationChannel, NotificationRecipient
@@ -34,6 +39,42 @@ class ConsoleEmailChannel:
         logger.info("EMAIL to=%s subject=%r body=%r", recipient.email, title, message)
 
 
+class SmtpEmailChannel:
+    """Production SMTP email channel with fail-safe error isolation."""
+
+    channel_type = NotificationChannelType.EMAIL
+
+    def __init__(self, settings=None) -> None:  # noqa: ANN001
+        self._settings = settings or get_settings()
+
+    def send(self, recipient: NotificationRecipient, title: str, message: str) -> None:
+        if not recipient.email:
+            raise NotificationDeliveryError("recipient has no email address")
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = title
+            msg["From"] = self._settings.smtp_from
+            msg["To"] = recipient.email
+            msg.attach(MIMEText(message, "plain"))
+
+            if self._settings.smtp_port == 465:
+                server = smtplib.SMTP_SSL(self._settings.smtp_host, self._settings.smtp_port, timeout=10)
+            else:
+                server = smtplib.SMTP(self._settings.smtp_host, self._settings.smtp_port, timeout=10)
+                if self._settings.smtp_tls:
+                    server.starttls()
+
+            if self._settings.smtp_user and self._settings.smtp_password:
+                server.login(self._settings.smtp_user, self._settings.smtp_password)
+
+            server.sendmail(self._settings.smtp_from, [recipient.email], msg.as_string())
+            server.quit()
+            logger.info("SMTP EMAIL delivered to=%s subject=%r", recipient.email, title)
+        except Exception as exc:
+            logger.error("Failed to send SMTP email to %s: %s", recipient.email, exc)
+            raise NotificationDeliveryError(f"SMTP delivery failed: {exc}") from exc
+
+
 class NotificationChannelFactory:
     """Maps configuration names to channel classes (Factory pattern).
 
@@ -59,3 +100,5 @@ class NotificationChannelFactory:
 channel_factory = NotificationChannelFactory()
 channel_factory.register("in_app", InAppChannel)
 channel_factory.register("console_email", ConsoleEmailChannel)
+channel_factory.register("smtp_email", SmtpEmailChannel)
+channel_factory.register("smtp", SmtpEmailChannel)

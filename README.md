@@ -38,6 +38,7 @@
 20. [Known Limitations and Future Improvements](#20-known-limitations-and-future-improvements)
 21. [LLD Viva and Evaluation Preparation](#21-lld-viva-and-evaluation-preparation)
 22. [Evaluation Checklist](#22-evaluation-checklist)
+23. [Production Readiness & Hardening Audit](#23-production-readiness--hardening-audit)
 
 ---
 
@@ -533,13 +534,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Loop as Background Asyncio Loop / API Trigger
+    participant Worker as Background Asyncio Worker / Trigger
     participant NotifSvc as NotificationService
     participant Repo as MongoPackageRepository
     participant DB as MongoDB (packages & notifications)
     participant LearnerUI as Learner Dashboard
 
-    Loop->>NotifSvc: sweep_overdue(deadline_days=3)
+    Worker->>NotifSvc: sweep_overdue(deadline_days=3)
     NotifSvc->>Repo: find_overdue_for_notification(now, 3 days)
     Repo->>DB: find({status in AWAITING, arrived_at < 3 days, last_notified < 24h})
     DB-->>Repo: List of Overdue Packages
@@ -547,7 +548,7 @@ sequenceDiagram
         NotifSvc->>DB: insert_one(Notification: "Overdue package reminder: Gate No. 2")
         NotifSvc->>DB: update_one(pkg, {$set: {last_overdue_notified_at: now}, $inc: {reminder_count: 1}})
     end
-    NotifSvc-->>Loop: Sweep Complete (notified count)
+    NotifSvc-->>Worker: Sweep Complete (notified count)
     LearnerUI->>DB: GET /api/v1/notifications
     DB-->>LearnerUI: Return Unread Overdue Alert
     LearnerUI-->>LearnerUI: Display Red Overdue Badge & Reminder Message
@@ -914,3 +915,31 @@ npm run build
 | **10. Edge Cases & Concurrency** | `backend/app/services/pickup.py`, `test_rules.py` | [Section 16](#16-error-handling-validation-and-edge-cases) | :white_check_mark: |
 | **11. Working Full-Stack App** | `frontend/src/`, `backend/app/` | [Section 17, 18, 19](#17-end-to-end-implementation--component-mapping) | :white_check_mark: |
 | **12. Viva Readiness** | `backend/app/`, `docs/12-viva-guide.md` | [Section 21](#21-lld-viva-and-evaluation-preparation) | :white_check_mark: |
+| **13. Production Hardening** | `services/`, `security/`, `client.ts` | [Section 23](#23-production-readiness--hardening-audit) | :white_check_mark: |
+
+---
+
+## 23. Production Readiness & Hardening Audit
+
+In preparation for campus deployment and high-volume Gate No. 2 operations, an exhaustive full-stack audit was executed across security, concurrency, reliability, and usability. All 13 flagged items have been implemented and validated with automated regression suites:
+
+### 23.1 Production Implementation Matrix
+
+| ID | Priority | Subsystem | Issue / Vulnerability Before Fix | Production Resolution & Hardening Implemented |
+|---|---|---|---|---|
+| **P0.1** | Critical | Security / Auth | Unauthenticated password override allowed arbitrary account takeovers via `POST /auth/reset-password`. | 2-step single-use 15-minute cryptographic reset tokens (`secrets.token_urlsafe(32)`), stored as SHA-256 hashes in MongoDB, anti-enumeration timing safety, and authenticated password change requiring current password. |
+| **P0.2** | Critical | Gate Desk / Handover | Verification accepted only internal codes (`PKG-2026-XXXX`); scanning physical courier labels failed. | `MongoPackageRepository.find_by_identifier()` resolves either `internal_code` or `tracking_id` with case-insensitive normalization. Ambiguous duplicate tracking numbers raise `409 Conflict (AMBIGUOUS_TRACKING_ID)` for guard resolution. |
+| **P0.3** | Critical | Concurrency / Storage | Storage release executed before package status update; race conditions de-synchronized shelf slots. | Reordered CAS sequence in `PackageTransitioner`: conditional `compare_and_set_status()` commits status first; only upon successful atomic state change does `storage.release()` execute. |
+| **P1.4** | High | Storage / RBAC | Security guards entering custom rack names triggered HTTP 403 (`STORAGE_MANAGE` permission required). | Converted rack selection to a strict, pre-validated dropdown of active locations filtered by package size and capacity (`occupied_count < capacity`), eliminating arbitrary shelf creation. |
+| **P1.5** | High | UI / Hardware | Hardware barcode scanners appending carriage returns (`Enter`) prematurely submitted incomplete forms. | Added `handleScannerKeyDown` input interceptors that suppress premature form submissions on incomplete forms and automatically advance cursor focus to subsequent fields. |
+| **P1.6** | High | Abuse Defense | Campus NAT IP rate-limiting caused institutional lockouts across hundreds of students sharing the Wi-Fi. | Refactored `SlidingWindowRateLimiter` to key by compound `identifier:client_ip`, added `trusted_proxies` resolution (extracting `X-Forwarded-For`), memory-bounded TTL key eviction, and `Retry-After` headers on HTTP 429. |
+| **P1.7** | High | Auth / Reliability | Guards lost session mid-shift on access token expiry, losing partially scanned intake batches. | Implemented 7-day cryptographically hashed refresh token rotation (`refresh_tokens` collection) with `POST /auth/refresh` and a transparent single-flight Axios 401 retry queue in `client.ts`. |
+| **P2.8** | Medium | UX / Verification | Learners presented numeric codes manually; manual guard entry slowed lines during peak rush. | Pure TypeScript, zero-dependency SVG QR code generator (`lib/qrcode.tsx`) encoding `CDMS:<pkg>:<learner>:<code>`. Scanner/camera parsing in `PickupVerification.tsx` auto-populates all verification fields. |
+| **P2.9** | Medium | UX / Learner | Expired pickup codes required full page reloads and manual state navigation. | Added dynamic expired state detection with a 1-tap "Regenerate Code" button that seamlessly requests a fresh pickup token from the backend and updates the live countdown. |
+| **P2.10** | Medium | Intake / Lookup | Learner picker displayed only names; multiple students with the same name caused misassignment. | Enriched `UserBrief` DTO with authorized identifying fields (`email`, `phone`, `institutional_id`) with masked display in `LearnerPicker.tsx`, preventing parcel misrouting without leaking credentials. |
+| **P2.11** | Medium | Security / Audit | Students with dead phones or locked tokens were stranded with no auditable exception path. | Implemented authorized supervisor/guard manual override (`POST /pickups/override`) requiring documented physical ID verification (minimum 5-character reason), token invalidation, and immutable `pickup.override_completed` audit logging. |
+| **P3.12** | Low | Notifications | System relied on mock console logs; production campus alerts were not delivered to student inboxes. | Implemented production `SmtpEmailChannel` using standard environment configurations (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, etc.) with fail-safe error isolation and TLS support. |
+| **P3.13** | Low | Responsive UI | Dense data tables overflowed and required horizontal scrolling on 7-inch guard tablets and handhelds. | Added responsive dual-mode layout in `PackageTable.tsx`: streamlined, high-contrast card views on mobile/tablet screens (`md:hidden`) with full data tables retained for desktop displays (`hidden md:block`). |
+
+---
+

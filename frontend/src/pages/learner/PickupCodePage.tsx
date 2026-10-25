@@ -5,6 +5,7 @@ import type { PickupCode } from "../../api/types";
 import { useUser } from "../../auth/AuthContext";
 import { Alert, Button, ErrorAlert, PageHeader, Spinner, TextLink } from "../../components/ui";
 import { useLanguage } from "../../i18n/LanguageContext";
+import { QrCodeSvg } from "../../lib/qrcode";
 import { useAction, useApi } from "../../lib/useApi";
 
 function useCountdown(expiresAt: string | null) {
@@ -55,7 +56,7 @@ export function PickupCodePage() {
           <TextLink to={`/learner/packages/${p.id}`}>{t("pickupCodeBack")}</TextLink>
         </Alert>
       ) : !issued || expired ? (
-        <div className="card space-y-4 p-6">
+        <div className="card space-y-4 p-6 text-center">
           {expired && (
             <Alert tone="warn" title={t("codeExpiredTitle")}>
               {t("codeExpiredDesc")}
@@ -65,23 +66,35 @@ export function PickupCodePage() {
             {t("codeGatePrompt")}
           </p>
           <ErrorAlert error={requestCode.error} />
-          <Button onClick={onRequest} pending={requestCode.pending}>
-            {expired || p.status === "PICKUP_REQUESTED" ? t("pkgNewCodeBtn") : t("getMyCode")}
+          <Button onClick={onRequest} pending={requestCode.pending} className="w-full sm:w-auto">
+            {expired || p.status === "PICKUP_REQUESTED" ? "⚡ Regenerate Pickup Code" : t("getMyCode")}
           </Button>
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="ticket px-8 py-8 text-center bg-white shadow-ticket rounded-2xl border border-primary-200">
+          <div className="ticket px-6 py-6 text-center bg-white shadow-ticket rounded-2xl border border-primary-200">
             <p className="text-sm font-medium text-primary-800">{t("pickupCodeInstructions")}</p>
+            
+            {/* Visual QR Code Ticket for Gate No. 2 Scanner */}
+            <div className="flex flex-col items-center justify-center my-4">
+              <QrCodeSvg
+                value={`CDMS:${issued.internal_code}:${user.institutional_id}:${issued.code}`}
+                size={175}
+              />
+              <span className="text-[11px] text-muted font-mono mt-1">
+                Scan at Gate No. 2 reader
+              </span>
+            </div>
+
             <p
-              className="code-text mt-4 text-5xl font-black tracking-[0.2em] text-primary-950 sm:text-6xl"
+              className="code-text text-4xl font-black tracking-[0.2em] text-primary-950 sm:text-5xl"
               aria-label={`Pickup code ${issued.code.split("").join(" ")}`}
             >
               {issued.code.slice(0, 3)}
               <span className="mx-2 text-primary-300">–</span>
               {issued.code.slice(3)}
             </p>
-            <div className="mx-auto mt-6 border-t-2 border-dashed border-primary-100 pt-5 text-sm">
+            <div className="mx-auto mt-5 border-t-2 border-dashed border-primary-100 pt-4 text-sm">
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <p className="text-xs text-muted">{t("thPackage")}</p>
@@ -97,7 +110,7 @@ export function PickupCodePage() {
                 </div>
               </div>
             </div>
-            <div className="mt-6">
+            <div className="mt-5">
               <div className="h-2 overflow-hidden rounded-full bg-primary-100" aria-hidden>
                 <div
                   className="h-full bg-primary-600 transition-[width] duration-1000 ease-linear"
@@ -107,6 +120,18 @@ export function PickupCodePage() {
               <p className="mt-2 text-sm font-semibold text-primary-900" role="timer" aria-live="off">
                 {t("codeValidFor")} {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")}
               </p>
+            </div>
+
+            {/* One-tap code regeneration button */}
+            <div className="mt-4 pt-3 border-t border-line/50 flex justify-center">
+              <Button
+                variant="ghost"
+                onClick={onRequest}
+                pending={requestCode.pending}
+                className="text-xs text-primary-700 font-medium hover:bg-primary-50"
+              >
+                ↻ Regenerate New Code
+              </Button>
             </div>
           </div>
           <p className="text-center text-xs text-muted">

@@ -51,6 +51,10 @@ class DuplicateTrackingIdError(ConflictError):
     code = "DUPLICATE_TRACKING_ID"
 
 
+class AmbiguousPackageError(ConflictError):
+    code = "AMBIGUOUS_TRACKING_ID"
+
+
 class StorageFullError(ConflictError):
     code = "STORAGE_FULL"
 
@@ -81,6 +85,11 @@ class PickupCodeError(AppError):
 class RateLimitedError(AppError):
     status_code = 429
     code = "RATE_LIMITED"
+
+    def __init__(self, message: str = "Too many failed attempts. Try again in a few minutes.", *, retry_after: int = 60, details: Any = None) -> None:
+        super().__init__(message, code="RATE_LIMITED", details=details)
+        self.retry_after = retry_after
+
 
 
 class NotificationDeliveryError(Exception):

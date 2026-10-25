@@ -19,8 +19,10 @@ from app.repositories.mongo_repos import (
     MongoIncidentRepository,
     MongoNotificationRepository,
     MongoPackageRepository,
+    MongoPasswordResetTokenRepository,
     MongoPickupRecordRepository,
     MongoPickupTokenRepository,
+    MongoRefreshTokenRepository,
     MongoStorageRepository,
     MongoUserRepository,
 )
@@ -43,6 +45,8 @@ class UnitOfWork:
         self.incidents = MongoIncidentRepository(self.session)
         self.audit = MongoAuditRepository(self.session)
         self.idempotency = MongoIdempotencyRepository(self.session)
+        self.password_resets = MongoPasswordResetTokenRepository(self.session)
+        self.refresh_tokens = MongoRefreshTokenRepository(self.session)
         return self
 
     def __exit__(self, exc_type: type[BaseException] | None, exc: BaseException | None,

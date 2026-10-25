@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     secret_key: str = DEV_SECRET_PLACEHOLDER
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    refresh_token_expire_days: int = 7
+    password_reset_token_expire_minutes: int = 15
     bcrypt_rounds: int = 12
 
     # Business rules
@@ -33,11 +35,21 @@ class Settings(BaseSettings):
     notification_channels: str = "in_app,console_email"
     notification_max_attempts: int = 3
 
+    # SMTP email configuration
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str = "noreply@campus.example.edu"
+    smtp_use_tls: bool = True
+
     # Abuse protection
     login_rate_limit_attempts: int = 5
     login_rate_limit_window_seconds: int = 300
+    trusted_proxies: str = "127.0.0.1,::1"
 
     cors_origins: str = "http://localhost:5173"
+
 
     @model_validator(mode="after")
     def _refuse_insecure_production(self) -> "Settings":
@@ -54,6 +66,11 @@ class Settings(BaseSettings):
     @property
     def notification_channel_names(self) -> list[str]:
         return [c.strip() for c in self.notification_channels.split(",") if c.strip()]
+
+    @property
+    def trusted_proxy_list(self) -> list[str]:
+        return [p.strip() for p in self.trusted_proxies.split(",") if p.strip()]
+
 
 
 @lru_cache

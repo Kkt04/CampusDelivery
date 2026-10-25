@@ -10,16 +10,16 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routes import auth, incidents, notifications, packages, pickups, reports, storage, users
 from app.core.config import get_settings
-from app.core.exceptions import AppError
+from app.core.exceptions import AppError, RateLimitedError
 from app.infrastructure.database import init_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("campus")
 
 
-def _error(status: int, code: str, message: str, details=None, request_id: str | None = None) -> JSONResponse:  # noqa: ANN001
+def _error(status: int, code: str, message: str, details=None, request_id: str | None = None, headers: dict[str, str] | None = None) -> JSONResponse:  # noqa: ANN001
     body = {"error": {"code": code, "message": message, "details": details, "request_id": request_id}}
-    return JSONResponse(status_code=status, content=body)
+    return JSONResponse(status_code=status, content=body, headers=headers)
 
 
 def create_app() -> FastAPI:
@@ -74,7 +74,10 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-        return _error(exc.status_code, exc.code, exc.message, exc.details, rid(request))
+        headers = {}
+        if isinstance(exc, RateLimitedError):
+            headers["Retry-After"] = str(exc.retry_after)
+        return _error(exc.status_code, exc.code, exc.message, exc.details, rid(request), headers=headers or None)
 
     @app.exception_handler(RequestValidationError)
     async def validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:

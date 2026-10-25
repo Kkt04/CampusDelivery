@@ -61,9 +61,14 @@ def init_db() -> None:
     unique("pickup_records", [("package_id", ASCENDING)])
     unique("pickup_records", [("token_id", ASCENDING)])
     unique("idempotency_keys", [("user_id", ASCENDING), ("scope", ASCENDING), ("key", ASCENDING)])
+    unique("password_reset_tokens", [("token_hash", ASCENDING)])
+    unique("refresh_tokens", [("token_hash", ASCENDING)])
 
     db["packages"].create_index([("status", ASCENDING), ("arrived_at", ASCENDING)])
     db["notifications"].create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
+    db["password_reset_tokens"].create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
+    db["refresh_tokens"].create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
+
 
 
 def reset_db() -> None:

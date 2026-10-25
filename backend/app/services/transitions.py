@@ -40,20 +40,24 @@ class PackageTransitioner:
         values: dict[str, Any] = {"updated_at": now, **(extra_values or {})}
         if target == PackageStatus.READY_FOR_PICKUP:
             values["ready_at"] = now
+        loc_id_to_release = None
         released_location = None
         if target in TERMINAL_STATUSES:
             values["closed_at"] = now
             if package.storage_location_id is not None:
+                loc_id_to_release = package.storage_location_id
                 released_location = package.storage_location.code if package.storage_location else None
-                self._uow.storage.release(package.storage_location_id)
                 values["storage_location_id"] = None
-                package.storage_location = None
 
         self._uow.session.flush()
         if not self._uow.packages.compare_and_set_status(package.id, source, target, values):
             raise ConcurrentModificationError(
                 "The package was changed by someone else. Reload and try again."
             )
+        if loc_id_to_release is not None:
+            self._uow.storage.release(loc_id_to_release)
+            package.storage_location = None
+            package.storage_location_id = None
         self._uow.session.refresh(package)
 
         self._uow.packages.add_history(

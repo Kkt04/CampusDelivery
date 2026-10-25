@@ -195,6 +195,8 @@ class PickupRecord(Document):
     handed_over_by_id: int = 0
     token_id: int = 0
     storage_location_code: str | None = None
+    is_override: bool = False
+    override_reason: str | None = None
     collected_at: datetime = field(default_factory=utcnow)
 
     package: Package | None = None
@@ -273,3 +275,28 @@ class IdempotencyKey(Document):
     request_hash: str = ""
     resource_id: int = 0
     created_at: datetime = field(default_factory=utcnow)
+
+
+@dataclass
+class PasswordResetToken(Document):
+    COLLECTION: ClassVar[str] = "password_reset_tokens"
+    DATES: ClassVar[tuple[str, ...]] = ("created_at", "expires_at", "used_at")
+
+    user_id: int = 0
+    token_hash: str = ""
+    expires_at: datetime = field(default_factory=utcnow)
+    used_at: datetime | None = None
+    created_at: datetime = field(default_factory=utcnow)
+
+
+@dataclass
+class RefreshToken(Document):
+    COLLECTION: ClassVar[str] = "refresh_tokens"
+    DATES: ClassVar[tuple[str, ...]] = ("created_at", "expires_at", "revoked_at")
+
+    user_id: int = 0
+    token_hash: str = ""
+    expires_at: datetime = field(default_factory=utcnow)
+    revoked_at: datetime | None = None
+    created_at: datetime = field(default_factory=utcnow)
+

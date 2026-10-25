@@ -62,10 +62,16 @@ def present_history(entry: PackageStatusHistory, viewer: User) -> HistoryEntryOu
 
 def present_pickup(record: PickupRecord, viewer: User) -> PickupRecordOut:
     return PickupRecordOut(
-        id=record.id, package_id=record.package_id, internal_code=record.package.internal_code,
-        courier_name=record.package.courier_name, learner_id=record.learner_id,
+        id=record.id,
+        package_id=record.package_id,
+        internal_code=record.package.internal_code if record.package else "",
+        courier_name=record.package.courier_name if record.package else "",
+        learner_id=record.learner_id,
         handed_over_by=brief(record.handed_over_by) if viewer.role != Role.LEARNER else None,
-        storage_location_code=record.storage_location_code, collected_at=record.collected_at,
+        storage_location_code=record.storage_location_code,
+        collected_at=record.collected_at,
+        is_override=record.is_override,
+        override_reason=record.override_reason if viewer.role != Role.LEARNER else None,
     )
 
 

@@ -14,13 +14,62 @@ export function PickupVerification() {
   const [record, setRecord] = useState<PickupRecord | null>(null);
   const [idemKey, setIdemKey] = useState(newIdempotencyKey);
 
+  // Quick QR scanner input
+  const [qrScanInput, setQrScanInput] = useState("");
+
+  // Supervisor Manual Override Modal
+  const [showOverride, setShowOverride] = useState(false);
+  const [overridePkgCode, setOverridePkgCode] = useState("");
+  const [overrideLearnerId, setOverrideLearnerId] = useState("");
+  const [overrideReason, setOverrideReason] = useState("");
+  const [overridePending, setOverridePending] = useState(false);
+  const [overrideError, setOverrideError] = useState<string | null>(null);
+
   const clean = (): PickupInput => ({
-    package_code: input.package_code.trim().toUpperCase(),
+    package_code: input.package_code.trim(),
     learner_institutional_id: input.learner_institutional_id.trim().toUpperCase(),
     code: input.code.replace(/\D/g, ""),
   });
   const verify = useAction(() => pickupApi.verify(clean()));
   const complete = useAction(() => pickupApi.complete(clean(), idemKey));
+
+  function handleScanParse(raw: string): boolean {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith("CDMS:")) {
+      const parts = trimmed.split(":");
+      if (parts.length >= 4) {
+        setInput({
+          package_code: parts[1],
+          learner_institutional_id: parts[2],
+          code: parts[3],
+        });
+        setVerified(null);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function handleFormKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
+    if (e.key === "Enter") {
+      const target = e.target as HTMLInputElement;
+      if (target.tagName === "BUTTON") return;
+
+      if (handleScanParse(target.value)) {
+        e.preventDefault();
+        return;
+      }
+
+      if (!input.package_code || !input.learner_institutional_id || input.code.replace(/\D/g, "").length !== 6) {
+        e.preventDefault();
+        if (target.id === "pkg") {
+          document.getElementById("lrn")?.focus();
+        } else if (target.id === "lrn") {
+          document.getElementById("code")?.focus();
+        }
+      }
+    }
+  }
 
   async function onVerify(e: FormEvent) {
     e.preventDefault();
@@ -28,15 +77,45 @@ export function PickupVerification() {
     if (result) setVerified(result.package);
   }
 
+  async function onOverrideSubmit(e: FormEvent) {
+    e.preventDefault();
+    setOverrideError(null);
+    if (overrideReason.trim().length < 5) {
+      setOverrideError("Please provide an explicit reason of at least 5 characters.");
+      return;
+    }
+    setOverridePending(true);
+    try {
+      const r = await pickupApi.override(
+        {
+          package_code: overridePkgCode.trim(),
+          learner_institutional_id: overrideLearnerId.trim().toUpperCase(),
+          reason: overrideReason.trim(),
+        },
+        idemKey
+      );
+      setRecord(r);
+      setShowOverride(false);
+    } catch (err: unknown) {
+      const msg = err && typeof err === "object" && "message" in err ? String(err.message) : "Override failed.";
+      setOverrideError(msg);
+    } finally {
+      setOverridePending(false);
+    }
+  }
+
   function reset() {
     setInput({ package_code: "", learner_institutional_id: "", code: "" });
+    setQrScanInput("");
     setVerified(null);
     setRecord(null);
     setIdemKey(newIdempotencyKey());
   }
 
   const set = (k: keyof PickupInput) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput({ ...input, [k]: e.target.value });
+    const val = e.target.value;
+    if (handleScanParse(val)) return;
+    setInput({ ...input, [k]: val });
     setVerified(null);
   };
 
@@ -51,6 +130,14 @@ export function PickupVerification() {
               {t("thShelf")}: <strong className="font-mono">{record.storage_location_code}</strong>
             </span>
           )}
+          {record.is_override && (
+            <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-900">
+              <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded mr-1.5">
+                Identity Override Handover
+              </span>
+              <span>Reason: {record.override_reason}</span>
+            </div>
+          )}
         </Alert>
         <Button onClick={reset}>{t("pickupNextBtn")}</Button>
       </div>
@@ -64,16 +151,39 @@ export function PickupVerification() {
         title={t("pickupVerifyTitle")}
         description={t("pickupVerifySubtitle")}
       />
-      <form onSubmit={onVerify} className="card space-y-4 p-5" noValidate>
+
+      {/* QR Ticket Fast-Scan Bar */}
+      <div className="rounded-xl border border-primary-200 bg-primary-50/70 p-4">
+        <label htmlFor="qr-scanner" className="block text-xs font-semibold text-primary-900 mb-1.5">
+          📷 Fast QR Ticket Scan (Scan or paste CDMS:pkg:learner:code)
+        </label>
+        <input
+          id="qr-scanner"
+          className="input bg-white font-mono text-sm placeholder:font-sans placeholder:text-muted"
+          placeholder="Scan student QR ticket or barcode here..."
+          value={qrScanInput}
+          onChange={(e) => {
+            const v = e.target.value;
+            setQrScanInput(v);
+            if (handleScanParse(v)) {
+              setQrScanInput("");
+            }
+          }}
+          autoComplete="off"
+        />
+      </div>
+
+      <form onSubmit={onVerify} onKeyDown={handleFormKeyDown} className="card space-y-4 p-5" noValidate>
         <ErrorAlert error={error} />
-        <Field label={t("pickupPkgCodeLabel")} htmlFor="pkg" hint={t("pickupPkgCodeHint")}>
+        <Field label="Package Code or Courier Tracking Barcode" htmlFor="pkg" hint="Scan the physical courier label barcode or internal code (e.g. 1Z..., PKG-...)">
           <input
             id="pkg"
-            className="input code-text uppercase font-semibold"
-            placeholder="PKG-..."
+            className="input code-text font-semibold uppercase"
+            placeholder="Scan courier barcode or PKG-..."
             value={input.package_code}
             onChange={set("package_code")}
             autoComplete="off"
+            required
           />
         </Field>
         <Field label={t("pickupStudentIdLabel")} htmlFor="lrn">
@@ -84,9 +194,10 @@ export function PickupVerification() {
             value={input.learner_institutional_id}
             onChange={set("learner_institutional_id")}
             autoComplete="off"
+            required
           />
         </Field>
-        <Field label={t("pickupCodeLabel")} htmlFor="code">
+        <Field label={t("pickupCodeLabel")} htmlFor="code" hint="6-digit verification code from student ticket">
           <input
             id="code"
             className="input code-text text-lg tracking-[0.3em] font-bold"
@@ -96,16 +207,33 @@ export function PickupVerification() {
             value={input.code}
             onChange={set("code")}
             autoComplete="one-time-code"
+            required
           />
         </Field>
-        <Button
-          type="submit"
-          variant={verified ? "secondary" : "primary"}
-          pending={verify.pending}
-          disabled={!input.package_code || !input.learner_institutional_id || input.code.replace(/\D/g, "").length !== 6}
-        >
-          {t("pickupVerifyBtn")}
-        </Button>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+          <Button
+            type="submit"
+            variant={verified ? "secondary" : "primary"}
+            pending={verify.pending}
+            disabled={!input.package_code.trim() || !input.learner_institutional_id.trim() || input.code.replace(/\D/g, "").length !== 6}
+          >
+            {t("pickupVerifyBtn")}
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setOverridePkgCode(input.package_code);
+              setOverrideLearnerId(input.learner_institutional_id);
+              setShowOverride(true);
+            }}
+            className="text-xs text-amber-700 hover:text-amber-800 hover:bg-amber-50"
+          >
+            ⚠️ Manual Override (Supervisor)
+          </Button>
+        </div>
       </form>
 
       {verified && (
@@ -116,11 +244,12 @@ export function PickupVerification() {
               [t("thPackage"), verified.internal_code],
               [t("thShelf"), verified.storage_location?.code ?? "–"],
               [t("thCourier"), verified.courier_name],
+              ["Courier Tracking ID", verified.tracking_id ?? "–"],
             ]}
           />
           <p className="mt-4 text-sm text-muted">{t("pickupFetchNotice")}</p>
           <Button
-            className="mt-4"
+            className="mt-4 w-full sm:w-auto"
             pending={complete.pending}
             onClick={async () => {
               const r = await complete.run();
@@ -130,6 +259,77 @@ export function PickupVerification() {
             {t("pickupCompleteBtn")}
           </Button>
         </Card>
+      )}
+
+      {/* Supervisor Manual Override Modal */}
+      {showOverride && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl border border-line bg-white p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div>
+                <h2 className="text-lg font-bold text-ink font-serif">Manual Identity Override</h2>
+                <p className="text-xs text-muted">Authorized supervisor handover when code is lost or locked out</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOverride(false)}
+                className="rounded-lg p-1 text-muted hover:bg-surface-alt hover:text-ink transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {overrideError && <Alert tone="danger">{overrideError}</Alert>}
+
+            <Alert tone="warn">
+              You must physically verify the student's institutional photo ID before completing a manual handover. This action is permanently audited.
+            </Alert>
+
+            <form onSubmit={onOverrideSubmit} className="space-y-3.5">
+              <Field label="Package Code or Tracking ID" htmlFor="ov_pkg">
+                <input
+                  id="ov_pkg"
+                  className="input font-mono uppercase"
+                  required
+                  value={overridePkgCode}
+                  onChange={(e) => setOverridePkgCode(e.target.value)}
+                  placeholder="PKG-... or Courier AWB"
+                />
+              </Field>
+
+              <Field label="Verified Student Institutional ID" htmlFor="ov_lrn">
+                <input
+                  id="ov_lrn"
+                  className="input font-mono uppercase"
+                  required
+                  value={overrideLearnerId}
+                  onChange={(e) => setOverrideLearnerId(e.target.value)}
+                  placeholder="Student ID from physical card"
+                />
+              </Field>
+
+              <Field label="Mandatory Reason for Override" htmlFor="ov_reason" hint="Must be at least 5 characters (e.g. Student phone battery died, physical ID verified)">
+                <textarea
+                  id="ov_reason"
+                  className="input min-h-[70px] text-sm"
+                  required
+                  value={overrideReason}
+                  onChange={(e) => setOverrideReason(e.target.value)}
+                  placeholder="Enter reason for manual override..."
+                />
+              </Field>
+
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" variant="danger" pending={overridePending} className="flex-1">
+                  Authorize & Handover
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setShowOverride(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

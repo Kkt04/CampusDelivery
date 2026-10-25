@@ -4,6 +4,7 @@
  */
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 const TOKEN_KEY = "cdms.token";
+const REFRESH_TOKEN_KEY = "cdms.refresh_token";
 
 export class ApiError extends Error {
   constructor(
@@ -28,7 +29,12 @@ export class ApiError extends Error {
 export const tokenStore = {
   get: () => sessionStorage.getItem(TOKEN_KEY),
   set: (token: string) => sessionStorage.setItem(TOKEN_KEY, token),
-  clear: () => sessionStorage.removeItem(TOKEN_KEY),
+  getRefreshToken: () => sessionStorage.getItem(REFRESH_TOKEN_KEY),
+  setRefreshToken: (token: string) => sessionStorage.setItem(REFRESH_TOKEN_KEY, token),
+  clear: () => {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  },
 };
 
 type Query = Record<string, string | number | boolean | null | undefined | string[]>;
@@ -54,6 +60,39 @@ interface RequestOptions {
   body?: unknown;
   query?: Query;
   idempotencyKey?: string;
+  _isRetry?: boolean;
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = tokenStore.getRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) {
+      tokenStore.clear();
+      return null;
+    }
+    const data = await res.json();
+    if (data.access_token) {
+      tokenStore.set(data.access_token);
+      if (data.refresh_token) {
+        tokenStore.setRefreshToken(data.refresh_token);
+      }
+      return data.access_token as string;
+    }
+    tokenStore.clear();
+    return null;
+  } catch {
+    tokenStore.clear();
+    return null;
+  }
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -74,10 +113,25 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new ApiError(0, "NETWORK_ERROR", "Cannot reach the server. Check your connection and try again.");
   }
 
+  // Handle 401 transparent retry queue with refresh token
+  if (response.status === 401 && !options._isRetry && !path.startsWith("/auth/")) {
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    const newToken = await refreshPromise;
+    if (newToken) {
+      return request<T>(path, { ...options, _isRetry: true });
+    }
+    tokenStore.clear();
+    window.dispatchEvent(new Event("cdms:unauthorized"));
+  }
+
   const payload = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
     const err = payload?.error;
-    if (response.status === 401 && token) {
+    if (response.status === 401 && tokenStore.get()) {
       tokenStore.clear();
       window.dispatchEvent(new Event("cdms:unauthorized"));
     }

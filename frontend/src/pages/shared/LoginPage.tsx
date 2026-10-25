@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { ApiError } from "../../api/client";
+import { ApiError, tokenStore } from "../../api/client";
 import { authApi } from "../../api/endpoints";
 import { HOME_BY_ROLE, useAuth } from "../../auth/AuthContext";
 import { Brand } from "../../components/Layout";
@@ -61,7 +61,10 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
 
   // Forgot password modal state
   const [showForgot, setShowForgot] = useState(false);
+  const [resetStep, setResetStep] = useState<1 | 2>(1);
   const [resetIdentifier, setResetIdentifier] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [devTokenHint, setDevTokenHint] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmResetPassword, setConfirmResetPassword] = useState("");
   const [forgotPending, setForgotPending] = useState(false);
@@ -124,7 +127,27 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
     }
   }
 
-  async function onResetSubmit(event: FormEvent) {
+  async function onRequestTokenSubmit(event: FormEvent) {
+    event.preventDefault();
+    setForgotError(null);
+    setForgotSuccess(null);
+    setForgotPending(true);
+    try {
+      const res = await authApi.forgotPassword(resetIdentifier.trim());
+      setForgotSuccess(res.message);
+      if (res.dev_token) {
+        setDevTokenHint(res.dev_token);
+        setResetToken(res.dev_token);
+      }
+      setResetStep(2);
+    } catch (e) {
+      setForgotError(e instanceof ApiError ? e.message : "Failed to request reset token.");
+    } finally {
+      setForgotPending(false);
+    }
+  }
+
+  async function onResetTokenSubmit(event: FormEvent) {
     event.preventDefault();
     setForgotError(null);
     setForgotSuccess(null);
@@ -140,11 +163,16 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
 
     setForgotPending(true);
     try {
-      await authApi.resetPassword(resetIdentifier.trim(), newPassword);
-      setForgotSuccess(t("resetSuccess"));
-      const signedIn = await login(resetIdentifier.trim(), newPassword);
-      setShowForgot(false);
-      navigate(HOME_BY_ROLE[signedIn.role], { replace: true });
+      const result = await authApi.resetPasswordWithToken(resetToken.trim(), newPassword);
+      tokenStore.set(result.access_token);
+      if (result.refresh_token) {
+        tokenStore.setRefreshToken(result.refresh_token);
+      }
+      setForgotSuccess("Password updated successfully! Logging you in...");
+      setTimeout(() => {
+        setShowForgot(false);
+        navigate(HOME_BY_ROLE[result.user.role], { replace: true });
+      }, 700);
     } catch (e) {
       setForgotError(e instanceof ApiError ? e.message : t("resetFailed"));
     } finally {
@@ -482,10 +510,21 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="w-full max-w-md rounded-2xl border border-line bg-white p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-line pb-3">
-              <h2 className="text-lg font-bold text-ink font-serif">{t("authForgotPassword")}</h2>
+              <div>
+                <h2 className="text-lg font-bold text-ink font-serif">{t("authForgotPassword")}</h2>
+                <p className="text-xs text-muted">
+                  {resetStep === 1 ? "Step 1 of 2: Request single-use token" : "Step 2 of 2: Enter token & new password"}
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() => setShowForgot(false)}
+                onClick={() => {
+                  setShowForgot(false);
+                  setResetStep(1);
+                  setForgotError(null);
+                  setForgotSuccess(null);
+                  setDevTokenHint(null);
+                }}
                 className="rounded-lg p-1 text-muted hover:bg-surface-alt hover:text-ink transition-colors"
               >
                 ✕
@@ -495,50 +534,115 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
             {forgotError && <Alert tone="danger">{forgotError}</Alert>}
             {forgotSuccess && <Alert tone="success">{forgotSuccess}</Alert>}
 
-            <form className="space-y-3.5" onSubmit={onResetSubmit}>
-              <Field label={t("authIdentifierLabel")} htmlFor="reset_id">
-                <input
-                  id="reset_id"
-                  className="input"
-                  required
-                  value={resetIdentifier}
-                  onChange={(e) => setResetIdentifier(e.target.value)}
-                  placeholder={t("authIdentifierPlaceholder")}
-                />
-              </Field>
-
-              <Field label={t("resetNewPasswordLabel")} htmlFor="new_password">
-                <input
-                  id="new_password"
-                  type="password"
-                  className="input"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={t("signupPasswordHint")}
-                />
-              </Field>
-
-              <Field label={t("resetConfirmPasswordLabel")} htmlFor="confirm_new_password">
-                <input
-                  id="confirm_new_password"
-                  type="password"
-                  className="input"
-                  required
-                  value={confirmResetPassword}
-                  onChange={(e) => setConfirmResetPassword(e.target.value)}
-                />
-              </Field>
-
-              <div className="flex gap-2 pt-2">
-                <Button type="submit" pending={forgotPending} className="flex-1">
-                  {t("resetSubmitBtn")}
-                </Button>
-                <Button type="button" variant="ghost" onClick={() => setShowForgot(false)}>
-                  {t("cancel")}
-                </Button>
+            {devTokenHint && resetStep === 2 && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-800">
+                <span className="font-semibold">Development mode token:</span>{" "}
+                <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono text-amber-900 break-all">{devTokenHint}</code>
               </div>
-            </form>
+            )}
+
+            {resetStep === 1 ? (
+              <form className="space-y-3.5" onSubmit={onRequestTokenSubmit}>
+                <Field label={t("authIdentifierLabel")} htmlFor="reset_id">
+                  <input
+                    id="reset_id"
+                    className="input"
+                    required
+                    value={resetIdentifier}
+                    onChange={(e) => setResetIdentifier(e.target.value)}
+                    placeholder={t("authIdentifierPlaceholder")}
+                  />
+                </Field>
+
+                <div className="flex justify-between items-center text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setResetStep(2)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Already have a reset code?
+                  </button>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button type="submit" pending={forgotPending} className="flex-1">
+                    Send Reset Code
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowForgot(false);
+                      setResetStep(1);
+                    }}
+                  >
+                    {t("cancel")}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <form className="space-y-3.5" onSubmit={onResetTokenSubmit}>
+                <Field label="Reset Token" htmlFor="reset_token">
+                  <input
+                    id="reset_token"
+                    className="input font-mono text-sm"
+                    required
+                    value={resetToken}
+                    onChange={(e) => setResetToken(e.target.value)}
+                    placeholder="Enter 16-character reset token"
+                  />
+                </Field>
+
+                <Field label={t("resetNewPasswordLabel")} htmlFor="new_password">
+                  <input
+                    id="new_password"
+                    type="password"
+                    className="input"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={t("signupPasswordHint")}
+                  />
+                </Field>
+
+                <Field label={t("resetConfirmPasswordLabel")} htmlFor="confirm_new_password">
+                  <input
+                    id="confirm_new_password"
+                    type="password"
+                    className="input"
+                    required
+                    value={confirmResetPassword}
+                    onChange={(e) => setConfirmResetPassword(e.target.value)}
+                  />
+                </Field>
+
+                <div className="flex justify-between items-center text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setResetStep(1)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    ← Back to request code
+                  </button>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button type="submit" pending={forgotPending} className="flex-1">
+                    {t("resetSubmitBtn")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowForgot(false);
+                      setResetStep(1);
+                    }}
+                  >
+                    {t("cancel")}
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

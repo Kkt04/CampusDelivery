@@ -9,7 +9,13 @@ from app.domain.permissions import Permission, has_permission
 from app.infrastructure.models import User
 from app.repositories.unit_of_work import UnitOfWork
 from app.schemas.common import PageOut
-from app.schemas.pickups import PickupCodeOut, PickupRecordOut, PickupVerificationOut, PickupVerifyRequest
+from app.schemas.pickups import (
+    PickupCodeOut,
+    PickupOverrideRequest,
+    PickupRecordOut,
+    PickupVerificationOut,
+    PickupVerifyRequest,
+)
 from app.services.pickup import PickupService
 
 router = APIRouter(tags=["Pickup"])
@@ -44,6 +50,21 @@ def complete_pickup(body: PickupVerifyRequest, response: Response, key: str | No
     record, replayed = PickupService(uow, settings).complete(
         package_code=body.package_code, learner_institutional_id=body.learner_institutional_id,
         code=body.code, actor=user, idempotency_key=key)
+    if replayed:
+        response.status_code = 200
+        response.headers["Idempotent-Replayed"] = "true"
+    return present_pickup(record, user)
+
+
+@router.post("/pickups/override", response_model=PickupRecordOut, status_code=201,
+             summary="Supervisor / Security: manual handover when code is lost or locked out (audited with reason)")
+def override_pickup(body: PickupOverrideRequest, response: Response, key: str | None = Depends(idempotency_key),
+                    user: User = Depends(require(Permission.PICKUP_HANDOVER)),
+                    uow: UnitOfWork = Depends(get_uow),
+                    settings: Settings = Depends(get_settings_dep)) -> PickupRecordOut:
+    record, replayed = PickupService(uow, settings).manual_override(
+        package_code=body.package_code, learner_institutional_id=body.learner_institutional_id,
+        reason=body.reason, actor=user, idempotency_key=key)
     if replayed:
         response.status_code = 200
         response.headers["Idempotent-Replayed"] = "true"

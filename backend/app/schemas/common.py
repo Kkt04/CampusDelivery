@@ -20,6 +20,8 @@ class UserBrief(ORMModel):
     id: int
     institutional_id: str
     full_name: str
+    email: str | None = None
+    phone: str | None = None
 
 
 class MessageOut(BaseModel):
