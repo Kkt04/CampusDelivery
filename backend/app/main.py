@@ -34,7 +34,7 @@ def create_app() -> FastAPI:
                                                                                "Idempotency-Key"])
 
     @app.on_event("startup")
-    def _startup() -> None:
+    async def _startup() -> None:
         init_db()
         if settings.environment != "production":
             try:
@@ -43,6 +43,24 @@ def create_app() -> FastAPI:
                 logger.info("Local testing accounts ensured in database.")
             except Exception as e:
                 logger.warning("Could not auto-ensure demo users on startup: %s", e)
+
+        async def _overdue_sweep_loop() -> None:
+            while True:
+                try:
+                    from app.container import container
+                    from app.services.notifications import NotificationService
+                    with container.uow() as uow:
+                        res = NotificationService(uow, channels=container.dispatcher.channels).sweep_overdue(
+                            deadline_days=container.settings.collection_deadline_days
+                        )
+                        if res.get("notified", 0) > 0:
+                            logger.info("Automated overdue daily sweep: sent %s reminders", res["notified"])
+                except Exception as exc:
+                    logger.debug("Automated overdue sweep background check: %s", exc)
+                await asyncio.sleep(1800)  # check every 30 mins
+
+        import asyncio
+        asyncio.create_task(_overdue_sweep_loop())
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # noqa: ANN001, ANN202

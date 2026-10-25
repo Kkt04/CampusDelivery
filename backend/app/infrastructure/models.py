@@ -119,7 +119,7 @@ class Package(Document):
         "status": PackageStatus,
     }
     DATES: ClassVar[tuple[str, ...]] = (
-        "arrived_at", "ready_at", "closed_at", "created_at", "updated_at"
+        "arrived_at", "ready_at", "closed_at", "created_at", "updated_at", "last_overdue_notified_at"
     )
 
     internal_code: str = ""
@@ -136,6 +136,8 @@ class Package(Document):
     received_by_id: int = 0
     ready_at: datetime | None = None
     closed_at: datetime | None = None
+    last_overdue_notified_at: datetime | None = None
+    overdue_reminder_count: int = 0
     notes: str | None = None
     version: int = 1
     created_at: datetime = field(default_factory=utcnow)

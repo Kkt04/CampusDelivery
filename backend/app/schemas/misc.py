@@ -102,6 +102,7 @@ class DashboardOut(BaseModel):
     received: int
     in_custody: int
     overdue: int
+    awaiting_storage: int = 0
     damaged_condition: int
     received_today: int
     collected_today: int

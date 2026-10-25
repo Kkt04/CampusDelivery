@@ -130,8 +130,9 @@ class NotificationDispatcher:
 
 
 class NotificationService:
-    def __init__(self, uow: UnitOfWork) -> None:
+    def __init__(self, uow: UnitOfWork, channels: list[NotificationChannel] | None = None) -> None:
         self._uow = uow
+        self._channels = channels or []
 
     def list_for(self, user: User, page: int, page_size: int) -> Page[Notification]:
         return self._uow.notifications.list_in_app(user.id, page, page_size)
@@ -152,3 +153,53 @@ class NotificationService:
         count = self._uow.notifications.mark_all_read(user.id, utcnow())
         self._uow.commit()
         return count
+
+    def sweep_overdue(self, now: datetime | None = None, deadline_days: int | None = None) -> dict[str, int]:
+        if now is None:
+            now = utcnow()
+        if deadline_days is None:
+            from app.core.config import get_settings
+            deadline_days = get_settings().collection_deadline_days
+
+        overdue_packages = self._uow.packages.find_overdue_for_notification(now, deadline_days)
+        notified = 0
+
+        for pkg in overdue_packages:
+            if not pkg.recipient_id:
+                continue
+            user = self._uow.users.get(pkg.recipient_id)
+            if not user:
+                continue
+
+            shelf = pkg.storage_location.code if pkg.storage_location else "Gate No. 2 Storage"
+            first_name = user.full_name.split()[0] if user.full_name else "there"
+            title = "Overdue package reminder: Gate No. 2"
+            message = (
+                f"Hey {first_name}, your parcel {pkg.internal_code} ({pkg.courier_name}) has been waiting in rack {shelf} "
+                f"at Gate No. 2 for over {deadline_days} days. Please collect it as soon as possible with your pickup code."
+            )
+
+            self._uow.notifications.add(
+                Notification(
+                    user_id=user.id,
+                    package_id=pkg.id,
+                    channel="in_app",
+                    title=title,
+                    message=message,
+                    delivery_status=NotificationStatus.SENT,
+                    sent_at=now,
+                )
+            )
+
+            for ch in self._channels:
+                if ch.channel_type != "in_app":
+                    try:
+                        ch.send(NotificationRecipient(user.id, user.full_name, user.email), title, message)
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning("Overdue notification via %s failed: %s", ch.channel_type, exc)
+
+            self._uow.packages.record_overdue_notification(pkg.id, now)
+            notified += 1
+
+        self._uow.commit()
+        return {"checked": len(overdue_packages), "notified": notified}

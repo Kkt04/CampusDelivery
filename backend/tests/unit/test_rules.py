@@ -76,6 +76,11 @@ def test_overdue_is_derived_from_arrival_and_status():
     assert not is_overdue(S.COLLECTED, old, NOW, deadline_days=5)
     assert not is_overdue(S.UNDER_INVESTIGATION, old, NOW, deadline_days=5)
 
+    # 3-day deadline rule
+    assert is_overdue(S.READY_FOR_PICKUP, NOW - timedelta(days=4), NOW, deadline_days=3)
+    assert not is_overdue(S.READY_FOR_PICKUP, NOW - timedelta(days=2), NOW, deadline_days=3)
+    assert not is_overdue(S.COLLECTED, NOW - timedelta(days=4), NOW, deadline_days=3)
+
 
 # ---- duplicates --------------------------------------------------------------
 def test_tracking_ids_are_normalised_before_duplicate_check():

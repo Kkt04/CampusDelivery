@@ -45,3 +45,12 @@ def retry_failed(user: User = Depends(require(Permission.NOTIFICATION_ADMIN)),
     AuditService(uow.audit).record(user, "notification.retry", "notification", None, result)
     uow.commit()
     return result
+
+
+@router.post("/sweep-overdue", summary="Trigger automated overdue daily notification sweep")
+def sweep_overdue(user: User = Depends(get_current_user),
+                  uow: UnitOfWork = Depends(get_uow)) -> dict[str, int]:
+    result = NotificationService(uow, channels=container.dispatcher.channels).sweep_overdue()
+    AuditService(uow.audit).record(user, "notification.sweep_overdue", "package", None, result)
+    uow.commit()
+    return result

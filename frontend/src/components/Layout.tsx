@@ -186,10 +186,11 @@ export function Brand({ subtitle }: { subtitle?: string }) {
   const { t } = useLanguage();
   return (
     <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 32 32" className="h-8 w-8 shrink-0 drop-shadow-xs" aria-hidden>
-        <rect width="32" height="32" rx="7" fill="#C62828" />
-        <path d="M8 12.5 16 8l8 4.5v8L16 25l-8-4.5zM8 12.5 16 17l8-4.5M16 17v8" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
-      </svg>
+      <img
+        src="/logo.png"
+        alt="Campus Delivery Logo"
+        className="h-8 w-8 shrink-0 object-contain drop-shadow-xs"
+      />
       <div className="leading-tight">
         <p className="text-base font-bold tracking-tight text-ink">{t("appTitle")}</p>
         <p className="text-xs text-muted">{subtitle ?? t("brandSubtitle")}</p>

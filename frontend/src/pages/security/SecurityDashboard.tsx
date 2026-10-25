@@ -7,8 +7,26 @@ import { Card, EmptyState, ErrorAlert, PageHeader, Spinner } from "../../compone
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useApi } from "../../lib/useApi";
 
-function Queue({ title, statuses, empty }: { title: string; statuses: PackageStatus[]; empty: string }) {
-  const list = useApi(() => packagesApi.list({ status: statuses, page_size: 5 }), []);
+function Queue({
+  title,
+  statuses,
+  empty,
+  overdue,
+}: {
+  title: string;
+  statuses?: PackageStatus[];
+  empty: string;
+  overdue?: boolean;
+}) {
+  const list = useApi(
+    () =>
+      packagesApi.list({
+        ...(statuses ? { status: statuses } : {}),
+        ...(overdue ? { overdue: true } : {}),
+        page_size: 5,
+      }),
+    []
+  );
   return (
     <Card title={`${title}${list.data ? ` (${list.data.total})` : ""}`} bodyClass="p-0">
       {list.loading ? (
@@ -61,15 +79,21 @@ export function SecurityDashboard() {
             { label: t("statReceivedToday"), value: s.received_today },
             { label: t("statCollectedToday"), value: s.collected_today },
             { label: t("statInCustody"), value: s.in_custody, to: "/security/packages" },
-            { label: t("statAwaitingStorage"), value: s.by_status.VERIFIED, tone: "brand" },
+            {
+              label: t("statAwaitingStorage"),
+              value: s.awaiting_storage ?? ((s.by_status.VERIFIED ?? 0) + s.overdue),
+              to: "/security/packages?overdue=true",
+              tone: "brand",
+            },
             { label: t("statUnidentified"), value: s.by_status.UNIDENTIFIED, tone: "warn" },
             { label: t("statHeldDamaged"), value: s.by_status.DAMAGED, tone: "danger" },
           ]}
         />
       )}
       <Queue
-        title={t("queueWaitingShelf")}
+        title={`${t("queueWaitingShelf")} / ${t("tabOverdue")}`}
         statuses={["VERIFIED"]}
+        overdue
         empty={t("queueWaitingShelfEmpty")}
       />
       <Queue

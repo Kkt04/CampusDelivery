@@ -153,6 +153,7 @@ export interface Dashboard {
   received: number;
   in_custody: number;
   overdue: number;
+  awaiting_storage?: number;
   damaged_condition: number;
   received_today: number;
   collected_today: number;

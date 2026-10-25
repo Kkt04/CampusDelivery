@@ -78,6 +78,8 @@ export const notificationsApi = {
   markAllRead: () => request<{ updated: number }>("/notifications/read-all", { method: "POST" }),
   retryFailed: () =>
     request<{ retried: number; sent: number; failed: number; skipped: number }>("/notifications/retry-failed", { method: "POST" }),
+  sweepOverdue: () =>
+    request<{ checked: number; notified: number }>("/notifications/sweep-overdue", { method: "POST" }),
 };
 
 export const incidentsApi = {

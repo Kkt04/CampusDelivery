@@ -17,15 +17,25 @@ class ReportService:
         self._settings = settings
 
     def dashboard(self, now: datetime) -> dict:
+        try:
+            from app.container import container
+            from app.services.notifications import NotificationService
+            NotificationService(self._uow, channels=container.dispatcher.channels).sweep_overdue(now, self._settings.collection_deadline_days)
+        except Exception:
+            pass
+
         by_status = self._uow.packages.count_by_status()
         start_of_day = datetime.combine(now.date(), time.min, tzinfo=timezone.utc)
         capacity, occupied = self._uow.storage.totals()
+        overdue_count = self._uow.packages.count_overdue(now, self._settings.collection_deadline_days)
+        verified_count = by_status.get(PackageStatus.VERIFIED, 0)
         return {
             "by_status": {s.value: by_status.get(s, 0) for s in PackageStatus},
             "received": sum(by_status.values()),
             "in_custody": sum(c for s, c in by_status.items()
                               if s not in {PackageStatus.COLLECTED, PackageStatus.RETURNED, PackageStatus.LOST}),
-            "overdue": self._uow.packages.count_overdue(now, self._settings.collection_deadline_days),
+            "overdue": overdue_count,
+            "awaiting_storage": verified_count + overdue_count,
             "damaged_condition": self._uow.packages.count_damaged_condition(),
             "received_today": self._uow.packages.count_arrived_since(start_of_day),
             "collected_today": len(self._uow.pickups.collection_times_between(start_of_day, now + timedelta(seconds=1))),

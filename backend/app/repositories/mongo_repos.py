@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from pymongo import DESCENDING, ReturnDocument
@@ -261,6 +261,32 @@ class MongoPackageRepository(_Repo):
             "status": {"$in": [s.value for s in AWAITING_COLLECTION_STATUSES]},
             "arrived_at": {"$lt": overdue_cutoff(now, deadline_days)},
         })
+
+    def find_overdue_for_notification(self, now: datetime, deadline_days: int) -> list[Package]:
+        cutoff = overdue_cutoff(now, deadline_days)
+        daily_window = now - timedelta(hours=23, minutes=50)
+        query = {
+            "status": {"$in": [s.value for s in AWAITING_COLLECTION_STATUSES]},
+            "recipient_id": {"$ne": None},
+            "arrived_at": {"$lt": cutoff},
+            "$or": [
+                {"last_overdue_notified_at": None},
+                {"last_overdue_notified_at": {"$lt": daily_window}},
+            ],
+        }
+        docs = list(self.collection.find(query))
+        packages = [Package.from_doc(d) for d in docs]
+        _hydrate_package_many(self._store, packages)
+        return packages
+
+    def record_overdue_notification(self, package_id: int, notified_at: datetime) -> None:
+        self.collection.update_one(
+            {"_id": package_id},
+            {
+                "$set": {"last_overdue_notified_at": notified_at},
+                "$inc": {"overdue_reminder_count": 1},
+            },
+        )
 
     def count_damaged_condition(self) -> int:
         return self.collection.count_documents({"condition": PackageCondition.DAMAGED.value})

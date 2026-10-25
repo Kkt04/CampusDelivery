@@ -23,7 +23,7 @@ class PackageFilters:
     recipient_id: int | None = None
     condition: PackageCondition | None = None
     overdue_only: bool = False
-    overdue_deadline_days: int = 5
+    overdue_deadline_days: int = 3
     arrived_from: datetime | None = None
     arrived_to: datetime | None = None
     storage_location_id: int | None = None

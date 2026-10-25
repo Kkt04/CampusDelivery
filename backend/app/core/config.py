@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # Business rules
     pickup_code_ttl_minutes: int = 30
     pickup_code_max_attempts: int = 5
-    collection_deadline_days: int = 5
+    collection_deadline_days: int = 3
     storage_allocation_strategy: str = "suitable_size"
     notification_channels: str = "in_app,console_email"
     notification_max_attempts: int = 3
