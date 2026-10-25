@@ -1,4 +1,4 @@
-# Campus Delivery Management System (Gate No. 2 Parcel Hub)
+# Campus Delivery Management System 
 
 <div align="center">
   <img src="frontend/public/logo.png" alt="Campus Delivery Hub Logo" width="130" />
