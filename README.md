@@ -20,10 +20,6 @@ Architecture: a **layered modular monolith** (see `docs/02-architecture.md`).
 ---
 
 ## Capstone Evaluation & Low-Level Design (LLD) Defense
-
-> [!IMPORTANT]
-> ### 📢 Official Capstone Evaluation Announcement
-> **Evaluation Timeline:** Final Assessment & Evaluation conducted in the **First Week of November**.
 >
 > *This is to inform you that there is a slight change in the evaluation dates and the final assessment and evaluation of your Capstone Project will be conducted in the first week of November. Since this is your final-year project, it will be evaluated rigorously, and we expect every team to come fully prepared.*
 >
