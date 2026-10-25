@@ -20,8 +20,9 @@ Architecture: a **layered modular monolith** (see `docs/02-architecture.md`).
 ---
 
 ## Capstone Evaluation & Low-Level Design (LLD) Defense
->
-> *This is to inform you that there is a slight change in the evaluation dates and the final assessment and evaluation of your Capstone Project will be conducted in the first week of November. Since this is your final-year project, it will be evaluated rigorously, and we expect every team to come fully prepared.*
+
+> [!IMPORTANT]
+> ### 📢 Official Capstone Evaluation Announcement
 >
 > The project must fulfil all the **Low-Level Design (LLD)** components covered under System Design. During the evaluation, your project will be assessed on the following 10 criteria:
 > 1. **Requirement Analysis** – clearly defined functional and non-functional requirements, use cases and actors.
