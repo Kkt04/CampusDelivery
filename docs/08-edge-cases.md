@@ -31,3 +31,18 @@ Test files: `U-SM` = `tests/unit/test_state_machine.py`, `U-AL` = `tests/unit/te
 Additional protections: login rate limiting (A-AU `test_repeated_failed_logins_are_rate_limited`),
 invalid/missing token (A-AU `test_requests_without_or_with_bad_token_are_rejected`), dedicated
 transitions cannot be forced through the generic endpoint (A-RE `test_dedicated_transitions_cannot_be_forced…`).
+
+## MongoDB Transaction and Rollback Behaviour (Edge Case 18 Detail)
+
+Standalone MongoDB deployments do not support multi-document transactions across collections (which require a replica set). The system implements a **compensating and guarded atomicity strategy**:
+
+1. **Atomic CAS per Document**:
+   - Status transitions, token consumption (`used_at: None`), and shelf slot increments (`occupied_count < capacity`) execute via atomic `find_one_and_update`. Competing threads fail cleanly on 0 matches.
+2. **Unique Indexes as Hardware-Level Bounds**:
+   - `pickup_records.package_id` and `pickup_records.token_id` unique indexes physically prevent a package or token from being double-collected even under race conditions.
+3. **UnitOfWork Event Buffering**:
+   - Domain events (`PackageStatusChanged`) are buffered in memory and published to `EventBus` only after all writes succeed. If an exception is raised, `rollback()` clears the event queue, ensuring notifications are never sent for aborted operations.
+4. **Crash Window & Compensation**:
+   - If a crash occurs midway through a multi-step operation (e.g. after token consumption but before pickup record creation), the token remains consumed while the pickup record is absent.
+   - The system handles this through operational compensation: **Supervisor Manual Override** (`POST /api/v1/pickups/override`) allows an authorized supervisor to verify learner identity, document an override reason, and complete handover with a dedicated audit log.
+   - Proven by `tests/api/test_reliability.py: test_failure_halfway_through_handover_rolls_everything_back`.

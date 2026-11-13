@@ -737,6 +737,22 @@ The system guards against 20 mission-critical edge cases tested directly in auto
 | **10. Role Privilege Escalation** | Permission bitmask check in dependency | `api/dependencies.py @require` | HTTP 403 Forbidden ("Insufficient permissions") | **Implemented** |
 | **11. Unknown Student on Label** | Non-null foreign key bypass with hint | `PackageIntakeService.register` | Package routed to `UNIDENTIFIED`; auto-claimed upon student signup | **Implemented** |
 | **12. Idempotent Retry on Network Drop** | Request fingerprint cached in MongoDB | `IdempotencyGuard.find` | HTTP 200 with `Idempotent-Replayed: true` header | **Implemented** |
+| **13. DB Operation Fails Halfway** | Single-document CAS atomicity + compensating event rollback | `UnitOfWork.rollback` & `PickupService.complete` | HTTP 500 without stack leak + request ID; buffered events cleared | **Implemented** |
+
+### MongoDB Atomicity Guarantees and Transaction Boundary
+
+Standalone MongoDB deployments do not run multi-document ACID transactions (which require a replica set). The persistence layer implements a **compensating and guarded atomicity strategy**:
+
+1. **Single-Document Compare-And-Set (CAS)**:
+   - Status updates, token redemptions (`used_at: None`), and shelf reservations (`occupied_count < capacity`) execute as single-document atomic operations via PyMongo's `find_one_and_update`. Two racing requests cannot both succeed.
+2. **Database Unique Indexes as Invariant Anchors**:
+   - `pickup_records.package_id` and `pickup_records.token_id` have unique indexes. Even under concurrent requests, double collection is physically prevented at the database layer.
+3. **Compensating Event Management in `UnitOfWork`**:
+   - Domain events are buffered during service execution and published only upon successful `commit()`. If an exception occurs, `rollback()` clears `_events` so no erroneous notification or downstream task is dispatched.
+4. **Honest Crash Window Analysis**:
+   - In a multi-step flow without replica set transactions, if a process hard-crashes halfway (e.g. power loss immediately after `tokens.mark_used` but before `pickups.add`), the token is marked used while the pickup record is missing.
+   - **Mitigation & Recovery**: The system provides a supervisor manual override (`POST /api/v1/pickups/override`) with mandatory documented reasoning and audit logging to safely unblock learners in operational discrepancy scenarios.
+   - Tested in `backend/tests/api/test_reliability.py: test_failure_halfway_through_handover_rolls_everything_back`.
 
 ---
 
