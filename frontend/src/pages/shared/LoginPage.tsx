@@ -303,55 +303,53 @@ export function LoginPage({ defaultMode = "login" }: LoginPageProps) {
                 {t("authSignInBtn")}
               </Button>
 
-              {import.meta.env.DEV && (
-                <div className="mt-5 rounded-xl border border-line bg-surface-alt/70 p-3.5 text-xs text-muted shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-ink">{t("authLocalTestAccounts")}</span>
-                    <span className="rounded bg-primary-100 px-1.5 py-0.5 text-[10px] font-bold text-primary-800 uppercase tracking-wider">
-                      {t("devMode")}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px]">{t("authClickToAutofill")}</p>
-                  <div className="mt-2.5 flex flex-col gap-1.5 sm:flex-row">
-                    <button
-                      type="button"
-                      className="flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink hover:border-primary-400 hover:bg-primary-50 transition-all active:scale-95 text-center shadow-2xs"
-                      onClick={() => {
-                        setIdentifier("LRN-1001");
-                        setPassword("Learner@123");
-                        setError(null);
-                      }}
-                    >
-                      🧑‍🎓 <strong>{t("authLearner")}</strong><br />
-                      <span className="text-[10px] text-muted">LRN-1001</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink hover:border-primary-400 hover:bg-primary-50 transition-all active:scale-95 text-center shadow-2xs"
-                      onClick={() => {
-                        setIdentifier("SEC-001");
-                        setPassword("Security@123");
-                        setError(null);
-                      }}
-                    >
-                      👮 <strong>{t("authSecurity")}</strong><br />
-                      <span className="text-[10px] text-muted">SEC-001</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink hover:border-primary-400 hover:bg-primary-50 transition-all active:scale-95 text-center shadow-2xs"
-                      onClick={() => {
-                        setIdentifier("ADM-001");
-                        setPassword("Admin@12345");
-                        setError(null);
-                      }}
-                    >
-                      👨‍💼 <strong>{t("authAdmin")}</strong><br />
-                      <span className="text-[10px] text-muted">ADM-001</span>
-                    </button>
-                  </div>
+              <div className="mt-5 rounded-xl border border-line bg-surface-alt/70 p-3.5 text-xs text-muted shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-ink">{t("authLocalTestAccounts")}</span>
+                  <span className="rounded bg-primary-100 px-1.5 py-0.5 text-[10px] font-bold text-primary-800 uppercase tracking-wider">
+                    Demo
+                  </span>
                 </div>
-              )}
+                <p className="mt-1 text-[11px]">{t("authClickToAutofill")}</p>
+                <div className="mt-2.5 flex flex-col gap-1.5 sm:flex-row">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink hover:border-primary-400 hover:bg-primary-50 transition-all active:scale-95 text-center shadow-2xs cursor-pointer"
+                    onClick={() => {
+                      setIdentifier("LRN-1001");
+                      setPassword("Learner@123");
+                      setError(null);
+                    }}
+                  >
+                    🧑‍🎓 <strong>{t("authLearner")}</strong><br />
+                    <span className="text-[10px] text-muted">LRN-1001</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink hover:border-primary-400 hover:bg-primary-50 transition-all active:scale-95 text-center shadow-2xs cursor-pointer"
+                    onClick={() => {
+                      setIdentifier("SEC-001");
+                      setPassword("Security@123");
+                      setError(null);
+                    }}
+                  >
+                    👮 <strong>{t("authSecurity")}</strong><br />
+                    <span className="text-[10px] text-muted">SEC-001</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-1 rounded-lg border border-line bg-white px-2 py-1.5 font-medium text-ink hover:border-primary-400 hover:bg-primary-50 transition-all active:scale-95 text-center shadow-2xs cursor-pointer"
+                    onClick={() => {
+                      setIdentifier("ADM-001");
+                      setPassword("Admin@12345");
+                      setError(null);
+                    }}
+                  >
+                    👨‍💼 <strong>{t("authAdmin")}</strong><br />
+                    <span className="text-[10px] text-muted">ADM-001</span>
+                  </button>
+                </div>
+              </div>
             </form>
           )}
 
