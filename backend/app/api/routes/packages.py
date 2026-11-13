@@ -11,7 +11,7 @@ from app.core.time import utcnow
 from app.domain.enums import PackageCondition, PackageStatus, Role
 from app.domain.permissions import Permission, can_view_package
 from app.infrastructure.models import User
-from app.repositories.filters import PackageFilters
+from app.repositories.filters import PackageFilterBuilder, PackageFilters
 from app.repositories.unit_of_work import UnitOfWork
 from app.schemas.common import PageOut
 from app.schemas.packages import (
@@ -63,17 +63,23 @@ def list_packages(
     uow: UnitOfWork = Depends(get_uow),
     settings: Settings = Depends(get_settings_dep),
 ) -> PageOut[PackageOut]:
-    filters = PackageFilters(
-        q=q, statuses=status, condition=condition, overdue_only=overdue,
-        overdue_deadline_days=settings.collection_deadline_days,
-        arrived_from=_day_start(arrived_from) if arrived_from else None,
-        arrived_to=_day_start(arrived_to) + timedelta(days=1) if arrived_to else None,
-        storage_location_id=storage_location_id,
+    builder = (
+        PackageFilterBuilder()
+        .search(q)
+        .with_statuses(status)
+        .with_condition(condition)
+        .overdue(overdue, settings.collection_deadline_days)
+        .arrival_between(
+            _day_start(arrived_from) if arrived_from else None,
+            _day_start(arrived_to) + timedelta(days=1) if arrived_to else None,
+        )
+        .for_location(storage_location_id)
     )
     if user.role == Role.LEARNER:
         PackageIntakeService(uow).claim_packages_for_learner(user)
-        filters.recipient_id = user.id  # server-side scoping; cannot be overridden by the client
-        filters.storage_location_id = None
+        builder.for_recipient(user.id)  # server-side scoping; cannot be overridden by the client
+        builder.for_location(None)
+    filters = builder.build()
     now = utcnow()
     result = uow.packages.search(filters, page, page_size, now)
     return PageOut(items=[present_package(p, user, now, settings) for p in result.items],

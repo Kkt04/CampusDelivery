@@ -108,3 +108,27 @@ def test_rate_limiter_blocks_after_max_failures():
         limiter.ensure_allowed("k")
     limiter.reset("k")
     limiter.ensure_allowed("k")
+
+
+def test_package_filter_builder_constructs_expected_filters():
+    from app.domain.enums import PackageCondition, PackageStatus
+    from app.repositories.filters import PackageFilterBuilder
+
+    builder = (
+        PackageFilterBuilder()
+        .search("  amazon parcel  ")
+        .with_statuses([PackageStatus.STORED, PackageStatus.READY_FOR_PICKUP])
+        .with_condition(PackageCondition.GOOD)
+        .for_recipient(42)
+        .overdue(True, deadline_days=5)
+        .for_location(10)
+    )
+    filters = builder.build()
+    assert filters.q == "amazon parcel"
+    assert filters.statuses == [PackageStatus.STORED, PackageStatus.READY_FOR_PICKUP]
+    assert filters.condition == PackageCondition.GOOD
+    assert filters.recipient_id == 42
+    assert filters.overdue_only is True
+    assert filters.overdue_deadline_days == 5
+    assert filters.storage_location_id == 10
+
