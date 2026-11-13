@@ -44,13 +44,14 @@ LOCATIONS = [
 ]
 
 
-def ensure_demo_users() -> None:
+def ensure_demo_users(force: bool = False) -> None:
     """Ensure the local testing accounts exist with their correct passwords and are active.
     
     Safe to call on application startup or repeatedly in development.
     """
+    from app.infrastructure.database import is_using_mock
     settings = get_settings()
-    if settings.environment == "production":
+    if settings.environment == "production" and not (is_using_mock() or force):
         return
     init_db()
     db = get_db()
@@ -89,13 +90,14 @@ def ensure_demo_users() -> None:
         pass
 
 
-def seed() -> None:
+def seed(force_environment: bool = False) -> None:
     import sys
+    from app.infrastructure.database import is_using_mock
     settings = get_settings()
-    if settings.environment == "production":
+    if settings.environment == "production" and not (is_using_mock() or force_environment):
         raise SystemExit("Refusing to seed demo data in production.")
     
-    force_reset = "--reset" in sys.argv or "--force" in sys.argv
+    force_reset = ("--reset" in sys.argv or "--force" in sys.argv) if hasattr(sys, "argv") else False
     db = get_db()
 
     if force_reset:

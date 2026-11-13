@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pymongo.errors import PyMongoError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routes import auth, incidents, notifications, packages, pickups, reports, storage, users
@@ -36,16 +37,17 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def _startup() -> None:
         import os
+        from app.infrastructure.database import is_using_mock
         try:
             init_db()
         except Exception as e:
             logger.warning("Could not auto-initialize database on startup: %s", e)
 
-        if settings.environment != "production":
+        if settings.environment != "production" or is_using_mock():
             try:
                 from app.seed import ensure_demo_users
-                ensure_demo_users()
-                logger.info("Local testing accounts ensured in database.")
+                ensure_demo_users(force=True)
+                logger.info("Local/demo testing accounts ensured in database.")
             except Exception as e:
                 logger.warning("Could not auto-ensure demo users on startup: %s", e)
 
@@ -94,6 +96,11 @@ def create_app() -> FastAPI:
     @app.exception_handler(StarletteHTTPException)
     async def http_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         return _error(exc.status_code, "HTTP_ERROR", str(exc.detail), None, rid(request))
+
+    @app.exception_handler(PyMongoError)
+    async def mongo_error_handler(request: Request, exc: PyMongoError) -> JSONResponse:
+        logger.error("Database error (request %s): %s", rid(request), exc)
+        return _error(503, "DATABASE_UNAVAILABLE", "Database connection failed. Please ensure a valid MONGO_URL (e.g. MongoDB Atlas) is configured on Vercel.", None, rid(request))
 
     @app.exception_handler(Exception)
     async def unhandled_handler(request: Request, exc: Exception) -> JSONResponse:
