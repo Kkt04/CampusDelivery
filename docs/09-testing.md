@@ -28,13 +28,13 @@ Environment: Python 3.12, FastAPI 0.115.6, PyMongo 4.9+, Pydantic 2.10.3, MongoD
 
 | Run | Result |
 |---|---|
-| Backend suite on MongoDB | 91 passed in ~25.04s (39 unit, 52 API) |
+| Backend suite on MongoDB | 92 passed in ~25-29s (40 unit, 52 API) |
 | Concurrency tests repeated (10× runs) | all passed (10/10) |
 | Frontend `npm run build` | succeeded (strict TypeScript, 0 errors) |
 
-## 9.4 Test list (Full suite: 91 tests)
+## 9.4 Test list (Full suite: 92 tests)
 
-### Unit tests (`tests/unit/` - 39 tests)
+### Unit tests (`tests/unit/` - 40 tests)
 
 **`tests/unit/test_allocation.py`** (5 tests)
 - ✅ `test_first_available_uses_code_order_and_skips_full_and_inactive`
@@ -72,6 +72,7 @@ Environment: Python 3.12, FastAPI 0.115.6, PyMongo 4.9+, Pydantic 2.10.3, MongoD
 - ✅ `test_tracking_ids_are_normalised_before_duplicate_check`
 - ✅ `test_event_bus_isolates_failing_subscribers`
 - ✅ `test_rate_limiter_blocks_after_max_failures`
+- ✅ `test_package_filter_builder_constructs_expected_filters`
 
 **`tests/unit/test_state_machine.py`** (10 tests)
 - ✅ `test_happy_path_is_allowed_for_the_right_roles`
