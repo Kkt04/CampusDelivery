@@ -141,20 +141,25 @@ class MongoUserRepository(_Repo):
         if q:
             raw = q.strip()
             terms = [t for t in re.split(r"[\s,]+", raw) if t]
-            or_clauses: list[dict[str, Any]] = [
-                {"full_name": _ci(raw)},
-                {"institutional_id": _ci(raw)},
-                {"email": _ci(raw)},
-                {"phone": {"$regex": re.escape(raw)}},
-            ]
             if len(terms) > 1:
-                for term in terms:
-                    or_clauses.extend([
-                        {"institutional_id": _ci(term)},
-                        {"full_name": _ci(term)},
-                        {"email": _ci(term)},
-                    ])
-            query["$or"] = or_clauses
+                query["$and"] = [
+                    {
+                        "$or": [
+                            {"full_name": _ci(term)},
+                            {"institutional_id": _ci(term)},
+                            {"email": _ci(term)},
+                            {"phone": {"$regex": re.escape(term)}},
+                        ]
+                    }
+                    for term in terms
+                ]
+            else:
+                query["$or"] = [
+                    {"full_name": _ci(raw)},
+                    {"institutional_id": _ci(raw)},
+                    {"email": _ci(raw)},
+                    {"phone": {"$regex": re.escape(raw)}},
+                ]
         return _page(self.collection, query, [("role", 1), ("full_name", 1)], page, page_size, User)
 
 

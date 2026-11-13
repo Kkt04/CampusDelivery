@@ -72,7 +72,7 @@ Each task is sized for 15–30 minutes. Run `pytest` before and after.
 
 **Goal.** Operations sees how many packages each courier delivered in a date range.
 
-**Files.** `repositories/sqlalchemy_repos.py`, `services/reports.py`, `schemas/misc.py`, `api/routes/reports.py`, `frontend/src/api/endpoints.ts`, `frontend/src/pages/ops/OpsDashboard.tsx`.
+**Files.** `repositories/mongo_repos.py`, `services/reports.py`, `schemas/misc.py`, `api/routes/reports.py`, `frontend/src/api/endpoints.ts`, `frontend/src/pages/ops/OpsDashboard.tsx`.
 
 **Steps.**
 1. Repository: `count_by_courier(start, end)` → `select(Package.courier_name, func.count()).where(arrived_at between).group_by(Package.courier_name).order_by(func.count().desc())`.
@@ -87,7 +87,7 @@ Each task is sized for 15–30 minutes. Run `pytest` before and after.
 
 **Goal.** An admin presses "Send reminders" and every learner with an overdue package gets one in-app message.
 
-**Files.** `services/notifications.py` (or a new `services/reminders.py`), `api/routes/reports.py`, `repositories/sqlalchemy_repos.py`, tests.
+**Files.** `services/notifications.py` (or a new `services/reminders.py`), `api/routes/reports.py`, `repositories/mongo_repos.py`, tests.
 
 **Steps.**
 1. Query overdue packages with `uow.packages.search(PackageFilters(overdue_only=True, overdue_deadline_days=settings.collection_deadline_days), page=1, page_size=500, now=utcnow())`.

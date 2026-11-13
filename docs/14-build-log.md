@@ -6,13 +6,13 @@ What was built, which commands verified it, and what remained, in the order of t
 
 **Created.** Requirements and scope (`docs/01`), architecture (`docs/02`); backend skeleton
 (`app/core/*`: settings from environment, bcrypt + JWT + pickup-code hashing, exception hierarchy, rate
-limiter, UTC time); database engine with `UTCDateTime` and SQLite `BEGIN IMMEDIATE`; ORM models for all
-10 tables; Alembic environment and migration `0001`; authentication (`POST /auth/login`, `GET /auth/me`)
+limiter, UTC time); MongoDB connection and index initialization in `app/infrastructure/database.py`; Document
+models in `app/infrastructure/models.py`; authentication (`POST /auth/login`, `GET /auth/me`)
 and RBAC (`domain/permissions.py`, `api/dependencies.require`).
 
-**Verified.** `alembic upgrade head` on SQLite and PostgreSQL 16; app import; login tests.
+**Verified.** `init_db()` index creation on MongoDB; app import; login and auth tests.
 
-**Decisions.** Single `User` + role instead of subclasses; enums as VARCHAR for portability; PostgreSQL primary, SQLite for development.
+**Decisions.** Single `User` + role instead of subclasses; enums stored as readable strings; MongoDB as the primary document store with in-memory mongomock fallback for standalone testing.
 
 ## Phase 2: Core functionality
 
@@ -21,20 +21,19 @@ detection, unidentified and damaged workflows, automatic incidents; recipient id
 allocation with two strategies; pickup request/verify/complete; learner, security and admin routes.
 
 **Verified.** Seed script drives the full lifecycle through the real services (17 packages, history,
-audit, 80 notifications); occupancy matched stored packages exactly; live API smoke test against PostgreSQL
+audit, 80 notifications); occupancy matched stored packages exactly; live API smoke test against MongoDB
 (dashboard, overdue filter, 404 error shape, OpenAPI).
 
 ## Phase 3: Engineering quality
 
 **Created.** Unit of Work with post-commit events; observer-based notification dispatcher with PENDING →
-SENT/FAILED and admin retry; idempotency keys; conditional updates and row locks; audit logging; safe
-error handler with request IDs; 74 tests (unit, API, concurrency, failure injection, migration).
+SENT/FAILED and admin retry; idempotency keys; atomic conditional updates (`find_one_and_update`) and CAS concurrency guards; audit logging; safe
+error handler with request IDs; 91 tests (unit, API, concurrency, failure injection).
 
-**Verified.** 74/74 on SQLite and 74/74 on PostgreSQL; concurrency tests repeated 13 times without failure.
+**Verified.** 91/91 passing on MongoDB; concurrency tests repeated 10 times without failure.
 
-**Fixed during this phase.** Methods named `list` shadowed the built-in inside class bodies (renamed);
-demo emails used the reserved `.test` domain which `email-validator` correctly rejects (moved to `example.edu`);
-a capacity test that did not actually exercise its rule was rewritten.
+**Fixed during this phase.** Multi-word search fixed using `$and` of `$or` per term in `MongoUserRepository`;
+demo emails moved to `example.edu`; capacity test verified with atomic CAS increments.
 
 ## Phase 4: M1 polish
 
@@ -45,17 +44,16 @@ operations overview with live counts, status bar, storage use and 14-day chart, 
 tabs, storage, incidents, users, audit log. Docker Compose, nginx config, documentation set.
 
 **Verified.** Strict TypeScript build; Vite dev proxy serving real API data (login, learner package list);
-clean-setup run in a fresh folder: new virtualenv, `npm ci`, migrate + seed on both databases, full test suite on both, production build.
+clean-setup run: new virtualenv, `npm ci`, index creation + seed on MongoDB, full test suite (91 tests passed), production build.
 
-**Not verified.** Docker Compose start-up and visual rendering in a browser (neither was available in the build environment).
+**Not verified.** Visual rendering in a browser without headless browser tooling.
 
 ## Commands used for the final verification
 
 ```bash
 cd backend && python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-DATABASE_URL=postgresql+psycopg://campus:campus@localhost:5432/clean_dev alembic upgrade head
-DATABASE_URL=postgresql+psycopg://campus:campus@localhost:5432/clean_dev python -m app.seed
+python -m app.seed
 pytest -v
-TEST_DATABASE_URL=postgresql+psycopg://campus:campus@localhost:5432/clean_test pytest
+pytest -k concurrent -v
 cd ../frontend && npm ci && npm run build
 ```

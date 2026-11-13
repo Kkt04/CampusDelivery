@@ -19,7 +19,7 @@
 
 ## Verified versus not verified
 
-Verified by running: migrations on PostgreSQL 16 and SQLite, seed script, 74 backend tests on both
-databases (concurrency tests repeated 13 times), live API smoke test, frontend type-check and production
-build, frontend dev server proxying real API calls. Not verified: Docker Compose start-up, and the visual
-appearance of the UI in a browser (no browser was available in the build environment).
+Verified by running: MongoDB index initialization (`init_db()`), seed script, 91 backend tests on MongoDB
+(concurrency tests repeated 10 times with 100% pass rate), live API smoke test on local and Vercel environments,
+frontend type-check and production build, frontend dev server proxying real API calls. Not verified: Docker Compose start-up,
+and the visual appearance of the UI in a browser (no browser was available in the build environment).

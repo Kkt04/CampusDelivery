@@ -18,7 +18,7 @@ flowchart LR
     Routes --> Services["services/* (use cases)"]
     Services --> Domain["domain/* (state machine, rules, strategies, events)"]
     Services --> UoW["repositories/UnitOfWork"]
-    UoW --> Repos["repositories/sqlalchemy_repos"]
+    UoW --> Repos["repositories/mongo_repos"]
     UoW -- "publish after commit" --> Bus["domain/events.EventBus"]
     Bus --> Dispatcher["services/notifications.NotificationDispatcher"]
     Dispatcher --> Channels["infrastructure/notifications (InApp, ConsoleEmail)"]
@@ -38,9 +38,9 @@ flowchart LR
 | API | `app/api` | HTTP: parse/validate input, authenticate, check permission, call a service, shape the response, map errors to status codes. | services, schemas, domain (read-only helpers) |
 | Schemas | `app/schemas` | Pydantic request/response models and field validation. | domain enums |
 | Services | `app/services` | Application use cases; own the transaction boundary (`uow.commit()`); coordinate repositories and domain rules. | domain, repositories |
-| Domain | `app/domain` | Pure business rules: lifecycle state machine, permissions, pickup-token rules, overdue rule, allocation strategies, events, protocols. **No SQLAlchemy or FastAPI imports.** | `app/core` only |
+| Domain | `app/domain` | Pure business rules: lifecycle state machine, permissions, pickup-token rules, overdue rule, allocation strategies, events, protocols. **No PyMongo or FastAPI imports.** | `app/core` only |
 | Repositories | `app/repositories` | Persistence: queries and atomic conditional updates; Unit of Work. | infrastructure models |
-| Infrastructure | `app/infrastructure` | Engine/session, ORM models, notification channels. | core |
+| Infrastructure | `app/infrastructure` | Database client/connection, document models, notification channels. | core |
 
 **Rule of thumb for the viva:** a route handler never decides *whether* something is allowed by
 business rules; it asks a service. The service asks the domain (`state_machine.check`, `ensure_token_usable`).
@@ -110,7 +110,7 @@ Verified by `test_concurrent_allocation_never_exceeds_capacity`.
 | Operation | Retry behaviour | How it is enforced |
 |---|---|---|
 | Register package (`POST /packages`) | **Idempotent with `Idempotency-Key`.** Same key + same body → `200` with the original package and header `Idempotent-Replayed: true`. Same key + different body → `409 IDEMPOTENCY_KEY_REUSED`. Without a key, a repeated tracking ID is still caught as a duplicate. | Table `idempotency_keys` with `UNIQUE(user_id, scope, key)`, written in the same transaction as the package. A concurrent duplicate hits the unique constraint, rolls back, and is answered with the stored result. |
-| Complete handover (`POST /pickups/complete`) | **Idempotent with `Idempotency-Key`**: a retry returns the original pickup record (`200`). Without a key, a retry gets `409 ALREADY_COLLECTED`, which is safe (nothing happens twice). | Same table; key checked after the row lock, so a waiting retry sees the committed first attempt. |
+| Complete handover (`POST /pickups/complete`) | **Idempotent with `Idempotency-Key`**: a retry returns the original pickup record (`200`). Without a key, a retry gets `409 ALREADY_COLLECTED`, which is safe (nothing happens twice). | Same collection; idempotency key checked first, atomic token CAS prevents double collection, so a waiting retry sees the committed first attempt. |
 | Request pickup code | **Safe retry**: every call issues a new code and revokes the previous one, so the latest response shown to the learner is always the valid code. We cannot replay the old response because the plaintext code is never stored. | `revoke_active` + new token in one transaction |
 | Assign storage to the same location again | No-op (no second reservation). | `StorageAllocationService.assign` compares with current location |
 | Resolve an incident twice, mark a notification read twice | No-op. | Status/`read_at` checks |
@@ -134,7 +134,7 @@ Limitation: if the API process crashes between commit and dispatch, no notificat
 | Pressure | Step (in order of cost) |
 |---|---|
 | More API traffic | Run several Uvicorn/Gunicorn workers or containers behind a load balancer; the API is stateless except the in-memory login limiter (move it to the database or a shared cache at that point). |
-| Larger tables | Existing indexes cover the hot queries; add pagination by keyset, archive closed packages older than N months into a history table, and add PostgreSQL read replicas for reports. |
+| Larger tables | Existing indexes cover the hot queries; add pagination by keyset, archive closed packages older than N months into an archive collection, and use MongoDB secondary read preferences or an analytics replica for reports. |
 | Slow notifications (real email/SMS) | Transactional outbox table + a background worker process that sends and retries, so requests never wait on a provider. |
 | Several gates/campuses | Add a `gate` (or `site`) entity referenced by storage locations and packages; scope staff permissions by gate. |
 | Heavy reporting | Materialised views or a nightly summary table; or a separate reporting replica. |

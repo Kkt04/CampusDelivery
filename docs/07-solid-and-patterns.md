@@ -71,7 +71,7 @@ it can be given any object with that one method.
 composition root (`container.py`).
 - `StorageAllocationService(uow, strategy: StorageAllocationStrategy)`: receives the strategy; it does not construct one.
 - `NotificationDispatcher(session_factory, channels: list[NotificationChannel])`.
-- The domain layer imports no SQLAlchemy or FastAPI. Services reach the database through the Unit of Work's repositories.
+- The domain layer imports no PyMongo or FastAPI. Services reach the database through the Unit of Work's repositories.
 
 **Without it.** Services would `import SmtpClient` and create it inline; tests would need a mail server,
 and switching providers would mean editing business code.
@@ -105,8 +105,8 @@ the rules that matter (state machine, token rules, allocation, overdue) are stil
 ### C. Repository pattern (+ Unit of Work)
 
 - **Problem.** Keep SQL out of business logic and make one use case one transaction.
-- **Where.** `repositories/interfaces.py` (protocols), `repositories/sqlalchemy_repos.py` (implementations), `repositories/unit_of_work.py`.
-- **Simpler alternative?** Calling the SQLAlchemy session in services is common in small FastAPI apps. We kept repositories because the concurrency-critical statements (`try_reserve`, `mark_used`, `compare_and_set_status`) deserve named, tested methods.
+- **Where.** `repositories/interfaces.py` (protocols), `repositories/mongo_repos.py` (implementations), `repositories/unit_of_work.py`.
+- **Simpler alternative?** Calling PyMongo collections or the Store directly in services is common in small FastAPI apps. We kept repositories because the concurrency-critical operations (`try_reserve`, `mark_used`, `compare_and_set_status`) deserve named, tested methods.
 - **Trade-offs.** More files; some methods are thin wrappers. In return, services read like the business process.
 
 ### D. Observer (event-driven notifications)

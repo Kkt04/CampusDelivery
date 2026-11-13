@@ -1,13 +1,13 @@
 """Document models (persistence layer).
 
-These are plain, mutable dataclasses — the MongoDB equivalent of the previous
-SQLAlchemy models. Repositories translate them to and from BSON documents and
-hydrate the related-object attributes (`package.recipient`, `record.package`, …)
-that the presenters expect.
+These are plain, mutable dataclasses representing MongoDB documents.
+Repositories translate them to and from BSON documents and hydrate the
+related-object attributes (`package.recipient`, `record.package`, …) that
+the presenters expect.
 
 * No hard deletes: history, pickup records and audit logs stay intact.
 * `storage_locations.occupied_count` is a guarded denormalisation reserved with
-  one atomic conditional update; invariant:
+  one atomic conditional update (find_one_and_update); invariant:
   occupied_count == number of packages whose storage_location_id points here.
 * Pickup codes are stored only as salted HMAC hashes.
 """

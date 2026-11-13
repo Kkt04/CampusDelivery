@@ -1,6 +1,6 @@
 """Repository protocols (Repository pattern + Dependency Inversion).
 
-Services are typed against these protocols, not against SQLAlchemy. Only the
+Services are typed against these protocols, not against PyMongo directly. Only the
 operations services actually need are declared.
 """
 from collections.abc import Sequence

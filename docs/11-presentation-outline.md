@@ -8,12 +8,12 @@
 | 4 | Users and use cases | Three roles; use-case diagram | 0:45 |
 | 5 | Architecture | Component diagram; layered modular monolith; why not microservices (one sentence each: scale, transactions, team) | 1:15 |
 | 6 | Package lifecycle | State diagram; condition vs status vs overdue | 1:15 |
-| 7 | Database | ER diagram; three key constraints: `UNIQUE(tracking_id)`, `UNIQUE(pickup_records.package_id)`, `CHECK occupied ≤ capacity` | 1:00 |
+| 7 | Database | ER schema; key constraints: `unique(tracking_id)`, `unique(pickup_records.package_id)`, atomic CAS precondition `occupied_count < capacity` | 1:00 |
 | 8 | OOP and SOLID | One concrete example per principle (07-solid-and-patterns) | 1:15 |
 | 9 | Design patterns | State, Strategy, Repository + UoW, Observer, Factory; one trade-off each | 1:00 |
 | 10 | Reliability | Double-pickup defence in four layers; atomic capacity; idempotency keys; notification failure isolation | 1:30 |
 | 11 | Security | bcrypt, JWT, RBAC on server, hashed single-use codes, rate limit, audit log | 0:45 |
-| 12 | Testing | 74 tests: categories and the concurrency test; ran on PostgreSQL and SQLite | 0:45 |
+| 12 | Testing | 91 tests: categories and concurrency race test; ran on MongoDB (repeated 10x) | 0:45 |
 | 13 | Live demo | Follow the 5-minute demo script in README §6 | 5:00 |
 | 14 | Limitations and next steps | From 10-limitations | 0:30 |
 | 15 | Thank you / questions | | – |

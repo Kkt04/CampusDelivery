@@ -86,14 +86,14 @@ photo upload of damage, multiple gates, background job scheduler, password reset
 
 | ID | Category | Requirement and how it is met |
 |---|---|---|
-| NFR-01 | Integrity | Each use case runs in one database transaction (Unit of Work); a failure leaves no partial update. |
-| NFR-02 | Concurrency | Row locks, conditional updates and unique constraints prevent double collection and over-allocation. |
+| NFR-01 | Integrity | Atomic compare-and-set updates, compensating Unit of Work, and unique indexes guarantee no inconsistent state or duplicate allocation. |
+| NFR-02 | Concurrency | Atomic conditional updates (`find_one_and_update`), CAS checks, and unique indexes prevent double collection and over-allocation. |
 | NFR-03 | Reliability | `Idempotency-Key` makes registration and handover safe to retry; notification failure never undoes a committed change. |
 | NFR-04 | Security | bcrypt passwords; signed short-lived JWT; hashed, expiring, single-use, attempt-limited pickup codes; RBAC on every route; login rate limit; secrets from environment; no stack traces in responses. |
-| NFR-05 | Auditability | Sensitive operations write `audit_logs` in the same transaction as the change. |
+| NFR-05 | Auditability | Sensitive operations write `audit_logs` in the persistence flow. |
 | NFR-06 | Privacy | Learners see only their packages; other learners' package IDs return 404. Staff names and notes are hidden from learners. No real learner data in seed files. |
-| NFR-07 | Maintainability | Layered modules, small services, type hints, protocols for swappable parts, 74 automated tests. |
+| NFR-07 | Maintainability | Layered modules, small services, type hints, protocols for swappable parts, 91 automated tests. |
 | NFR-08 | Usability | Responsive layout (mobile to desktop), consistent loading/empty/error states, accessible labels, visible keyboard focus, reduced-motion respected. |
-| NFR-09 | Portability | Runs on PostgreSQL (primary) and SQLite (development) from the same migrations; Docker Compose for one-command start. |
+| NFR-09 | Portability | Runs on MongoDB 6+/7+ with in-memory fallback for lightweight testing/serverless demos; Docker Compose for one-command start. |
 | NFR-10 | Performance | Indexes on tracking ID, recipient, status, arrival date (plus status+arrival composite) and audit timestamps; paginated lists. |
 | NFR-11 | Time | All timestamps stored as timezone-aware UTC; the browser formats them in local time. |

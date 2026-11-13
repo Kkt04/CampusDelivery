@@ -72,8 +72,8 @@ inserts the pickup record and commits. The second then reads status `COLLECTED` 
 `409 ALREADY_COLLECTED`. Even without the lock, the conditional updates and `UNIQUE(package_id)` would stop it.
 
 **Q14. How do you stop a shelf being overfilled by concurrent requests?**
-`UPDATE … SET occupied_count = occupied_count + 1 WHERE id = ? AND is_active AND occupied_count < capacity`;
-0 rows means full. Plus `CHECK (occupied_count <= capacity)`.
+Atomic conditional update: `find_one_and_update({"_id": location_id, "is_active": True, "occupied_count": {"$lt": capacity}}, {"$inc": {"occupied_count": 1}})`;
+returning `None` means full. The check and reservation happen in one atomic database step.
 
 **Q15. Isn't `occupied_count` duplicated data?**
 Yes, deliberately. Counting packages and then inserting is a check-then-act race; a counter makes the
@@ -81,22 +81,20 @@ check and reservation one atomic statement. The invariant is maintained only thr
 
 **Q16. What exactly is idempotent?**
 Registration and handover with an `Idempotency-Key` header: the key, request fingerprint and resulting
-resource ID are stored in the same transaction; retries replay the result. Pickup-code requests are safe
+resource ID are stored in the idempotency collection; retries replay the result. Pickup-code requests are safe
 to retry (each supersedes the previous). Re-assigning the same shelf, resolving a resolved incident and
 marking a read notification are no-ops.
 
 **Q17. What if the database fails halfway through a handover?**
-The exception propagates, the Unit of Work rolls back, nothing is saved, and the client gets a generic 500
-with a request ID. `test_failure_halfway_through_handover_rolls_everything_back` forces this.
+In standalone MongoDB (without multi-document replica set transactions), atomicity is guaranteed at the single-document level. The Unit of Work manages buffered domain events (which are cleared on error and never published), and operations use atomic compare-and-set updates (such as token consumption and shelf reservation). If a crash happens midway through creating secondary records, the failed operation leaves no pickup record or audit entry, and the client receives a 500 error with a sanitized request ID (verified in `test_failure_halfway_through_handover_rolls_everything_back`).
 
 **Q18. What happens if the email provider is down?**
 The package change is already committed. Notification rows are saved as PENDING, the failing channel is
 marked FAILED with the error, the in-app message is SENT to the inbox, and admins can retry. We never
 claim delivery: SENT means handed to the channel; `read_at` records reading.
 
-**Q19. How does SQLite handle the concurrency tests without row locks?**
-Every SQLite transaction starts with `BEGIN IMMEDIATE`, which takes the write lock at the start, so writers
-run one at a time. PostgreSQL uses real row locks. The tests pass on both.
+**Q19. How does MongoDB handle concurrency without traditional row locks?**
+MongoDB guarantees document-level atomicity. Instead of pessimistic row locking, we use atomic Compare-And-Set (CAS) via PyMongo's `find_one_and_update` with precondition filters (e.g. `{"_id": token_id, "used_at": None}` for pickup codes, and `{"_id": id, "occupied_count": {"$lt": capacity}}` for shelf allocation). The winning thread atomically mutates the document; racing threads match 0 documents and fail immediately. A unique index on `pickup_records.package_id` provides a final database-level safeguard against double handover. All concurrency tests pass reliably (verified over 10 consecutive runs).
 
 ## Security
 
@@ -128,11 +126,14 @@ A catch-all handler in `main.py` logs the stack trace server-side and returns `I
 A user receives many packages (recipient, nullable while unidentified) and registers many. A package has
 many history rows and tokens, zero or one pickup record, and zero or one current storage location. See §4.
 
-**Q27. Why ON DELETE RESTRICT everywhere?** History and proof of handover must never disappear; users are deactivated instead of deleted.
+**Q27. Why no hard deletes anywhere?**
+History and proof of handover must never disappear; users are deactivated (`is_active = false`) instead of deleted, and audit/history collections retain an immutable trail.
 
-**Q28. Which indexes matter most and why?** `tracking_id` (duplicates), `recipient_id` (learner list), `(status, arrived_at)` (queues and overdue), `arrived_at` (reports).
+**Q28. Which indexes matter most and why?**
+`packages.internal_code` (unique lookups), `packages.tracking_id` (unique partial filter prevents duplicate intake), `(status, arrived_at)` (queues and overdue queries), `pickup_records.package_id` (unique prevents double handover), and `idempotency_keys(user_id, scope, key)`.
 
-**Q29. Why store enums as VARCHAR rather than native PostgreSQL enums?** Portability to SQLite and easier migrations (adding a status needs no `ALTER TYPE`); the application validates values.
+**Q29. Why store enums as strings in MongoDB rather than integer codes or custom types?**
+Strings (e.g. `"READY_FOR_PICKUP"`, `"DAMAGED"`) are human-readable in MongoDB queries and Compass, do not depend on enum ordinal numbering, and allow new enum values to be added without migrating database documents. Validation is enforced by Python `StrEnum` classes in the domain layer and Pydantic schemas in the API layer.
 
 ## Lifecycle
 
@@ -145,10 +146,9 @@ state machine. Overdue is calculated at read time from status and arrival date a
 ## Testing
 
 **Q32. How do you test without touching real data?**
-`tests/conftest.py` points the app at a temporary SQLite file (or `TEST_DATABASE_URL`) before importing it,
-and recreates all tables for every test.
+`tests/conftest.py` calls `reset_db()` which drops all collections and rebuilds indexes before each test, using either a clean local MongoDB database (`mongodb://localhost:27017`) or an in-memory mongomock database.
 
 **Q33. How does the concurrency test work?**
 Two threads, each with its own Unit of Work, start together on a `threading.Barrier` and call
 `PickupService.complete` with the same code. The test asserts one success, one `ALREADY_COLLECTED`, one
-pickup record, and that storage was released once.
+pickup record, and that storage was released once. All 10 repeated test runs pass reliably.
