@@ -29,7 +29,7 @@ class WorkingEmail:
         return None
 
 
-def test_failure_halfway_through_handover_rolls_everything_back(h, locations, monkeypatch):
+def test_failure_halfway_through_handover_leaves_no_pickup_record_or_completion_audit(h, locations, monkeypatch):
     client = TestClient(app, raise_server_exceptions=False)
     package = make_ready(client, h["sec1"])
     code = request_code(client, h["learner1"], package["id"])

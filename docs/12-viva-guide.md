@@ -86,7 +86,7 @@ to retry (each supersedes the previous). Re-assigning the same shelf, resolving 
 marking a read notification are no-ops.
 
 **Q17. What if the database fails halfway through a handover?**
-In standalone MongoDB (without multi-document replica set transactions), atomicity is guaranteed at the single-document level. The Unit of Work manages buffered domain events (which are cleared on error and never published), and operations use atomic compare-and-set updates (such as token consumption and shelf reservation). If a crash happens midway through creating secondary records, the failed operation leaves no pickup record or audit entry, and the client receives a 500 error with a sanitized request ID (verified in `test_failure_halfway_through_handover_rolls_everything_back`).
+In standalone MongoDB (without multi-document replica set transactions), atomicity is guaranteed at the single-document level. The Unit of Work manages buffered domain events (which are cleared on error and never published), and operations use atomic compare-and-set updates (such as token consumption and shelf reservation). If a crash happens midway through creating secondary records, the failed operation leaves no pickup record or audit entry, and the client receives a 500 error with a sanitized request ID (verified in `test_failure_halfway_through_handover_leaves_no_pickup_record_or_completion_audit`).
 
 **Q18. What happens if the email provider is down?**
 The package change is already committed. Notification rows are saved as PENDING, the failing channel is

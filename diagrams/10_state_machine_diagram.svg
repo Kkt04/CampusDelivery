@@ -1,129 +1,335 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="100%" height="100%">
-  <defs>
-    <style>
-    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    .mono { font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
-    .subtitle { font-size: 13px; font-weight: 400; fill: #64748b; }
-    .card { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; rx: 8; }
-    .card-header { fill: #f8fafc; stroke: #e2e8f0; stroke-width: 1.5; }
-    .header-text { font-size: 14px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
-    .line { stroke: #334155; stroke-width: 2; fill: none; }
-    .line-blue { stroke: #2563eb; stroke-width: 2; fill: none; }
-    .line-green { stroke: #16a34a; stroke-width: 2; fill: none; }
-    .line-red { stroke: #dc2626; stroke-width: 2; fill: none; }
-    .line-dash { stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 5,4; fill: none; }
-    .badge { rx: 12; stroke-width: 1.2; }
-    .badge-text { font-size: 11px; font-weight: 600; text-anchor: middle; }
-</style>
-    
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
-    </marker>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb" />
-    </marker>
-    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
-    </marker>
-    <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
-    </marker>
-    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
-    </marker>
-
-  </defs>
-  <!-- Pure White Background -->
-  <rect width="1200" height="700" fill="#ffffff" />
-  
-  <!-- Header Title -->
-  <text x="50" y="45" class="title">10. State Machine Transition Diagram</text>
-  <text x="50" y="70" class="subtitle">Finite State Machine depicting package lifecycle statuses, guarded transitions, and terminal boundaries</text>
-  
-  <!-- Diagram Content -->
-  
-  <!-- Initial State Marker -->
-  <circle cx="120" cy="220" r="14" fill="#0f172a" />
-  <line x1="134" y1="220" x2="190" y2="220" class="line" marker-end="url(#arrow)" />
-
-  <!-- 1. REGISTERED -->
-  <g transform="translate(190, 195)">
-    <rect width="140" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-    <text x="70" y="30" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">REGISTERED</text>
-  </g>
-
-  <!-- 2. SORTED -->
-  <g transform="translate(430, 195)">
-    <rect width="140" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-    <text x="70" y="30" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">SORTED</text>
-  </g>
-  <line x1="330" y1="220" x2="430" y2="220" class="line" marker-end="url(#arrow)" />
-  <text x="380" y="210" font-size="10" font-weight="600" fill="#64748b" text-anchor="middle">triage</text>
-
-  <!-- 3. STORED -->
-  <g transform="translate(670, 195)">
-    <rect width="140" height="50" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
-    <text x="70" y="30" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">STORED</text>
-  </g>
-  <line x1="570" y1="220" x2="670" y2="220" class="line" marker-end="url(#arrow)" />
-  <text x="620" y="210" font-size="10" font-weight="600" fill="#64748b" text-anchor="middle">assign</text>
-
-  <!-- 4. READY_FOR_PICKUP -->
-  <g transform="translate(910, 195)">
-    <rect width="160" height="50" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-    <text x="80" y="30" font-size="12" font-weight="700" fill="#047857" text-anchor="middle">READY_FOR_PICKUP</text>
-  </g>
-  <line x1="810" y1="220" x2="910" y2="220" class="line" marker-end="url(#arrow)" />
-  <text x="860" y="210" font-size="10" font-weight="600" fill="#64748b" text-anchor="middle">shelved</text>
-
-  <!-- 5. PICKUP_REQUESTED (Lower) -->
-  <g transform="translate(910, 360)">
-    <rect width="160" height="50" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" />
-    <text x="80" y="30" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle">PICKUP_REQUESTED</text>
-  </g>
-  <line x1="990" y1="245" x2="990" y2="360" class="line-blue" stroke-width="2" marker-end="url(#arrow-blue)" />
-  <text x="1055" y="305" font-size="10" font-weight="600" fill="#2563eb">token generated</text>
-
-  <!-- 6. COLLECTED (Terminal Success) -->
-  <g transform="translate(910, 520)">
-    <rect width="160" height="55" rx="8" fill="#16a34a" stroke="#15803d" stroke-width="2.5" />
-    <text x="80" y="33" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">COLLECTED</text>
-  </g>
-  <line x1="990" y1="410" x2="990" y2="520" class="line-green" stroke-width="2.5" marker-end="url(#arrow-green)" />
-  <text x="1045" y="470" font-size="10" font-weight="700" fill="#16a34a">code verified</text>
-
-  <!-- Terminal Circle for COLLECTED -->
-  <circle cx="990" cy="625" r="14" fill="#ffffff" stroke="#0f172a" stroke-width="3" />
-  <circle cx="990" cy="625" r="8" fill="#0f172a" />
-  <line x1="990" y1="575" x2="990" y2="611" class="line" marker-end="url(#arrow)" />
-
-  <!-- Exception Branch: UNIDENTIFIED -->
-  <g transform="translate(300, 360)">
-    <rect width="150" height="50" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2" />
-    <text x="75" y="30" font-size="12" font-weight="700" fill="#b91c1c" text-anchor="middle">UNIDENTIFIED</text>
-  </g>
-  <path d="M 260 245 L 260 385 L 300 385" class="line-red" marker-end="url(#arrow-red)" />
-  <text x="210" y="320" font-size="10" font-weight="600" fill="#dc2626">no student match</text>
-
-  <!-- Resolve Unidentified back to SORTED -->
-  <path d="M 450 385 L 500 385 L 500 245" class="line-green" marker-end="url(#arrow-green)" />
-  <text x="510" y="330" font-size="10" font-weight="600" fill="#16a34a">manual match</text>
-
-  <!-- Exception Branch: OVERDUE -->
-  <g transform="translate(630, 360)">
-    <rect width="140" height="50" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
-    <text x="70" y="30" font-size="12" font-weight="700" fill="#b45309" text-anchor="middle">OVERDUE</text>
-  </g>
-  <path d="M 910 230 L 700 230 L 700 360" class="line" stroke-dasharray="4,4" marker-end="url(#arrow)" />
-  <text x="750" y="290" font-size="10" font-weight="600" fill="#d97706">&gt; 48h hold</text>
-
-  <!-- Terminal Return -->
-  <g transform="translate(630, 520)">
-    <rect width="140" height="50" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="2" />
-    <text x="70" y="30" font-size="12" font-weight="700" fill="#475569" text-anchor="middle">RETURNED</text>
-  </g>
-  <line x1="700" y1="410" x2="700" y2="520" class="line" marker-end="url(#arrow)" />
-  <text x="740" y="470" font-size="10" font-weight="600" fill="#64748b">return to courier</text>
-
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 16.1.1 (20261108.1752)
+ -->
+<!-- Title: PackageLifecycle Pages: 1 -->
+<svg width="1592pt" height="1209pt"
+ viewBox="0.00 0.00 1592.00 1209.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(36 1173.16)">
+<title>PackageLifecycle</title>
+<polygon fill="#ffffff" stroke="none" points="-36,36 -36,-1173.16 1556,-1173.16 1556,36 -36,36"/>
+<text xml:space="preserve" text-anchor="middle" x="760" y="-1119.86" font-family="Helvetica,Arial,sans-serif" font-size="14.00">10. Package Lifecycle Finite State Machine</text>
+<text xml:space="preserve" text-anchor="middle" x="760" y="-1104.86" font-family="Helvetica,Arial,sans-serif" font-size="14.00">(Authoritative transitions from domain/state_machine.py)</text>
+<!-- start -->
+<g id="node1" class="node">
+<title>start</title>
+<ellipse fill="#0f172a" stroke="black" stroke-width="1.5" cx="937" cy="-1089.08" rx="10.08" ry="10.08"/>
+</g>
+<!-- RECEIVED -->
+<g id="node2" class="node">
+<title>RECEIVED</title>
+<path fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" d="M968.27,-1009.5C968.27,-1009.5 905.73,-1009.5 905.73,-1009.5 899.73,-1009.5 893.73,-1003.5 893.73,-997.5 893.73,-997.5 893.73,-985.5 893.73,-985.5 893.73,-979.5 899.73,-973.5 905.73,-973.5 905.73,-973.5 968.27,-973.5 968.27,-973.5 974.27,-973.5 980.27,-979.5 980.27,-985.5 980.27,-985.5 980.27,-997.5 980.27,-997.5 980.27,-1003.5 974.27,-1009.5 968.27,-1009.5"/>
+<text xml:space="preserve" text-anchor="middle" x="937" y="-987.05" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#1e40af">RECEIVED</text>
+</g>
+<!-- start&#45;&gt;RECEIVED -->
+<g id="edge1" class="edge">
+<title>start&#45;&gt;RECEIVED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M937,-1078.57C937,-1064.98 937,-1039.47 937,-1019.73"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="939.8,-1020 937,-1012 934.2,-1020 939.8,-1020"/>
+<text xml:space="preserve" text-anchor="middle" x="954.25" y="-1044.97" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> register</text>
+<text xml:space="preserve" text-anchor="middle" x="954.25" y="-1035.22" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- VERIFIED -->
+<g id="node3" class="node">
+<title>VERIFIED</title>
+<path fill="#ecfdf5" stroke="#059669" stroke-width="1.5" d="M902.27,-798.5C902.27,-798.5 845.73,-798.5 845.73,-798.5 839.73,-798.5 833.73,-792.5 833.73,-786.5 833.73,-786.5 833.73,-774.5 833.73,-774.5 833.73,-768.5 839.73,-762.5 845.73,-762.5 845.73,-762.5 902.27,-762.5 902.27,-762.5 908.27,-762.5 914.27,-768.5 914.27,-774.5 914.27,-774.5 914.27,-786.5 914.27,-786.5 914.27,-792.5 908.27,-798.5 902.27,-798.5"/>
+<text xml:space="preserve" text-anchor="middle" x="874" y="-776.05" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#065f46">VERIFIED</text>
+</g>
+<!-- RECEIVED&#45;&gt;VERIFIED -->
+<g id="edge2" class="edge">
+<title>RECEIVED&#45;&gt;VERIFIED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M937.42,-972.99C937.52,-941.52 934.66,-873.98 911,-823.5 908.17,-817.47 904.21,-811.66 899.92,-806.38"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="902.17,-804.71 894.79,-800.55 897.97,-808.4 902.17,-804.71"/>
+<text xml:space="preserve" text-anchor="middle" x="945.4" y="-886.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> verify</text>
+<text xml:space="preserve" text-anchor="middle" x="945.4" y="-876.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- UNIDENTIFIED -->
+<g id="node8" class="node">
+<title>UNIDENTIFIED</title>
+<path fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" d="M1003.77,-259C1003.77,-259 920.23,-259 920.23,-259 914.23,-259 908.23,-253 908.23,-247 908.23,-247 908.23,-235 908.23,-235 908.23,-229 914.23,-223 920.23,-223 920.23,-223 1003.77,-223 1003.77,-223 1009.77,-223 1015.77,-229 1015.77,-235 1015.77,-235 1015.77,-247 1015.77,-247 1015.77,-253 1009.77,-259 1003.77,-259"/>
+<text xml:space="preserve" text-anchor="middle" x="962" y="-236.55" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#9a3412">UNIDENTIFIED</text>
+</g>
+<!-- RECEIVED&#45;&gt;UNIDENTIFIED -->
+<g id="edge3" class="edge">
+<title>RECEIVED&#45;&gt;UNIDENTIFIED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M980.93,-990.78C1103.8,-990.37 1442,-980.75 1442,-887 1442,-887 1442,-887 1442,-353.5 1442,-269.08 1156.72,-248.55 1026.02,-243.58"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="1026.19,-240.79 1018.1,-243.3 1025.99,-246.38 1026.19,-240.79"/>
+<text xml:space="preserve" text-anchor="middle" x="1481" y="-622.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> mark_unidentified</text>
+<text xml:space="preserve" text-anchor="middle" x="1481" y="-613.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- DAMAGED -->
+<g id="node9" class="node">
+<title>DAMAGED</title>
+<path fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" d="M838.52,-904C838.52,-904 777.48,-904 777.48,-904 771.48,-904 765.48,-898 765.48,-892 765.48,-892 765.48,-880 765.48,-880 765.48,-874 771.48,-868 777.48,-868 777.48,-868 838.52,-868 838.52,-868 844.52,-868 850.52,-874 850.52,-880 850.52,-880 850.52,-892 850.52,-892 850.52,-898 844.52,-904 838.52,-904"/>
+<text xml:space="preserve" text-anchor="middle" x="808" y="-881.55" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#991b1b">DAMAGED</text>
+</g>
+<!-- RECEIVED&#45;&gt;DAMAGED -->
+<g id="edge4" class="edge">
+<title>RECEIVED&#45;&gt;DAMAGED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M893.12,-980.13C873.67,-973.7 851.7,-963.68 836,-948.5 826.29,-939.1 819.64,-925.71 815.28,-913.82"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="818.05,-913.28 812.87,-906.58 812.74,-915.05 818.05,-913.28"/>
+<text xml:space="preserve" text-anchor="middle" x="870.5" y="-939.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> mark_damaged</text>
+<text xml:space="preserve" text-anchor="middle" x="870.5" y="-929.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- STORED -->
+<g id="node4" class="node">
+<title>STORED</title>
+<path fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" d="M701.65,-693C701.65,-693 650.35,-693 650.35,-693 644.35,-693 638.35,-687 638.35,-681 638.35,-681 638.35,-669 638.35,-669 638.35,-663 644.35,-657 650.35,-657 650.35,-657 701.65,-657 701.65,-657 707.65,-657 713.65,-663 713.65,-669 713.65,-669 713.65,-681 713.65,-681 713.65,-687 707.65,-693 701.65,-693"/>
+<text xml:space="preserve" text-anchor="middle" x="676" y="-670.55" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#166534">STORED</text>
+</g>
+<!-- VERIFIED&#45;&gt;STORED -->
+<g id="edge13" class="edge">
+<title>VERIFIED&#45;&gt;STORED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M840.41,-761.94C806.7,-744.32 754.69,-717.13 718.21,-698.06"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="719.88,-695.78 711.5,-694.56 717.29,-700.74 719.88,-695.78"/>
+<text xml:space="preserve" text-anchor="middle" x="805.11" y="-728.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> store</text>
+<text xml:space="preserve" text-anchor="middle" x="805.11" y="-718.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- UNDER_INVESTIGATION -->
+<g id="node10" class="node">
+<title>UNDER_INVESTIGATION</title>
+<path fill="#f1f5f9" stroke="#475569" stroke-width="1.5" d="M785.65,-372.5C785.65,-372.5 650.35,-372.5 650.35,-372.5 644.35,-372.5 638.35,-366.5 638.35,-360.5 638.35,-360.5 638.35,-348.5 638.35,-348.5 638.35,-342.5 644.35,-336.5 650.35,-336.5 650.35,-336.5 785.65,-336.5 785.65,-336.5 791.65,-336.5 797.65,-342.5 797.65,-348.5 797.65,-348.5 797.65,-360.5 797.65,-360.5 797.65,-366.5 791.65,-372.5 785.65,-372.5"/>
+<text xml:space="preserve" text-anchor="middle" x="718" y="-350.05" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#1e293b">UNDER_INVESTIGATION</text>
+</g>
+<!-- VERIFIED&#45;&gt;UNDER_INVESTIGATION -->
+<g id="edge14" class="edge">
+<title>VERIFIED&#45;&gt;UNDER_INVESTIGATION</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M910.84,-761.86C954.91,-738.67 1027.21,-693.52 1063,-632 1104.86,-560.05 1135.41,-512.24 1085,-446 1051.81,-402.39 905.72,-377.17 808.17,-364.9"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="808.54,-362.12 800.25,-363.92 807.85,-367.68 808.54,-362.12"/>
+<text xml:space="preserve" text-anchor="middle" x="1128.47" y="-570.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="1128.47" y="-560.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- RETURN_REQUESTED -->
+<g id="node11" class="node">
+<title>RETURN_REQUESTED</title>
+<path fill="#fff1f2" stroke="#e11d48" stroke-width="1.5" d="M416.9,-149.5C416.9,-149.5 289.1,-149.5 289.1,-149.5 283.1,-149.5 277.1,-143.5 277.1,-137.5 277.1,-137.5 277.1,-125.5 277.1,-125.5 277.1,-119.5 283.1,-113.5 289.1,-113.5 289.1,-113.5 416.9,-113.5 416.9,-113.5 422.9,-113.5 428.9,-119.5 428.9,-125.5 428.9,-125.5 428.9,-137.5 428.9,-137.5 428.9,-143.5 422.9,-149.5 416.9,-149.5"/>
+<text xml:space="preserve" text-anchor="middle" x="353" y="-127.05" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#9f1239">RETURN_REQUESTED</text>
+</g>
+<!-- VERIFIED&#45;&gt;RETURN_REQUESTED -->
+<g id="edge21" class="edge">
+<title>VERIFIED&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M833.21,-765.86C829.43,-764.69 825.65,-763.55 822,-762.5 544.76,-682.84 446.6,-732.1 197,-587.5 95.6,-528.76 0,-529.44 0,-412.25 0,-412.25 0,-412.25 0,-240 0,-184.4 162.29,-154.78 266.79,-141.46"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="266.86,-144.28 274.45,-140.51 266.17,-138.72 266.86,-144.28"/>
+<text xml:space="preserve" text-anchor="middle" x="51.07" y="-464.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="51.07" y="-454.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin/Learner]</text>
+</g>
+<!-- READY_FOR_PICKUP -->
+<g id="node5" class="node">
+<title>READY_FOR_PICKUP</title>
+<path fill="#fefce8" stroke="#ca8a04" stroke-width="1.5" d="M598.52,-587.5C598.52,-587.5 477.48,-587.5 477.48,-587.5 471.48,-587.5 465.48,-581.5 465.48,-575.5 465.48,-575.5 465.48,-563.5 465.48,-563.5 465.48,-557.5 471.48,-551.5 477.48,-551.5 477.48,-551.5 598.52,-551.5 598.52,-551.5 604.52,-551.5 610.52,-557.5 610.52,-563.5 610.52,-563.5 610.52,-575.5 610.52,-575.5 610.52,-581.5 604.52,-587.5 598.52,-587.5"/>
+<text xml:space="preserve" text-anchor="middle" x="538" y="-565.05" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#854d0e">READY_FOR_PICKUP</text>
+</g>
+<!-- STORED&#45;&gt;READY_FOR_PICKUP -->
+<g id="edge15" class="edge">
+<title>STORED&#45;&gt;READY_FOR_PICKUP</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M637.96,-658.97C622.72,-651.99 605.5,-642.82 591.5,-632 578.18,-621.71 565.69,-607.7 556.13,-595.66"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="558.6,-594.27 551.5,-589.64 554.16,-597.69 558.6,-594.27"/>
+<text xml:space="preserve" text-anchor="middle" x="617.75" y="-622.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> mark_ready</text>
+<text xml:space="preserve" text-anchor="middle" x="617.75" y="-613.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- STORED&#45;&gt;UNDER_INVESTIGATION -->
+<g id="edge18" class="edge">
+<title>STORED&#45;&gt;UNDER_INVESTIGATION</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M691.84,-656.61C714.27,-630.61 754.11,-579.02 768,-526.5 777.27,-491.44 775.43,-463.65 750,-401.5 747.1,-394.41 742.95,-387.33 738.61,-380.92"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="741.16,-379.68 734.22,-374.82 736.61,-382.95 741.16,-379.68"/>
+<text xml:space="preserve" text-anchor="middle" x="796.3" y="-517.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="796.3" y="-507.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- STORED&#45;&gt;RETURN_REQUESTED -->
+<g id="edge22" class="edge">
+<title>STORED&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M637.83,-668.5C613.79,-665.08 582.1,-660.65 554,-657 462.11,-645.05 431.07,-670.99 347,-632 221.97,-574.01 174.84,-547.33 119.75,-421 71.85,-311.16 128.53,-239.81 229,-174.5 242.02,-166.04 256.92,-159.1 271.77,-153.48"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="272.57,-156.16 279.15,-150.81 270.67,-150.9 272.57,-156.16"/>
+<text xml:space="preserve" text-anchor="middle" x="153.88" y="-411.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="153.88" y="-402.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin/Learner]</text>
+</g>
+<!-- PICKUP_REQUESTED -->
+<g id="node6" class="node">
+<title>PICKUP_REQUESTED</title>
+<path fill="#fdf4ff" stroke="#c026d3" stroke-width="1.5" d="M419.27,-482C419.27,-482 296.73,-482 296.73,-482 290.73,-482 284.73,-476 284.73,-470 284.73,-470 284.73,-458 284.73,-458 284.73,-452 290.73,-446 296.73,-446 296.73,-446 419.27,-446 419.27,-446 425.27,-446 431.27,-452 431.27,-458 431.27,-458 431.27,-470 431.27,-470 431.27,-476 425.27,-482 419.27,-482"/>
+<text xml:space="preserve" text-anchor="middle" x="358" y="-459.55" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#86198f">PICKUP_REQUESTED</text>
+</g>
+<!-- READY_FOR_PICKUP&#45;&gt;PICKUP_REQUESTED -->
+<g id="edge16" class="edge">
+<title>READY_FOR_PICKUP&#45;&gt;PICKUP_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M507.47,-550.94C477.08,-533.47 430.33,-506.59 397.21,-487.55"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="398.72,-485.18 390.39,-483.62 395.93,-490.04 398.72,-485.18"/>
+<text xml:space="preserve" text-anchor="middle" x="497.5" y="-517.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_pickup</text>
+<text xml:space="preserve" text-anchor="middle" x="497.5" y="-507.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Learner]</text>
+</g>
+<!-- READY_FOR_PICKUP&#45;&gt;UNDER_INVESTIGATION -->
+<g id="edge19" class="edge">
+<title>READY_FOR_PICKUP&#45;&gt;UNDER_INVESTIGATION</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M551.88,-550.84C570.83,-526.84 606.04,-482.7 637.25,-446 656.47,-423.4 678.99,-398.27 695.36,-380.24"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="697.33,-382.23 700.64,-374.42 693.19,-378.46 697.33,-382.23"/>
+<text xml:space="preserve" text-anchor="middle" x="661.62" y="-464.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="661.62" y="-454.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- READY_FOR_PICKUP&#45;&gt;RETURN_REQUESTED -->
+<g id="edge23" class="edge">
+<title>READY_FOR_PICKUP&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M465.04,-559.58C371.16,-546.02 220,-516.24 220,-465 220,-465 220,-465 220,-240 220,-199.36 258.03,-171.44 293.42,-154.26"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="294.48,-156.86 300.55,-150.95 292.12,-151.78 294.48,-156.86"/>
+<text xml:space="preserve" text-anchor="middle" x="254.12" y="-355.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="254.12" y="-345.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin/Learner]</text>
+</g>
+<!-- COLLECTED -->
+<g id="node7" class="node">
+<title>COLLECTED</title>
+<path fill="#16a34a" stroke="#14532d" stroke-width="1.5" d="M505.77,-372.5C505.77,-372.5 434.23,-372.5 434.23,-372.5 428.23,-372.5 422.23,-366.5 422.23,-360.5 422.23,-360.5 422.23,-348.5 422.23,-348.5 422.23,-342.5 428.23,-336.5 434.23,-336.5 434.23,-336.5 505.77,-336.5 505.77,-336.5 511.77,-336.5 517.77,-342.5 517.77,-348.5 517.77,-348.5 517.77,-360.5 517.77,-360.5 517.77,-366.5 511.77,-372.5 505.77,-372.5"/>
+<path fill="none" stroke="#14532d" stroke-width="1.5" d="M509.77,-376.5C509.77,-376.5 430.23,-376.5 430.23,-376.5 424.23,-376.5 418.23,-370.5 418.23,-364.5 418.23,-364.5 418.23,-344.5 418.23,-344.5 418.23,-338.5 424.23,-332.5 430.23,-332.5 430.23,-332.5 509.77,-332.5 509.77,-332.5 515.77,-332.5 521.77,-338.5 521.77,-344.5 521.77,-344.5 521.77,-364.5 521.77,-364.5 521.77,-370.5 515.77,-376.5 509.77,-376.5"/>
+<text xml:space="preserve" text-anchor="middle" x="470" y="-350.05" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#ffffff">COLLECTED</text>
+</g>
+<!-- PICKUP_REQUESTED&#45;&gt;COLLECTED -->
+<g id="edge17" class="edge">
+<title>PICKUP_REQUESTED&#45;&gt;COLLECTED</title>
+<path fill="none" stroke="#16a34a" stroke-width="2" d="M360.28,-445.3C362.81,-431.93 368.04,-413.84 378.75,-401.5 386.84,-392.17 397.28,-384.52 408.19,-378.31"/>
+<polygon fill="#16a34a" stroke="#16a34a" stroke-width="2" points="409.4,-380.84 415.17,-374.64 406.79,-375.88 409.4,-380.84"/>
+<text xml:space="preserve" text-anchor="middle" x="421.88" y="-411.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#15803d"> complete_handover</text>
+<text xml:space="preserve" text-anchor="middle" x="421.88" y="-402.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#15803d">[Security]</text>
+</g>
+<!-- PICKUP_REQUESTED&#45;&gt;UNDER_INVESTIGATION -->
+<g id="edge20" class="edge">
+<title>PICKUP_REQUESTED&#45;&gt;UNDER_INVESTIGATION</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M408.11,-445.31C427.84,-438.1 450.61,-429.48 471,-421 490.1,-413.06 493.66,-408.14 513.25,-401.5 550.15,-389 591.95,-378.91 628.12,-371.41"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="628.47,-374.19 635.75,-369.85 627.35,-368.71 628.47,-374.19"/>
+<text xml:space="preserve" text-anchor="middle" x="537.62" y="-411.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="537.62" y="-402.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- PICKUP_REQUESTED&#45;&gt;RETURN_REQUESTED -->
+<g id="edge24" class="edge">
+<title>PICKUP_REQUESTED&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M357.74,-445.7C356.92,-391.61 354.41,-225.44 353.41,-159.69"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="356.22,-159.96 353.3,-152 350.62,-160.04 356.22,-159.96"/>
+<text xml:space="preserve" text-anchor="middle" x="389.74" y="-298.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="389.74" y="-288.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin/Learner]</text>
+</g>
+<!-- UNIDENTIFIED&#45;&gt;VERIFIED -->
+<g id="edge5" class="edge">
+<title>UNIDENTIFIED&#45;&gt;VERIFIED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M985.79,-259.42C1049.8,-308.54 1217.24,-453.36 1163,-587.5 1125.97,-679.08 1086.92,-692.47 999,-737.5 975.45,-749.56 947.69,-759.29 924.31,-766.34"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="923.7,-763.6 916.81,-768.54 925.28,-768.97 923.7,-763.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1211.01" y="-517.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> identify_recipient</text>
+<text xml:space="preserve" text-anchor="middle" x="1211.01" y="-507.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- UNIDENTIFIED&#45;&gt;STORED -->
+<g id="edge6" class="edge">
+<title>UNIDENTIFIED&#45;&gt;STORED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M968.84,-259.69C988.86,-314.74 1041.3,-485.39 965,-587.5 936.05,-626.24 798.43,-654.11 724.02,-666.63"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="723.77,-663.83 716.34,-667.9 724.69,-669.35 723.77,-663.83"/>
+<text xml:space="preserve" text-anchor="middle" x="1042.59" y="-464.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> identify_recipient</text>
+<text xml:space="preserve" text-anchor="middle" x="1042.59" y="-454.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- UNIDENTIFIED&#45;&gt;UNDER_INVESTIGATION -->
+<g id="edge7" class="edge">
+<title>UNIDENTIFIED&#45;&gt;UNDER_INVESTIGATION</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M943.5,-259.6C927.16,-274.28 902.09,-294.78 877,-307.5 855.49,-318.4 830.99,-327.1 807.77,-333.87"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="807.09,-331.15 800.16,-336.02 808.62,-336.54 807.09,-331.15"/>
+<text xml:space="preserve" text-anchor="middle" x="931.4" y="-298.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="931.4" y="-288.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- UNIDENTIFIED&#45;&gt;RETURN_REQUESTED -->
+<g id="edge8" class="edge">
+<title>UNIDENTIFIED&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M913.35,-222.37C870,-207.36 804.56,-186.4 746,-174.5 641.48,-153.26 519.01,-142.33 438.91,-137.02"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="439.48,-134.25 431.32,-136.53 439.12,-139.84 439.48,-134.25"/>
+<text xml:space="preserve" text-anchor="middle" x="850.49" y="-184.97" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="850.49" y="-175.22" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin]</text>
+</g>
+<!-- DAMAGED&#45;&gt;VERIFIED -->
+<g id="edge9" class="edge">
+<title>DAMAGED&#45;&gt;VERIFIED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M803.8,-867.45C801.67,-854.5 800.89,-836.88 808.25,-823.5 812.42,-815.92 818.61,-809.51 825.54,-804.15"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="826.72,-806.74 831.68,-799.87 823.52,-802.15 826.72,-806.74"/>
+<text xml:space="preserve" text-anchor="middle" x="856.62" y="-833.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> release_damage_hold</text>
+<text xml:space="preserve" text-anchor="middle" x="856.62" y="-824.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- DAMAGED&#45;&gt;STORED -->
+<g id="edge10" class="edge">
+<title>DAMAGED&#45;&gt;STORED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M782.98,-867.45C762.13,-851.63 733.06,-826.58 715.25,-798.5 696.35,-768.7 685.83,-729.01 680.54,-703"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="683.33,-702.68 679.08,-695.35 677.83,-703.73 683.33,-702.68"/>
+<text xml:space="preserve" text-anchor="middle" x="763.62" y="-781.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> release_damage_hold</text>
+<text xml:space="preserve" text-anchor="middle" x="763.62" y="-771.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- DAMAGED&#45;&gt;UNDER_INVESTIGATION -->
+<g id="edge11" class="edge">
+<title>DAMAGED&#45;&gt;UNDER_INVESTIGATION</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M765.11,-883.19C660.36,-877.61 400,-856.22 400,-781.5 400,-781.5 400,-781.5 400,-621.25 400,-567.88 402.83,-548 437,-507 469.07,-468.52 595.96,-408.84 667.77,-377.09"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="668.67,-379.75 674.87,-373.97 666.42,-374.63 668.67,-379.75"/>
+<text xml:space="preserve" text-anchor="middle" x="424.38" y="-622.98" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> investigate</text>
+<text xml:space="preserve" text-anchor="middle" x="424.38" y="-613.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- DAMAGED&#45;&gt;RETURN_REQUESTED -->
+<g id="edge12" class="edge">
+<title>DAMAGED&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M850.98,-877.93C979.18,-856.69 1350,-794.18 1350,-781.5 1350,-781.5 1350,-781.5 1350,-240 1350,-148.78 681.69,-134.87 439.4,-132.82"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="439.57,-130.03 431.54,-132.76 439.52,-135.63 439.57,-130.03"/>
+<text xml:space="preserve" text-anchor="middle" x="1382.25" y="-517.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="1382.25" y="-507.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Staff]</text>
+</g>
+<!-- UNDER_INVESTIGATION&#45;&gt;VERIFIED -->
+<g id="edge26" class="edge">
+<title>UNDER_INVESTIGATION&#45;&gt;VERIFIED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M752.18,-373.23C764.08,-380.7 776.75,-390.28 786,-401.5 873.49,-507.59 877.41,-684.76 875.4,-752.26"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="872.61,-752.06 875.12,-760.15 878.21,-752.26 872.61,-752.06"/>
+<text xml:space="preserve" text-anchor="middle" x="909.08" y="-570.23" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> resolve_investigation</text>
+<text xml:space="preserve" text-anchor="middle" x="909.08" y="-560.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin]</text>
+</g>
+<!-- UNDER_INVESTIGATION&#45;&gt;STORED -->
+<g id="edge25" class="edge">
+<title>UNDER_INVESTIGATION&#45;&gt;STORED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M717.59,-372.96C716.32,-398.42 711.31,-446.56 692,-482 684.4,-495.94 672.65,-492.37 666.5,-507 647.05,-553.3 658.21,-613.25 667.51,-647.28"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="664.73,-647.76 669.63,-654.68 670.11,-646.21 664.73,-647.76"/>
+<text xml:space="preserve" text-anchor="middle" x="712.25" y="-517.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> resolve_investigation</text>
+<text xml:space="preserve" text-anchor="middle" x="712.25" y="-507.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin]</text>
+</g>
+<!-- UNDER_INVESTIGATION&#45;&gt;UNIDENTIFIED -->
+<g id="edge27" class="edge">
+<title>UNDER_INVESTIGATION&#45;&gt;UNIDENTIFIED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M729.03,-335.77C739.26,-320.8 755.85,-299.94 775.5,-288 812.68,-265.41 860.39,-253.9 898.25,-248.04"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="898.19,-250.88 905.7,-246.95 897.38,-245.33 898.19,-250.88"/>
+<text xml:space="preserve" text-anchor="middle" x="821.25" y="-298.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> resolve_investigation</text>
+<text xml:space="preserve" text-anchor="middle" x="821.25" y="-288.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin]</text>
+</g>
+<!-- UNDER_INVESTIGATION&#45;&gt;RETURN_REQUESTED -->
+<g id="edge29" class="edge">
+<title>UNDER_INVESTIGATION&#45;&gt;RETURN_REQUESTED</title>
+<path fill="none" stroke="#334155" stroke-width="1.3" d="M714.05,-336.1C706.55,-307.2 687.46,-249.49 649,-219 588.74,-171.23 502.93,-149.83 439.2,-140.26"/>
+<polygon fill="#334155" stroke="#334155" stroke-width="1.3" points="439.83,-137.52 431.51,-139.15 439.04,-143.06 439.83,-137.52"/>
+<text xml:space="preserve" text-anchor="middle" x="717.15" y="-241.72" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b"> request_return</text>
+<text xml:space="preserve" text-anchor="middle" x="717.15" y="-231.97" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#1e293b">[Admin]</text>
+</g>
+<!-- LOST -->
+<g id="node13" class="node">
+<title>LOST</title>
+<path fill="#dc2626" stroke="#7f1d1d" stroke-width="1.5" d="M611.65,-259C611.65,-259 578.35,-259 578.35,-259 572.35,-259 566.35,-253 566.35,-247 566.35,-247 566.35,-235 566.35,-235 566.35,-229 572.35,-223 578.35,-223 578.35,-223 611.65,-223 611.65,-223 617.65,-223 623.65,-229 623.65,-235 623.65,-235 623.65,-247 623.65,-247 623.65,-253 617.65,-259 611.65,-259"/>
+<path fill="none" stroke="#7f1d1d" stroke-width="1.5" d="M615.65,-263C615.65,-263 574.35,-263 574.35,-263 568.35,-263 562.35,-257 562.35,-251 562.35,-251 562.35,-231 562.35,-231 562.35,-225 568.35,-219 574.35,-219 574.35,-219 615.65,-219 615.65,-219 621.65,-219 627.65,-225 627.65,-231 627.65,-231 627.65,-251 627.65,-251 627.65,-257 621.65,-263 615.65,-263"/>
+<text xml:space="preserve" text-anchor="middle" x="595" y="-236.55" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#ffffff">LOST</text>
+</g>
+<!-- UNDER_INVESTIGATION&#45;&gt;LOST -->
+<g id="edge28" class="edge">
+<title>UNDER_INVESTIGATION&#45;&gt;LOST</title>
+<path fill="none" stroke="#dc2626" stroke-width="1.8" d="M678.75,-335.79C664.82,-328.33 649.66,-318.74 637.75,-307.5 627.23,-297.57 618.06,-284.56 610.94,-272.76"/>
+<polygon fill="#dc2626" stroke="#dc2626" stroke-width="1.8" points="613.47,-271.53 607.05,-265.99 608.61,-274.32 613.47,-271.53"/>
+<text xml:space="preserve" text-anchor="middle" x="659.88" y="-298.48" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#b91c1c"> mark_lost</text>
+<text xml:space="preserve" text-anchor="middle" x="659.88" y="-288.73" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#b91c1c">[Admin]</text>
+</g>
+<!-- RETURNED -->
+<g id="node12" class="node">
+<title>RETURNED</title>
+<path fill="#475569" stroke="#1e293b" stroke-width="1.5" d="M386.9,-40C386.9,-40 319.1,-40 319.1,-40 313.1,-40 307.1,-34 307.1,-28 307.1,-28 307.1,-16 307.1,-16 307.1,-10 313.1,-4 319.1,-4 319.1,-4 386.9,-4 386.9,-4 392.9,-4 398.9,-10 398.9,-16 398.9,-16 398.9,-28 398.9,-28 398.9,-34 392.9,-40 386.9,-40"/>
+<path fill="none" stroke="#1e293b" stroke-width="1.5" d="M390.9,-44C390.9,-44 315.1,-44 315.1,-44 309.1,-44 303.1,-38 303.1,-32 303.1,-32 303.1,-12 303.1,-12 303.1,-6 309.1,0 315.1,0 315.1,0 390.9,0 390.9,0 396.9,0 402.9,-6 402.9,-12 402.9,-12 402.9,-32 402.9,-32 402.9,-38 396.9,-44 390.9,-44"/>
+<text xml:space="preserve" text-anchor="middle" x="353" y="-17.55" font-family="Helvetica,Arial,sans-serif" font-size="11.00" fill="#ffffff">RETURNED</text>
+</g>
+<!-- RETURN_REQUESTED&#45;&gt;RETURNED -->
+<g id="edge30" class="edge">
+<title>RETURN_REQUESTED&#45;&gt;RETURNED</title>
+<path fill="none" stroke="#475569" stroke-width="1.8" d="M353,-113.23C353,-97.65 353,-74.33 353,-55.3"/>
+<polygon fill="#475569" stroke="#475569" stroke-width="1.8" points="355.8,-55.41 353,-47.41 350.2,-55.41 355.8,-55.41"/>
+<text xml:space="preserve" text-anchor="middle" x="389" y="-79.47" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#334155"> complete_return</text>
+<text xml:space="preserve" text-anchor="middle" x="389" y="-69.72" font-family="Helvetica,Arial,sans-serif" font-size="9.50" fill="#334155">[Staff]</text>
+</g>
+</g>
 </svg>

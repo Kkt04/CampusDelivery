@@ -764,7 +764,7 @@ Standalone MongoDB deployments do not run multi-document ACID transactions (whic
 4. **Honest Crash Window Analysis**:
    - In a multi-step flow without replica set transactions, if a process hard-crashes halfway (e.g. power loss immediately after `tokens.mark_used` but before `pickups.add`), the token is marked used while the pickup record is missing.
    - **Mitigation & Recovery**: The system provides a supervisor manual override (`POST /api/v1/pickups/override`) with mandatory documented reasoning and audit logging to safely unblock learners in operational discrepancy scenarios.
-   - Tested in `backend/tests/api/test_reliability.py: test_failure_halfway_through_handover_rolls_everything_back`.
+   - Tested in `backend/tests/api/test_reliability.py: test_failure_halfway_through_handover_leaves_no_pickup_record_or_completion_audit`.
 
 ---
 
@@ -878,7 +878,7 @@ npm run build
 ```
 
 **Verification Results**:
-- Backend Suite: **92 passed in ~25-29s** (40 unit tests, 52 API integration tests).
+- Backend Suite: **92 passed in 27.06s** (40 unit tests, 52 API integration tests) on real MongoDB.
 - Concurrency Tests: **10/10 repeated runs passed** with zero race condition failures.
 - Frontend: Strict TypeScript compilation (`tsc --noEmit && vite build`) with zero type errors.
 

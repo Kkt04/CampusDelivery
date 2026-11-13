@@ -24,11 +24,11 @@ pytest -k concurrent -v       # Just the concurrency race tests (repeated 10x ve
 
 ## 9.3 Recorded results (clean setup, fresh virtualenv and node_modules)
 
-Environment: Python 3.12, FastAPI 0.115.6, PyMongo 4.9+, Pydantic 2.10.3, MongoDB 7.0 / mongomock, Node 22.
+Environment: Python 3.12, FastAPI 0.115.6, PyMongo 4.10+, Pydantic 2.10.3, MongoDB 8.0 / 7.0, Node 22.
 
 | Run | Result |
 |---|---|
-| Backend suite on MongoDB | 92 passed in ~25-29s (40 unit, 52 API) |
+| Backend suite on real MongoDB | 92 passed in 27.06s (40 unit, 52 API) |
 | Concurrency tests repeated (10× runs) | all passed (10/10) |
 | Frontend `npm run build` | succeeded (strict TypeScript, 0 errors) |
 
@@ -135,7 +135,7 @@ Environment: Python 3.12, FastAPI 0.115.6, PyMongo 4.9+, Pydantic 2.10.3, MongoD
 - ✅ `test_concurrent_handover_results_in_exactly_one_collection`
 
 **`tests/api/test_reliability.py`** (9 tests)
-- ✅ `test_failure_halfway_through_handover_rolls_everything_back`
+- ✅ `test_failure_halfway_through_handover_leaves_no_pickup_record_or_completion_audit`
 - ✅ `test_notification_failure_does_not_undo_the_package_update`
 - ✅ `test_learner_notifications_can_be_marked_read`
 - ✅ `test_overdue_packages_are_flagged_and_filterable`

@@ -417,5 +417,5 @@ Because standalone MongoDB does not support multi-document ACID transactions acr
 
 - The Mermaid ER diagram in section 4.1 represents the authoritative schema.
 - **Image Artifact Status**:
-  - `diagrams/12_database_er_schema_diagram.svg`: Updated to reflect MongoDB collection naming and logical references.
-  - `diagrams/12_database_er_schema_diagram.png`: **STALE** (Raster binary generated from legacy SQL DDL; requires headless image rasterization tools not available in sandboxed CLI environment). Refer to the SVG and section 4.1 Mermaid diagram.
+  - `diagrams/12_database_er_schema_diagram.svg`: Vector diagram synchronized with MongoDB collections and logical document references.
+  - `diagrams/12_database_er_schema_diagram.png`: High-resolution raster PNG regenerated directly from the authoritative SVG using `rsvg-convert`. Both vector and raster diagrams are fully up-to-date.
