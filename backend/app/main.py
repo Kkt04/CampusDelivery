@@ -35,7 +35,12 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def _startup() -> None:
-        init_db()
+        import os
+        try:
+            init_db()
+        except Exception as e:
+            logger.warning("Could not auto-initialize database on startup: %s", e)
+
         if settings.environment != "production":
             try:
                 from app.seed import ensure_demo_users
@@ -44,23 +49,24 @@ def create_app() -> FastAPI:
             except Exception as e:
                 logger.warning("Could not auto-ensure demo users on startup: %s", e)
 
-        async def _overdue_sweep_loop() -> None:
-            while True:
-                try:
-                    from app.container import container
-                    from app.services.notifications import NotificationService
-                    with container.uow() as uow:
-                        res = NotificationService(uow, channels=container.dispatcher.channels).sweep_overdue(
-                            deadline_days=container.settings.collection_deadline_days
-                        )
-                        if res.get("notified", 0) > 0:
-                            logger.info("Automated overdue daily sweep: sent %s reminders", res["notified"])
-                except Exception as exc:
-                    logger.debug("Automated overdue sweep background check: %s", exc)
-                await asyncio.sleep(1800)  # check every 30 mins
+        if not os.environ.get("VERCEL"):
+            async def _overdue_sweep_loop() -> None:
+                while True:
+                    try:
+                        from app.container import container
+                        from app.services.notifications import NotificationService
+                        with container.uow() as uow:
+                            res = NotificationService(uow, channels=container.dispatcher.channels).sweep_overdue(
+                                deadline_days=container.settings.collection_deadline_days
+                            )
+                            if res.get("notified", 0) > 0:
+                                logger.info("Automated overdue daily sweep: sent %s reminders", res["notified"])
+                    except Exception as exc:
+                        logger.debug("Automated overdue sweep background check: %s", exc)
+                    await asyncio.sleep(1800)  # check every 30 mins
 
-        import asyncio
-        asyncio.create_task(_overdue_sweep_loop())
+            import asyncio
+            asyncio.create_task(_overdue_sweep_loop())
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # noqa: ANN001, ANN202
