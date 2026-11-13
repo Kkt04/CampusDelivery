@@ -140,7 +140,7 @@
 
     <g transform="translate(140, 35)">
       <rect width="400" height="45" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" />
-      <text x="200" y="28" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle">MongoUnitOfWork &amp; PyMongo Repositories</text>
+      <text x="200" y="28" font-size="13" font-weight="700" fill="#c2410c" text-anchor="middle">UnitOfWork &amp; PyMongo Repositories</text>
     </g>
     <g transform="translate(640, 35)">
       <rect width="400" height="45" rx="6" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5" />

@@ -76,12 +76,12 @@
   <!-- Step 1: Guard A submits code -->
   <line x1="165" y1="210" x2="710" y2="210" class="line-blue" stroke-width="2" marker-end="url(#arrow-blue)" />
   <rect x="230" y="195" width="220" height="16" fill="#ffffff" />
-  <text x="340" y="207" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle">1a. verify_and_handover(code="849201")</text>
+  <text x="340" y="207" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle">1a. complete(code="849201")</text>
 
   <!-- Step 1b: Guard B submits code almost simultaneously -->
   <line x1="425" y1="235" x2="710" y2="235" class="line-red" stroke-width="2" marker-end="url(#arrow-red)" />
   <rect x="450" y="220" width="220" height="16" fill="#ffffff" />
-  <text x="560" y="232" font-size="11" font-weight="600" fill="#dc2626" text-anchor="middle">1b. verify_and_handover(code="849201")</text>
+  <text x="560" y="232" font-size="11" font-weight="600" fill="#dc2626" text-anchor="middle">1b. complete(code="849201")</text>
 
   <!-- Step 2: Guard A atomic CAS token update -->
   <line x1="710" y1="275" x2="1020" y2="275" class="line-blue" stroke-width="2" marker-end="url(#arrow-blue)" />

@@ -72,12 +72,12 @@
   <!-- Step 1: Assign Storage Request -->
   <line x1="170" y1="180" x2="465" y2="180" class="line" marker-end="url(#arrow)" />
   <rect x="200" y="162" width="220" height="18" fill="#ffffff" />
-  <text x="310" y="175" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">1. assign_storage(package_id)</text>
+  <text x="310" y="175" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">1. assign(package_id, actor, location_id)</text>
 
   <!-- Step 2: Fetch Active Shelves -->
   <line x1="465" y1="220" x2="1050" y2="220" class="line" marker-end="url(#arrow)" />
   <rect x="520" y="202" width="240" height="18" fill="#ffffff" />
-  <text x="640" y="215" font-size="11" font-weight="500" fill="#0f172a">2. find(is_active=True)</text>
+  <text x="640" y="215" font-size="11" font-weight="500" fill="#0f172a">2. uow.storage.candidates()</text>
 
   <!-- Step 3: Shelves Returned -->
   <line x1="1050" y1="260" x2="465" y2="260" class="line-dash" marker-end="url(#arrow-gray)" />

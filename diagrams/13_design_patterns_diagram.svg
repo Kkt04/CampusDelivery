@@ -97,23 +97,23 @@
     <rect width="360" height="150" rx="8" fill="#ffffff" stroke="#dc2626" stroke-width="2" />
     <rect width="360" height="30" rx="8" fill="#fef2f2" />
     <text x="180" y="20" font-size="13" font-weight="700" fill="#b91c1c" text-anchor="middle">5. UNIT OF WORK &amp; REPO (Architectural)</text>
-    <text x="16" y="52" font-size="11" font-weight="600" fill="#0f172a">Coordinator: MongoUnitOfWork</text>
+    <text x="16" y="52" font-size="11" font-weight="600" fill="#0f172a">Coordinator: UnitOfWork (unit_of_work.py)</text>
     <text x="16" y="70" class="mono" font-size="10.5" fill="#dc2626">- Coordinates repositories across collections</text>
     <text x="16" y="88" class="mono" font-size="10.5" fill="#dc2626">- Buffers domain events until commit succeeds</text>
-    <text x="16" y="112" font-size="11" fill="#475569">Benefit: Atomic business transactions without</text>
-    <text x="16" y="128" font-size="11" fill="#475569">leaking PyMongo sessions into business logic.</text>
+    <text x="16" y="112" font-size="11" fill="#475569">Benefit: Clean boundary and dirty-tracking Store</text>
+    <text x="16" y="128" font-size="11" fill="#475569">without leaking database drivers into use cases.</text>
   </g>
 
   <!-- Pattern 6: Singleton -->
   <g transform="translate(860, 280)">
     <rect width="360" height="150" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="2" />
     <rect width="360" height="30" rx="8" fill="#ecfeff" />
-    <text x="180" y="20" font-size="13" font-weight="700" fill="#0e7490" text-anchor="middle">6. SINGLETON (Creational)</text>
-    <text x="16" y="52" font-size="11" font-weight="600" fill="#0f172a">Composition Root: container.py &amp; get_settings()</text>
-    <text x="16" y="70" class="mono" font-size="10.5" fill="#0891b2">- Cached singleton Settings with pydantic</text>
-    <text x="16" y="88" class="mono" font-size="10.5" fill="#0891b2">- Global thread-safe EventBus singleton</text>
+    <text x="180" y="20" font-size="13" font-weight="700" fill="#0e7490" text-anchor="middle">6. MODULE SINGLETON &amp; BUILDER</text>
+    <text x="16" y="52" font-size="11" font-weight="600" fill="#0f172a">container.py &amp; PackageFilterBuilder</text>
+    <text x="16" y="70" class="mono" font-size="10.5" fill="#0891b2">- container instance &amp; lru_cache get_settings()</text>
+    <text x="16" y="88" class="mono" font-size="10.5" fill="#0891b2">- PackageFilterBuilder: fluent query builder</text>
     <text x="16" y="112" font-size="11" fill="#475569">Benefit: Predictable configuration loading and</text>
-    <text x="16" y="128" font-size="11" fill="#475569">preventing duplicate connection pools.</text>
+    <text x="16" y="128" font-size="11" fill="#475569">type-safe fluent multi-attribute queries.</text>
   </g>
 
   <!-- Pattern 7: Decorator (Bottom Full Width) -->
