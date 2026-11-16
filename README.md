@@ -5,6 +5,7 @@
   <h3>Secure, Traceable, and Concurrency-Safe Campus Parcel Custody Management</h3>
   <p><strong>Gate No. 2 Custody Hub &bull; Low-Level Design (LLD) &amp; Capstone Defense Guide</strong></p>
   <p>
+    <a href="ARCHITECTURE.md"><strong>🏛️ System Architecture Specification (ARCHITECTURE.md)</strong></a> &bull;
     <a href="docs/16-viva-search-tags-index.md"><strong>🔍 LLD Viva Search Tags & Code Mapping Guide</strong></a> &bull;
     <a href="docs/15-capstone-presentation-deck.md"><strong>📖 Full Presentation Script & Viva Matrix</strong></a> &bull;
     <a href="diagrams/index.html"><strong>📊 Interactive Diagrams Catalog</strong></a>
