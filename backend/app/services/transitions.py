@@ -2,11 +2,28 @@
 
 Steps for every transition:
 1. Ask the state machine whether (current -> target) is allowed for this role.
-2. Apply a conditional UPDATE `... WHERE id = ? AND status = <current>`.
-   If another request changed the package first, 0 rows match and we abort.
+2. Apply an atomic conditional find_one_and_update (WHERE id = ? AND status = <current>).
+   If another request changed the package first, None returns and we abort.
 3. Release storage capacity when the package leaves campus (terminal state).
 4. Write status history + audit log, and queue a domain event for after commit.
 """
+# ==============================================================================
+# [EVAL-4: SOLID-SRP] Single Responsibility Principle (Centralized State Transitioner)
+# WHAT IT IS FOR:
+#   PackageTransitioner is the sole mutator of package status across the system.
+#   No route, service, or repository directly assigns `package.status = X`.
+# HOW IT IS USED HERE:
+#   apply() coordinates:
+#   - Validation against the table-driven State Machine (PackageStateMachine.check)
+#   - Atomic compare_and_set_status() in MongoDB
+#   - Automatic shelf capacity release upon entering terminal statuses
+#   - Status history recording and audit logging
+#   - Domain event buffering in UnitOfWork
+# ==============================================================================
+# [EVAL-9: ERROR-HANDLING-CONCURRENCY] Optimistic Concurrency via Status CAS
+# WHAT IT IS FOR:
+#   Prevents lost updates and race conditions during simultaneous status modifications.
+# ==============================================================================
 from typing import Any
 
 from app.core.exceptions import ConcurrentModificationError

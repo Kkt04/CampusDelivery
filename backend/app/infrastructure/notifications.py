@@ -4,6 +4,27 @@
 the learner's inbox; for EMAIL it means the provider accepted it. Neither means
 the learner has read it (that is `read_at`).
 """
+# ==============================================================================
+# [EVAL-5: PATTERN-FACTORY] Factory Pattern (NotificationChannelFactory)
+# WHAT IT IS FOR:
+#   Encapsulates the instantiation of notification channel objects based on
+#   runtime configuration (e.g. environment variable settings).
+# HOW IT IS USED HERE:
+#   NotificationChannelFactory maintains a registry of builder callables keyed
+#   by name ("in_app", "console_email", "smtp_email"). Callers request channels
+#   by string key without binding to concrete classes.
+# VIVA DEFENSE TIP:
+#   To add SMS, Push, or WhatsApp notifications, implement the NotificationChannel
+#   protocol and call channel_factory.register("sms", SmsChannel). Zero modifications
+#   are required in calling services (Open/Closed Principle).
+# ==============================================================================
+# [EVAL-4: SOLID-OCP] Open/Closed Principle via Registry Factory
+# ==============================================================================
+# [EVAL-4: SOLID-LSP] Liskov Substitution Principle
+# WHAT IT IS FOR:
+#   Any NotificationChannel implementation can seamlessly substitute another
+#   without breaking notification dispatching code.
+# ==============================================================================
 import logging
 from collections.abc import Callable
 

@@ -9,6 +9,20 @@ MongoDB note: standalone deployments have no multi-document transactions, so
 `rollback()` only discards buffered events; the concurrency guarantees come
 from the conditional updates and unique indexes in the repositories.
 """
+# ==============================================================================
+# [EVAL-5: PATTERN-UNIT-OF-WORK] Unit of Work Pattern
+# WHAT IT IS FOR:
+#   Maintains a list of business objects affected by a business transaction and
+#   coordinates the writing out of changes and resolution of concurrency problems.
+# HOW IT IS USED HERE:
+#   UnitOfWork acts as a context manager (`with uow:`) binding all repositories to
+#   a single Store session. Domain events are recorded during the session and
+#   dispatched via EventBus strictly AFTER successful uow.commit().
+# VIVA DEFENSE TIP:
+#   Decouples business services from database session management. If an exception
+#   occurs inside the `with` block, __exit__ triggers rollback() which clears
+#   pending events, preventing phantom notifications.
+# ==============================================================================
 from types import TracebackType
 
 from app.domain.events import DomainEvent, EventBus

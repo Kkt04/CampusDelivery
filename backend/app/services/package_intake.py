@@ -1,3 +1,27 @@
+"""Package intake service orchestrating parcel arrival at campus gate."""
+# ==============================================================================
+# [EVAL-1: REQUIREMENTS] FR-1: Package Intake & Gate Registration
+# WHAT IT IS FOR:
+#   Implements gatekeeper intake workflow when couriers deliver parcels to security.
+# HOW IT IS USED HERE:
+#   PackageIntakeService.register() handles parcel logging, recipient resolution,
+#   condition inspection (GOOD vs DAMAGED), and unambiguous internal code generation.
+# ==============================================================================
+# [EVAL-4: SOLID-SRP] Single Responsibility Principle
+# WHAT IT IS FOR:
+#   PackageIntakeService is solely responsible for package intake logic. Storage
+#   assignment is delegated to StorageAllocationService, handover to PickupService.
+# ==============================================================================
+# [EVAL-6: SEQUENCE-FLOW] Package Intake Sequence Flow
+# WHAT IT IS FOR:
+#   1. Check Idempotency-Key header against previous submissions.
+#   2. Check tracking_id for existing active packages (reject duplicates).
+#   3. Generate collision-resistant internal code (e.g. PKG-261116-X9K2L).
+#   4. If recipient institutional ID provided -> resolve User; if not -> UNIDENTIFIED.
+#   5. If condition is DAMAGED -> set status DAMAGED and open incident automatically.
+#   6. If recipient resolved and GOOD -> set status VERIFIED (ready for storage).
+#   7. Save Package to MongoDB and record audit trail within UoW session.
+# ==============================================================================
 import re
 import secrets
 from datetime import datetime

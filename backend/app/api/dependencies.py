@@ -3,6 +3,26 @@
 Authorization is enforced here on the server for every protected route;
 the frontend only hides buttons for convenience.
 """
+# ==============================================================================
+# [EVAL-5: PATTERN-DECORATOR] Dependency Decorator Pattern (require(permission))
+# WHAT IT IS FOR:
+#   Parameterized factory returning a FastAPI dependency function that checks
+#   fine-grained permissions before route execution.
+# HOW IT IS USED HERE:
+#   `require(Permission.PACKAGE_REGISTER)` decorates the intake route. It resolves
+#   the current user, tests permission against the domain matrix, and aborts with
+#   PermissionDeniedError (HTTP 403) before the controller logic executes.
+# ==============================================================================
+# [EVAL-1: REQUIREMENTS] Server-Side RBAC Enforcement
+# WHAT IT IS FOR:
+#   Enforces non-functional security requirement: client-side UI gating is purely
+#   cosmetic; the server cryptographically validates JWTs and checks roles on every request.
+# ==============================================================================
+# [EVAL-7: API-LAYER-SEPARATION] Inversion of Control via Dependency Injection
+# WHAT IT IS FOR:
+#   FastAPI's Depends(get_uow) injects a scoped UnitOfWork context manager into
+#   controllers, ensuring transactional boundaries are cleanly separated from HTTP logic.
+# ==============================================================================
 from collections.abc import Callable, Iterator
 
 from fastapi import Depends, Header

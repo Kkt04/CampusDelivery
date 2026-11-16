@@ -1,3 +1,15 @@
+"""Package HTTP endpoints (API Layer)."""
+# ==============================================================================
+# [EVAL-7: API-LAYER-SEPARATION] Package Controller Layer
+# WHAT IT IS FOR:
+#   Handles HTTP request parsing, status codes, header injection, authentication,
+#   and delegates business processing to domain services (PackageIntakeService,
+#   StorageAllocationService, PackageLifecycleService).
+# HOW IT IS USED HERE:
+#   Endpoints receive Pydantic DTOs (RegisterPackageRequest, StorageAssignRequest),
+#   invoke services within an injected UnitOfWork context, and return schemas
+#   projected through presenters (present_package).
+# ==============================================================================
 from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query, Response

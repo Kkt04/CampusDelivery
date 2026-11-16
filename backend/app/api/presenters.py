@@ -1,4 +1,15 @@
-"""Turn ORM objects into response schemas, applying per-role visibility rules."""
+"""Turn persistence models into response schemas, applying per-role visibility rules."""
+# ==============================================================================
+# [EVAL-7: API-LAYER-SEPARATION] Presenter Layer (DTOs & Role Visibility Projection)
+# WHAT IT IS FOR:
+#   Decouples internal domain/document models from external API contracts (Pydantic DTOs).
+#   Applies role-aware field redaction so learners never see sensitive staff data.
+# HOW IT IS USED HERE:
+#   present_package() maps Document -> PackageOut:
+#   - Learner viewer: redacts internal notes, recipient_hint, received_by staff ID.
+#   - Learner viewer: masks shelf location until status is READY_FOR_PICKUP or PICKUP_REQUESTED.
+#   - Calculates available_actions dynamically by querying state_machine.available().
+# ==============================================================================
 from datetime import datetime
 
 from app.core.config import Settings

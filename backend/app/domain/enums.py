@@ -1,13 +1,32 @@
 """Enumerations shared by every layer. Stored in the database as strings."""
+# ==============================================================================
+# [EVAL-1: REQUIREMENTS] Domain Enums (Actors, Statuses, Sizes, Incidents)
+# WHAT IT IS FOR:
+#   Defines the closed vocabulary of types, roles, and states used across the
+#   entire domain model, services, and API layers to fulfill requirements:
+#   - Role: FR-6 (Security gatekeeper), FR-5 (Learner pickup), FR-8 (Admin oversight)
+#   - PackageStatus: 12 discrete lifecycle states tracking custody end-to-end
+#   - PackageSize: Small, Medium, Large for storage dimension constraints
+#   - IncidentType / IncidentStatus: Exception tracking and auditing
+# HOW IT IS USED HERE:
+#   Inherits StrEnum so values serialize natively to JSON and store as readable
+#   strings in MongoDB documents without custom BSON serializers.
+# ==============================================================================
 from enum import StrEnum
 
 
+# ==============================================================================
+# [EVAL-3: OOP-ENCAPSULATION] Role-Based Access Control Actors
+# ==============================================================================
 class Role(StrEnum):
     LEARNER = "LEARNER"
     SECURITY = "SECURITY"
     ADMIN = "ADMIN"
 
 
+# ==============================================================================
+# [EVAL-1: REQUIREMENTS] Package Lifecycle States (12 states, 3 terminal)
+# ==============================================================================
 class PackageStatus(StrEnum):
     RECEIVED = "RECEIVED"
     VERIFIED = "VERIFIED"

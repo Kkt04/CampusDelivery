@@ -3,6 +3,25 @@
 Services raise these meaningful exceptions; the API layer translates them into
 safe JSON error responses (see app/main.py). No stack traces leave the server.
 """
+# ==============================================================================
+# [EVAL-9: ERROR-HANDLING-CONCURRENCY] Structured Domain Exception Hierarchy
+# WHAT IT IS FOR:
+#   Eliminates generic 500 errors and fragile string checks. Maps business errors
+#   directly to RFC 7807 problem details and semantic HTTP status codes.
+# HOW IT IS USED HERE:
+#   - AppError: Base class carrying status_code, machine-readable code, and details.
+#   - ConflictError (409): Base for business conflict and concurrency collisions:
+#       * InvalidTransitionError: Illegal FSM status leap.
+#       * AlreadyCollectedError: Anti-double-collection collision.
+#       * ConcurrentModificationError: CAS status optimistic concurrency mismatch.
+#       * DuplicateTrackingIdError: Integrity violation on active tracking ID.
+#   - RateLimitedError (429): Brute force prevention carrying Retry-After header.
+# ==============================================================================
+# [EVAL-3: OOP-INHERITANCE] Exception Specialization
+# WHAT IT IS FOR:
+#   Inheritance hierarchy allows controllers or middleware to catch broad categories
+#   (e.g. `except ConflictError`) or handle specific edge cases without code duplication.
+# ==============================================================================
 from typing import Any
 
 

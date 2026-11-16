@@ -1,10 +1,29 @@
 """Use case: assign (or move) a package to a storage location.
 
-Capacity safety: each reservation is `UPDATE storage_locations SET
-occupied_count = occupied_count + 1 WHERE id = ? AND is_active AND
-occupied_count < capacity`. Two staff members racing for the last slot can
-never both succeed, because the database evaluates the condition atomically.
+Capacity safety: each reservation is an atomic find_one_and_update
+matching occupied_count < capacity and incrementing occupied_count by 1.
+Two staff members racing for the last slot can never both succeed.
 """
+# ==============================================================================
+# [EVAL-1: REQUIREMENTS] FR-2: Storage Allocation & Shelf Management
+# WHAT IT IS FOR:
+#   Assigns packages to optimal shelves based on size and capacity constraints.
+# ==============================================================================
+# [EVAL-4: SOLID-SRP] Single Responsibility Principle
+# WHAT IT IS FOR:
+#   StorageAllocationService is solely responsible for storage assignment and movement.
+#   It delegates the selection algorithm to the injected StorageAllocationStrategy.
+# ==============================================================================
+# [EVAL-6: SEQUENCE-FLOW] Storage Allocation Sequence Flow
+# WHAT IT IS FOR:
+#   1. Fetch package and verify it is in STORABLE_STATUSES.
+#   2. If shelf specified explicitly -> validate location and capacity.
+#   3. If shelf not specified -> consult StorageAllocationStrategy (Strategy pattern).
+#   4. Atomically reserve slot via try_reserve() (atomic CAS preventing over-capacity).
+#   5. If moving from old shelf -> release(previous_id) slot on previous shelf.
+#   6. Transition package status to STORED (or READY_FOR_PICKUP if requested).
+#   7. Commit changes and audit the transaction.
+# ==============================================================================
 from app.core.exceptions import (
     InvalidTransitionError,
     NotFoundError,

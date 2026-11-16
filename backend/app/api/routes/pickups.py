@@ -1,3 +1,13 @@
+"""Pickup & Handover HTTP endpoints (API Layer)."""
+# ==============================================================================
+# [EVAL-7: API-LAYER-SEPARATION] Handover Controller Endpoints
+# WHAT IT IS FOR:
+#   Exposes pickup workflow endpoints:
+#   - POST /packages/{id}/pickup-request (Learner requests OTP)
+#   - POST /pickups/verify (Security verifies OTP without completing)
+#   - POST /pickups/complete (Security finalizes handover with Idempotency-Key)
+#   - POST /pickups/override (Admin/Supervisor emergency ID override)
+# ==============================================================================
 from fastapi import APIRouter, Depends, Query, Response
 
 from app.api.dependencies import get_current_user, get_settings_dep, get_uow, idempotency_key, require

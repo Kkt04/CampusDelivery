@@ -3,6 +3,27 @@
 Services are typed against these protocols, not against PyMongo directly. Only the
 operations services actually need are declared.
 """
+# ==============================================================================
+# [EVAL-3: OOP-ABSTRACTION] Repository Protocols
+# WHAT IT IS FOR:
+#   Abstracts data persistence mechanisms behind typed contracts using typing.Protocol.
+# HOW IT IS USED HERE:
+#   Domain services depend on UserRepository, PackageRepository, StorageRepository,
+#   PickupTokenRepository, and AuditRepository protocols without knowing whether
+#   the backing store is MongoDB, PostgreSQL, or an in-memory test fake.
+# ==============================================================================
+# [EVAL-4: SOLID-ISP] Interface Segregation Principle
+# WHAT IT IS FOR:
+#   Clients should not be forced to depend on methods they do not use.
+# HOW IT IS USED HERE:
+#   Instead of a monolithic IRepository interface, repositories are segregated by
+#   aggregate root: UserRepository, PackageRepository, StorageRepository, etc.
+# ==============================================================================
+# [EVAL-4: SOLID-DIP] Dependency Inversion Principle
+# WHAT IT IS FOR:
+#   High-level modules (services) do not depend on low-level modules (PyMongo repos).
+#   Both depend on abstractions (these protocols).
+# ==============================================================================
 from collections.abc import Sequence
 from datetime import datetime
 from typing import Any, Protocol

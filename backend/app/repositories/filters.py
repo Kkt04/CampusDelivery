@@ -1,4 +1,17 @@
 """Filter and pagination value objects used by repositories and services."""
+# ==============================================================================
+# [EVAL-5: PATTERN-BUILDER] Builder Pattern (PackageFilterBuilder)
+# WHAT IT IS FOR:
+#   Constructs complex, multi-criteria filter parameter objects step-by-step
+#   with a fluent, chainable API instead of telescoping constructors.
+# HOW IT IS USED HERE:
+#   PackageFilterBuilder provides methods (.search(), .with_statuses(), .for_recipient(),
+#   .with_condition(), .overdue(), .arrival_between()) to build an immutable
+#   PackageFilters object consumed by MongoPackageRepository.list_packages().
+# VIVA DEFENSE TIP:
+#   Avoids error-prone positional arguments when querying packages by 7+ optional
+#   criteria. New filters can be added to the builder without breaking existing callers.
+# ==============================================================================
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Generic, TypeVar

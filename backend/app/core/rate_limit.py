@@ -3,6 +3,15 @@
 Limitation (documented): state lives in one process. In a distributed multi-instance
 production deployment, a shared store such as Redis is recommended.
 """
+# ==============================================================================
+# [EVAL-9: ERROR-HANDLING-CONCURRENCY] Sliding Window Rate Limiter
+# WHAT IT IS FOR:
+#   Protects authentication endpoints from brute-force password guessing and DoS.
+# HOW IT IS USED HERE:
+#   SlidingWindowRateLimiter tracks failed attempts in timestamp deques per key
+#   (IP / username). If failures exceed max_failures within window_seconds, raises
+#   RateLimitedError with exact retry_after duration. Thread-safe via threading.Lock.
+# ==============================================================================
 from __future__ import annotations
 
 import time

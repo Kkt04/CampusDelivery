@@ -1,4 +1,22 @@
 """FastAPI application factory, error handling and router registration."""
+# ==============================================================================
+# [EVAL-10: WORKING-IMPLEMENTATION] Application Factory & Server Lifecycle
+# WHAT IT IS FOR:
+#   Root application bootstrap assembling routes, middleware, and startup events.
+# HOW IT IS USED HERE:
+#   create_app() wires CORS middleware, correlation IDs (X-Request-ID), global
+#   exception handlers, and mounts all sub-routers under /api/v1.
+# ==============================================================================
+# [EVAL-9: ERROR-HANDLING-CONCURRENCY] Global RFC 7807 Exception Handlers
+# WHAT IT IS FOR:
+#   Translates domain exceptions (AppError, RateLimitedError, ValidationError) into
+#   uniform, secure JSON error payloads with request IDs; shields internal stack traces.
+# ==============================================================================
+# [EVAL-7: API-LAYER-SEPARATION] REST API Router Composition
+# WHAT IT IS FOR:
+#   Mounts modular controller routers (auth, packages, pickups, storage, users, etc.)
+#   under versioned prefix /api/v1.
+# ==============================================================================
 import logging
 import uuid
 

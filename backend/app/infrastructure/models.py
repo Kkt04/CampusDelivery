@@ -11,6 +11,32 @@ the presenters expect.
   occupied_count == number of packages whose storage_location_id points here.
 * Pickup codes are stored only as salted HMAC hashes.
 """
+# ==============================================================================
+# [EVAL-2: CLASS-DIAGRAM] Entity Relationships & Multiplicities
+# WHAT IT IS FOR:
+#   Defines the structural blueprint of all persistent domain entities and their
+#   multiplicities in accordance with the system class diagram:
+#   - User (1) ---- (0..*) Package (recipient / received_by)   [Association]
+#   - StorageLocation (1) ---- (0..*) Package                 [Aggregation]
+#   - Package (1) ---- (0..*) PackageStatusHistory           [Composition]
+#   - Package (1) ---- (0..*) PickupToken                    [Composition]
+#   - Package (1) ---- (0..1) PickupRecord                   [Association, 1-to-1 via UK]
+#   - Incident (1) ---- (0..*) comments                      [Embedded documents]
+# HOW IT IS USED HERE:
+#   Plain dataclasses inherit from Document base class. Document references store
+#   foreign IDs (e.g. recipient_id, storage_location_id) with optional hydrated
+#   fields populated by repository queries.
+# ==============================================================================
+# [EVAL-3: OOP-INHERITANCE] Document Base Class
+# WHAT IT IS FOR:
+#   Provides shared serialization/deserialization logic (to_doc, from_doc, apply_doc)
+#   and ID management across all persistent MongoDB entities.
+# ==============================================================================
+# [EVAL-8: DB-SCHEMA-INDEXING] Collection Mapping
+# WHAT IT IS FOR:
+#   Each dataclass specifies its COLLECTION name, ENUMS conversions, and DATES
+#   fields to map cleanly to MongoDB collections.
+# ==============================================================================
 from dataclasses import dataclass, field, fields
 from datetime import datetime
 from typing import Any, ClassVar
